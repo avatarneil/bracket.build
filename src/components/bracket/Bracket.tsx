@@ -67,13 +67,14 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
   const hasScrollableContent = canScrollLeft || canScrollRight || (scrollRef.current && scrollRef.current.scrollWidth > scrollRef.current.clientWidth);
 
   return (
-    <div className="relative w-full lg:w-auto">
+    <div className="relative w-full max-w-[calc(100vw-24px)] lg:w-auto lg:max-w-none">
       {/* Scroll container */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
         onTouchStart={() => setShowHint(false)}
-        className="w-full overflow-x-auto lg:overflow-visible scrollbar-hide scroll-smooth"
+        className="w-full overflow-x-auto lg:overflow-visible scrollbar-hide scroll-smooth touch-pan-x"
+        style={{ touchAction: 'pan-x pan-y' }}
       >
         {children}
       </div>

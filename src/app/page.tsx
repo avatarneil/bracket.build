@@ -33,10 +33,10 @@ function BracketApp() {
   return (
     <>
       {/* Main content with bottom padding for mobile action bar */}
-      <main className="min-h-screen bg-gray-950 px-3 pb-28 pt-4 sm:px-4 sm:py-8 lg:pb-8">
+      <main className="min-h-screen overflow-x-hidden bg-gray-950 px-3 pb-28 pt-4 sm:px-4 sm:py-8 lg:pb-8">
         {/* Use inline-flex wrapper to let content determine its own width and center it */}
-        <div className="flex justify-center">
-          <div className="inline-flex flex-col items-center">
+        <div className="flex justify-center overflow-x-hidden">
+          <div className="inline-flex max-w-full flex-col items-center overflow-x-hidden">
             {/* Header - smaller on mobile */}
             <header className="mb-4 text-center sm:mb-8">
               <h1 className="bg-gradient-to-r from-red-500 via-white to-blue-500 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl md:text-5xl">
