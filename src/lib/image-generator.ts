@@ -6,23 +6,83 @@ export interface GenerateImageOptions {
 }
 
 /**
+ * Extract the original image URL from a Next.js optimized image URL
+ * Next.js Image serves images from /_next/image?url=<encoded-url>&w=...&q=...
+ */
+function extractOriginalUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url, window.location.origin);
+    if (urlObj.pathname === "/_next/image") {
+      const originalUrl = urlObj.searchParams.get("url");
+      if (originalUrl) {
+        return originalUrl;
+      }
+    }
+  } catch {
+    // Not a valid URL
+  }
+  return null;
+}
+
+/**
+ * Check if an image URL is from ESPN CDN (either directly or via Next.js optimization)
+ */
+function isEspnImage(url: string): boolean {
+  if (!url) return false;
+
+  // Direct ESPN CDN URL
+  if (url.includes("espncdn.com")) return true;
+
+  // Next.js optimized ESPN image
+  const originalUrl = extractOriginalUrl(url);
+  if (originalUrl?.includes("espncdn.com")) return true;
+
+  return false;
+}
+
+/**
+ * Get the URL to use for fetching (extract original from Next.js if needed)
+ */
+function getImageFetchUrl(url: string): string {
+  const originalUrl = extractOriginalUrl(url);
+  return originalUrl || url;
+}
+
+/**
  * Convert an image URL to a data URI by fetching through our proxy
+ * Also pre-loads the data URI to ensure it's ready for rendering
  */
 async function imageToDataUri(url: string): Promise<string> {
   try {
+    // Get the actual URL to fetch (extract from Next.js optimization if needed)
+    const fetchUrl = getImageFetchUrl(url);
+
     // Use our proxy to avoid CORS issues
-    const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(url)}`;
+    const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(fetchUrl)}`;
     const response = await fetch(proxyUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch: ${response.status}`);
     }
     const blob = await response.blob();
-    return new Promise((resolve, reject) => {
+    const dataUri = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
+
+    // Pre-load the data URI to ensure it's cached and ready for rendering
+    // This is especially important for Safari which can be slow to decode data URIs
+    await new Promise<void>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve(); // Continue even on error
+      img.src = dataUri;
+      // Timeout fallback
+      setTimeout(resolve, 1000);
+    });
+
+    return dataUri;
   } catch (error) {
     console.error("Failed to convert image to data URI:", url, error);
     // Return a transparent 1x1 pixel as fallback
@@ -80,8 +140,8 @@ async function replaceImagesWithDataUris(
 
   for (const img of images) {
     const src = img.src;
-    // Only process external ESPN CDN images
-    if (src?.includes("espncdn.com") && !urlToDataUri.has(src)) {
+    // Process ESPN CDN images (both direct and via Next.js optimization)
+    if (isEspnImage(src) && !urlToDataUri.has(src)) {
       urlsToFetch.push(src);
     }
   }
@@ -99,12 +159,28 @@ async function replaceImagesWithDataUris(
     const originalSrc = img.src;
     const dataUri = urlToDataUri.get(originalSrc);
     if (dataUri) {
-      // Also store the original srcset if any
+      // Store original attributes for restoration
       const originalSrcset = img.srcset;
+      const originalStyle = img.getAttribute("style") || "";
+      const originalLoading = img.getAttribute("loading");
+      const originalDecoding = img.getAttribute("decoding");
 
       // Clear srcset first to prevent Next.js Image from interfering
       img.srcset = "";
       img.removeAttribute("data-nimg"); // Remove Next.js image marker
+      img.removeAttribute("loading"); // Remove lazy loading
+      img.removeAttribute("decoding"); // Remove async decoding
+
+      // Fix Next.js Image styling - ensure image is visible and properly sized
+      // Next.js Image uses position:absolute with object-fit, which can cause issues
+      const computedStyle = window.getComputedStyle(img);
+      if (computedStyle.position === "absolute") {
+        // Keep position absolute but ensure dimensions are correct
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.inset = "0";
+        img.style.objectFit = "contain";
+      }
 
       // Set the new source and wait for it to load
       img.src = dataUri;
@@ -114,8 +190,15 @@ async function replaceImagesWithDataUris(
 
       restoreFunctions.push(() => {
         img.src = originalSrc;
+        img.setAttribute("style", originalStyle);
         if (originalSrcset) {
           img.srcset = originalSrcset;
+        }
+        if (originalLoading) {
+          img.setAttribute("loading", originalLoading);
+        }
+        if (originalDecoding) {
+          img.setAttribute("decoding", originalDecoding);
         }
       });
     }
@@ -394,16 +477,6 @@ export async function generateBracketImage(
       fetchRequestInit: {
         mode: "cors",
         credentials: "omit",
-      },
-      // Filter to ensure we only include fully loaded images
-      filter: (node: HTMLElement | Node) => {
-        // Don't filter out any nodes - we want everything
-        // But this function being present helps html-to-image process nodes correctly
-        if (node instanceof HTMLImageElement) {
-          // Only include images that are loaded
-          return node.complete && node.naturalWidth > 0;
-        }
-        return true;
       },
     });
   } catch (captureError) {
