@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FolderOpen, Loader2, Share2 } from "lucide-react";
+import { Download, FolderOpen, Loader2, Save, Share2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useBracket } from "@/contexts/BracketContext";
@@ -11,6 +11,7 @@ import {
 } from "@/lib/image-generator";
 import { cn } from "@/lib/utils";
 import { LoadBracketDialog } from "./dialogs/LoadBracketDialog";
+import { SaveBracketDialog } from "./dialogs/SaveBracketDialog";
 
 interface MobileActionBarProps {
   bracketRef: React.RefObject<HTMLDivElement | null>;
@@ -67,6 +68,7 @@ function ActionButton({
 export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
   const { bracket } = useBracket();
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -172,16 +174,11 @@ export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
             <div className="flex border-t border-white/10">
               <button
                 type="button"
-                onClick={handleSaveScreenshot}
-                disabled={isSaving}
-                className="flex flex-1 items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:bg-white/5 hover:text-white active:bg-white/10 disabled:opacity-50 md:py-4 md:text-sm"
+                onClick={() => setSaveDialogOpen(true)}
+                className="flex flex-1 items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:bg-white/5 hover:text-white active:bg-white/10 md:py-4 md:text-sm"
               >
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin md:h-5 md:w-5" />
-                ) : (
-                  <Download className="h-4 w-4 md:h-5 md:w-5" />
-                )}
-                Save Image
+                <Save className="h-4 w-4 md:h-5 md:w-5" />
+                Save Bracket
               </button>
               <div className="w-px bg-white/10" />
               <button
@@ -190,7 +187,7 @@ export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
                 className="flex flex-1 items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:bg-white/5 hover:text-white active:bg-white/10 md:py-4 md:text-sm"
               >
                 <FolderOpen className="h-4 w-4 md:h-5 md:w-5" />
-                My Brackets
+                Load
               </button>
             </div>
           </div>
@@ -199,6 +196,11 @@ export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
         <LoadBracketDialog
           open={loadDialogOpen}
           onOpenChange={setLoadDialogOpen}
+        />
+
+        <SaveBracketDialog
+          open={saveDialogOpen}
+          onOpenChange={setSaveDialogOpen}
         />
       </>
     );
@@ -213,19 +215,29 @@ export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
           <ActionButton
             onClick={() => setLoadDialogOpen(true)}
             icon={FolderOpen}
-            label="My Brackets"
+            label="Load"
           />
 
           {/* Divider */}
-          <div className="mx-1.5 h-8 w-px bg-white/10 md:mx-2 md:h-10" />
+          <div className="mx-1 h-8 w-px bg-white/10 md:mx-1.5 md:h-10" />
 
-          {/* Share - Primary action with white bg */}
+          {/* Save - Primary action */}
+          <ActionButton
+            onClick={() => setSaveDialogOpen(true)}
+            icon={Save}
+            label="Save"
+            variant="primary"
+          />
+
+          {/* Divider */}
+          <div className="mx-1 h-8 w-px bg-white/10 md:mx-1.5 md:h-10" />
+
+          {/* Share */}
           <ActionButton
             onClick={handleShare}
             disabled={isGenerating}
             icon={isGenerating ? Loader2 : Share2}
             label="Share"
-            variant="primary"
           />
         </div>
       </div>
@@ -233,6 +245,11 @@ export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
       <LoadBracketDialog
         open={loadDialogOpen}
         onOpenChange={setLoadDialogOpen}
+      />
+
+      <SaveBracketDialog
+        open={saveDialogOpen}
+        onOpenChange={setSaveDialogOpen}
       />
     </>
   );

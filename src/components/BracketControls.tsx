@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ChevronDown,
-  FolderOpen,
-  Loader2,
-  RotateCcw,
-  Save,
-  User,
-} from "lucide-react";
+import { ChevronDown, FolderOpen, RotateCcw, Save, User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,13 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useBracket } from "@/contexts/BracketContext";
-import {
-  downloadImage,
-  generateBracketImage,
-  shareImage,
-} from "@/lib/image-generator";
 import { clearStoredUser } from "@/lib/storage";
 import { LoadBracketDialog } from "./dialogs/LoadBracketDialog";
+import { SaveBracketDialog } from "./dialogs/SaveBracketDialog";
 import { ShareMenu } from "./ShareMenu";
 
 interface BracketControlsProps {
@@ -37,9 +26,9 @@ export function BracketControls({
   bracketRef,
   onResetName,
 }: BracketControlsProps) {
-  const { bracket, resetBracket, setUserName } = useBracket();
+  const { resetBracket, setUserName } = useBracket();
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
   const handleResetBracket = () => {
     if (
@@ -61,38 +50,6 @@ export function BracketControls({
       resetBracket();
       onResetName?.();
       toast.success("Name and bracket reset!");
-    }
-  };
-
-  const handleSave = async () => {
-    if (!bracketRef.current) {
-      toast.error("Cannot generate image");
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const blob = await generateBracketImage(bracketRef.current, {
-        userName: bracket.userName,
-        bracketName: bracket.name,
-      });
-
-      const shared = await shareImage(
-        blob,
-        `${bracket.userName}'s Playoff Bracket`,
-        "Check out my NFL playoff predictions on bracket.build!",
-      );
-
-      if (!shared) {
-        // Fallback to download if share not supported
-        const filename = `${bracket.userName.replace(/\s+/g, "-")}-bracket-${Date.now()}.png`;
-        await downloadImage(blob, filename);
-        toast.success("Image downloaded!");
-      }
-    } catch {
-      toast.error("Failed to generate image");
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -131,17 +88,11 @@ export function BracketControls({
         </DropdownMenu>
 
         <Button
-          variant="outline"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="border-gray-600 bg-gray-800 text-white hover:bg-gray-700"
+          onClick={() => setSaveDialogOpen(true)}
+          className="bg-gradient-to-r from-red-600 to-blue-600 text-white hover:from-red-700 hover:to-blue-700"
         >
-          {isSaving ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="mr-2 h-4 w-4" />
-          )}
-          Save
+          <Save className="mr-2 h-4 w-4" />
+          Save Bracket
         </Button>
 
         <Button
@@ -192,6 +143,11 @@ export function BracketControls({
       <LoadBracketDialog
         open={loadDialogOpen}
         onOpenChange={setLoadDialogOpen}
+      />
+
+      <SaveBracketDialog
+        open={saveDialogOpen}
+        onOpenChange={setSaveDialogOpen}
       />
     </>
   );
