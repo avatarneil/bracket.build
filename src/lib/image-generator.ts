@@ -31,6 +31,38 @@ async function imageToDataUri(url: string): Promise<string> {
 }
 
 /**
+ * Wait for an image element to fully load
+ */
+function waitForImageLoad(img: HTMLImageElement): Promise<void> {
+  return new Promise((resolve) => {
+    // If already loaded (complete and has dimensions), resolve immediately
+    if (img.complete && img.naturalWidth > 0) {
+      resolve();
+      return;
+    }
+
+    const onLoad = () => {
+      img.removeEventListener("load", onLoad);
+      img.removeEventListener("error", onError);
+      resolve();
+    };
+
+    const onError = () => {
+      img.removeEventListener("load", onLoad);
+      img.removeEventListener("error", onError);
+      // Resolve anyway to not block the capture
+      resolve();
+    };
+
+    img.addEventListener("load", onLoad);
+    img.addEventListener("error", onError);
+
+    // Timeout fallback for Safari - if image doesn't load within 2s, continue anyway
+    setTimeout(resolve, 2000);
+  });
+}
+
+/**
  * Replace all external image sources with data URIs to avoid CORS issues during capture
  * Returns a cleanup function to restore original sources
  */
@@ -49,7 +81,7 @@ async function replaceImagesWithDataUris(
   for (const img of images) {
     const src = img.src;
     // Only process external ESPN CDN images
-    if (src && src.includes("espncdn.com") && !urlToDataUri.has(src)) {
+    if (src?.includes("espncdn.com") && !urlToDataUri.has(src)) {
       urlsToFetch.push(src);
     }
   }
@@ -60,7 +92,9 @@ async function replaceImagesWithDataUris(
     urlToDataUri.set(url, dataUris[index]);
   });
 
-  // Replace all image sources
+  // Replace all image sources and collect promises for load events
+  const loadPromises: Promise<void>[] = [];
+
   for (const img of images) {
     const originalSrc = img.src;
     const dataUri = urlToDataUri.get(originalSrc);
@@ -68,9 +102,15 @@ async function replaceImagesWithDataUris(
       // Also store the original srcset if any
       const originalSrcset = img.srcset;
 
-      img.src = dataUri;
-      img.srcset = ""; // Clear srcset to prevent Next.js Image from overriding
+      // Clear srcset first to prevent Next.js Image from interfering
+      img.srcset = "";
       img.removeAttribute("data-nimg"); // Remove Next.js image marker
+
+      // Set the new source and wait for it to load
+      img.src = dataUri;
+
+      // Wait for the new image to load (important for Safari)
+      loadPromises.push(waitForImageLoad(img));
 
       restoreFunctions.push(() => {
         img.src = originalSrc;
@@ -80,6 +120,9 @@ async function replaceImagesWithDataUris(
       });
     }
   }
+
+  // Wait for all images to fully load with their new data URI sources
+  await Promise.all(loadPromises);
 
   return () => {
     for (let i = restoreFunctions.length - 1; i >= 0; i--) {
@@ -320,8 +363,13 @@ export async function generateBracketImage(
   const originalOverflow = element.style.overflow;
   element.style.overflow = "visible";
 
-  // Small delay to ensure layout reflow is complete
-  await new Promise((resolve) => setTimeout(resolve, 150));
+  // Delay to ensure layout reflow is complete
+  // Use a longer delay on Safari/iOS which has slower rendering for dynamically changed images
+  const isSafari =
+    typeof navigator !== "undefined" &&
+    /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const delay = isSafari ? 500 : 200;
+  await new Promise((resolve) => setTimeout(resolve, delay));
 
   // Get the full scroll dimensions (content may be wider than visible area)
   const fullWidth = Math.max(element.scrollWidth, element.offsetWidth);
@@ -330,15 +378,32 @@ export async function generateBracketImage(
   let canvas: HTMLCanvasElement;
   try {
     // Use html-to-image which has better CSS support
+    // Safari-specific: use skipAutoScale and lower pixelRatio to avoid memory issues
+    const isSafariDevice =
+      typeof navigator !== "undefined" &&
+      /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
     canvas = await htmlToImage.toCanvas(element, {
       backgroundColor: "#000000", // Pure black for OLED
-      pixelRatio: 2, // Higher resolution
+      pixelRatio: isSafariDevice ? 1.5 : 2, // Lower resolution on Safari to avoid memory issues
       cacheBust: true, // Avoid cache issues
       width: fullWidth,
       height: fullHeight,
+      skipAutoScale: isSafariDevice, // Skip auto-scaling on Safari which can cause issues
+      includeQueryParams: true, // Include query params in image URLs (for cache busting)
       fetchRequestInit: {
         mode: "cors",
         credentials: "omit",
+      },
+      // Filter to ensure we only include fully loaded images
+      filter: (node: HTMLElement | Node) => {
+        // Don't filter out any nodes - we want everything
+        // But this function being present helps html-to-image process nodes correctly
+        if (node instanceof HTMLImageElement) {
+          // Only include images that are loaded
+          return node.complete && node.naturalWidth > 0;
+        }
+        return true;
       },
     });
   } catch (captureError) {
