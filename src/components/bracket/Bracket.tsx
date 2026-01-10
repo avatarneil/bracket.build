@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useBracket } from "@/contexts/BracketContext";
@@ -19,8 +19,10 @@ interface ScrollHintWrapperProps {
 function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showHint, setShowHint] = useState(true);
+  const [showScrollDownHint, setShowScrollDownHint] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [hasReachedEnd, setHasReachedEnd] = useState(false);
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
@@ -29,9 +31,18 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
     const { scrollLeft, scrollWidth, clientWidth } = el;
     const threshold = 10; // Small threshold to account for rounding
     
+    const atLeftEdge = scrollLeft <= threshold;
+    const atRightEdge = scrollLeft + clientWidth >= scrollWidth - threshold;
+    
     setCanScrollLeft(scrollLeft > threshold);
-    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - threshold);
-  }, []);
+    setCanScrollRight(!atRightEdge);
+    
+    // Show scroll down hint when user reaches the right edge for the first time
+    if (atRightEdge && !atLeftEdge && !hasReachedEnd) {
+      setHasReachedEnd(true);
+      setShowScrollDownHint(true);
+    }
+  }, [hasReachedEnd]);
 
   const handleScroll = useCallback(() => {
     setShowHint(false);
@@ -64,10 +75,21 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
     return () => clearTimeout(timer);
   }, []);
 
+  // Auto-hide scroll down hint after 3 seconds
+  useEffect(() => {
+    if (showScrollDownHint) {
+      const timer = setTimeout(() => setShowScrollDownHint(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showScrollDownHint]);
+
   const hasScrollableContent = canScrollLeft || canScrollRight || (scrollRef.current && scrollRef.current.scrollWidth > scrollRef.current.clientWidth);
 
   return (
-    <div className="relative w-full max-w-[calc(100vw-24px)] lg:w-auto lg:max-w-none">
+    <div 
+      className="relative w-full max-w-[calc(100vw-24px)] lg:w-auto lg:max-w-none"
+      data-conference={conference}
+    >
       {/* Scroll container */}
       <div
         ref={scrollRef}
@@ -132,6 +154,41 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
           <span>Swipe to explore</span>
           <ChevronRight className="h-3 w-3 animate-bounce-x" />
         </div>
+      )}
+
+      {/* Scroll down hint (mobile only) - shows when user reaches right edge */}
+      {showScrollDownHint && (
+        <button
+          type="button"
+          onClick={() => {
+            // Find the correct target section based on current conference
+            // Note: DOM order has Super Bowl between AFC and NFC, but CSS reorders on mobile
+            let targetElement: HTMLElement | null = null;
+            
+            if (conference === "AFC") {
+              // From AFC, scroll to NFC section
+              targetElement = document.querySelector('[data-conference="NFC"]');
+            } else {
+              // From NFC, scroll to Super Bowl (the element with order-last)
+              const currentSection = scrollRef.current?.closest('[data-conference]');
+              const parent = currentSection?.parentElement;
+              // Super Bowl is the div with order-last class
+              targetElement = parent?.querySelector('.order-last') as HTMLElement;
+            }
+            
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setShowScrollDownHint(false);
+            }
+          }}
+          className={cn(
+            "absolute bottom-2 right-2 flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-medium text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/30 active:scale-95 lg:hidden",
+            "animate-pulse",
+          )}
+        >
+          <span>Scroll down for {conference === "AFC" ? "NFC" : "Super Bowl"}</span>
+          <ChevronDown className="h-3 w-3 animate-bounce" />
+        </button>
       )}
     </div>
   );
