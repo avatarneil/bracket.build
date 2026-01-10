@@ -6,6 +6,87 @@ export interface GenerateImageOptions {
 }
 
 /**
+ * Convert an image URL to a data URI by fetching through our proxy
+ */
+async function imageToDataUri(url: string): Promise<string> {
+  try {
+    // Use our proxy to avoid CORS issues
+    const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch: ${response.status}`);
+    }
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error("Failed to convert image to data URI:", url, error);
+    // Return a transparent 1x1 pixel as fallback
+    return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+  }
+}
+
+/**
+ * Replace all external image sources with data URIs to avoid CORS issues during capture
+ * Returns a cleanup function to restore original sources
+ */
+async function replaceImagesWithDataUris(element: HTMLElement): Promise<() => void> {
+  const restoreFunctions: (() => void)[] = [];
+  
+  // Find all img elements (including those inside Next.js Image components)
+  const images = element.querySelectorAll("img");
+  
+  // Create a map of unique URLs to avoid fetching duplicates
+  const urlToDataUri = new Map<string, string>();
+  const urlsToFetch: string[] = [];
+  
+  for (const img of images) {
+    const src = img.src;
+    // Only process external ESPN CDN images
+    if (src && src.includes("espncdn.com") && !urlToDataUri.has(src)) {
+      urlsToFetch.push(src);
+    }
+  }
+  
+  // Fetch all unique images in parallel
+  const dataUris = await Promise.all(urlsToFetch.map(imageToDataUri));
+  urlsToFetch.forEach((url, index) => {
+    urlToDataUri.set(url, dataUris[index]);
+  });
+  
+  // Replace all image sources
+  for (const img of images) {
+    const originalSrc = img.src;
+    const dataUri = urlToDataUri.get(originalSrc);
+    if (dataUri) {
+      // Also store the original srcset if any
+      const originalSrcset = img.srcset;
+      
+      img.src = dataUri;
+      img.srcset = ""; // Clear srcset to prevent Next.js Image from overriding
+      img.removeAttribute("data-nimg"); // Remove Next.js image marker
+      
+      restoreFunctions.push(() => {
+        img.src = originalSrc;
+        if (originalSrcset) {
+          img.srcset = originalSrcset;
+        }
+      });
+    }
+  }
+  
+  return () => {
+    for (let i = restoreFunctions.length - 1; i >= 0; i--) {
+      restoreFunctions[i]();
+    }
+  };
+}
+
+/**
  * Temporarily applies desktop/landscape layout styles to the bracket
  * Returns a cleanup function to restore original styles
  */
@@ -52,6 +133,29 @@ function forceDesktopLayout(element: HTMLElement): () => void {
     restoreFunctions.push(() => {
       superBowlContainer.style.order = originalOrder;
       superBowlContainer.style.alignSelf = originalAlignSelf;
+    });
+  }
+  
+  // Fix NFC bracket direction - should be row-reverse on desktop (mirrored from AFC)
+  // The NFC bracket has lg:flex-row-reverse class which we need to apply
+  const nfcBracketRounds = element.querySelectorAll('.lg\\:flex-row-reverse');
+  for (const bracketRounds of nfcBracketRounds) {
+    if (bracketRounds instanceof HTMLElement) {
+      const originalFlexDirection = bracketRounds.style.flexDirection;
+      bracketRounds.style.flexDirection = 'row-reverse';
+      restoreFunctions.push(() => {
+        bracketRounds.style.flexDirection = originalFlexDirection;
+      });
+    }
+  }
+  
+  // Fix NFC conference header alignment (should be right-aligned on desktop)
+  const nfcHeader = element.querySelector('.lg\\:self-end') as HTMLElement;
+  if (nfcHeader) {
+    const originalAlignSelf = nfcHeader.style.alignSelf;
+    nfcHeader.style.alignSelf = 'flex-end';
+    restoreFunctions.push(() => {
+      nfcHeader.style.alignSelf = originalAlignSelf;
     });
   }
   
@@ -163,6 +267,9 @@ export async function generateBracketImage(
   element: HTMLElement,
   options: GenerateImageOptions,
 ): Promise<Blob> {
+  // Replace external images with data URIs to avoid CORS issues
+  const restoreImages = await replaceImagesWithDataUris(element);
+  
   // Force desktop/landscape layout
   const restoreLayout = forceDesktopLayout(element);
   
@@ -207,6 +314,7 @@ export async function generateBracketImage(
       el.style.overflow = original;
     }
     restoreLayout();
+    restoreImages();
     throw captureError;
   }
   
@@ -216,8 +324,9 @@ export async function generateBracketImage(
     el.style.overflow = original;
   }
   
-  // Restore layout
+  // Restore layout and images
   restoreLayout();
+  restoreImages();
 
   // Add header with user info
   const finalCanvas = document.createElement("canvas");
