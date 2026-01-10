@@ -39,7 +39,7 @@ export function ShareMenu({ bracketRef }: ShareMenuProps) {
         bracketName: bracket.name,
       });
       return blob;
-    } catch {
+    } catch (err) {
       toast.error("Failed to generate image");
       return null;
     } finally {

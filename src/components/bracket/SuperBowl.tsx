@@ -26,19 +26,19 @@ export function SuperBowl() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-3 sm:gap-4">
       {/* Super Bowl Header */}
-      <div className="flex flex-col items-center gap-2">
-        <Trophy className="h-8 w-8 text-yellow-500" />
-        <div className="rounded-lg bg-gradient-to-r from-red-700 via-purple-700 to-blue-700 px-6 py-2 text-center font-bold text-white shadow-lg">
+      <div className="flex flex-col items-center gap-1 sm:gap-2">
+        <Trophy className="h-6 w-6 text-yellow-500 sm:h-8 sm:w-8" />
+        <div className="rounded-lg border border-white/20 bg-black px-4 py-1.5 text-center text-sm font-bold uppercase tracking-wider text-white shadow-lg sm:px-6 sm:py-2 sm:text-base">
           Super Bowl LX
         </div>
       </div>
 
       {/* Matchup */}
-      <div className="flex flex-col items-center gap-4 rounded-xl border-2 border-yellow-500/30 bg-gray-800/50 p-6">
+      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-yellow-500/30 bg-gray-800/50 p-4 sm:gap-4 sm:p-6">
         {/* AFC Champion */}
-        <div className="w-48">
+        <div className="w-44 sm:w-48">
           <div className="mb-1 text-center text-xs font-semibold uppercase text-red-400">
             AFC Champion
           </div>
@@ -48,14 +48,15 @@ export function SuperBowl() {
             isLoser={winner !== null && winner?.id !== homeTeam?.id}
             onClick={() => homeTeam && handleSelect(homeTeam)}
             disabled={!canSelect}
-            size="lg"
+            mobileSize="md"
+            desktopSize="lg"
           />
         </div>
 
-        <div className="text-2xl font-bold text-gray-500">VS</div>
+        <div className="text-xl font-bold text-gray-500 sm:text-2xl">VS</div>
 
         {/* NFC Champion */}
-        <div className="w-48">
+        <div className="w-44 sm:w-48">
           <div className="mb-1 text-center text-xs font-semibold uppercase text-blue-400">
             NFC Champion
           </div>
@@ -65,19 +66,20 @@ export function SuperBowl() {
             isLoser={winner !== null && winner?.id !== awayTeam?.id}
             onClick={() => awayTeam && handleSelect(awayTeam)}
             disabled={!canSelect}
-            size="lg"
+            mobileSize="md"
+            desktopSize="lg"
           />
         </div>
 
         {/* Champion Display */}
         {winner && (
-          <div className="mt-4 flex flex-col items-center gap-2 rounded-lg bg-yellow-500/20 px-6 py-4">
-            <Trophy className="h-10 w-10 text-yellow-500" />
+          <div className="mt-2 flex flex-col items-center gap-2 rounded-lg bg-yellow-500/20 px-4 py-3 sm:mt-4 sm:px-6 sm:py-4">
+            <Trophy className="h-8 w-8 text-yellow-500 sm:h-10 sm:w-10" />
             <div className="text-center">
-              <div className="text-sm font-semibold uppercase text-yellow-500">
+              <div className="text-xs font-semibold uppercase text-yellow-500 sm:text-sm">
                 Super Bowl Champion
               </div>
-              <div className="text-xl font-bold text-white">
+              <div className="text-lg font-bold text-white sm:text-xl">
                 {winner.city} {winner.name}
               </div>
             </div>

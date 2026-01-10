@@ -4,11 +4,17 @@ import { cn } from "@/lib/utils";
 import type { Matchup as MatchupType, SeededTeam } from "@/types";
 import { TeamCard } from "./TeamCard";
 
+type Size = "sm" | "md" | "lg";
+
 interface MatchupProps {
   matchup: MatchupType;
   onSelectWinner: (matchupId: string, winner: SeededTeam) => void;
   onClearWinner?: (matchupId: string) => void;
-  size?: "sm" | "md" | "lg";
+  size?: Size;
+  /** Size on mobile (< lg breakpoint). Takes precedence over size on mobile. */
+  mobileSize?: Size;
+  /** Size on desktop (>= lg breakpoint). Takes precedence over size on desktop. */
+  desktopSize?: Size;
   showConnector?: boolean;
   connectorSide?: "left" | "right";
 }
@@ -18,6 +24,8 @@ export function Matchup({
   onSelectWinner,
   onClearWinner,
   size = "md",
+  mobileSize,
+  desktopSize,
   showConnector = false,
   connectorSide = "right",
 }: MatchupProps) {
@@ -35,9 +43,18 @@ export function Matchup({
     }
   };
 
+  // Use responsive sizing if mobileSize/desktopSize are provided
+  const effectiveSize = size;
+  const effectiveMobileSize = mobileSize || size;
+  const effectiveDesktopSize = desktopSize || size;
+
   return (
     <div
-      className={cn("relative flex flex-col gap-1", size === "lg" && "gap-2")}
+      className={cn(
+        "relative flex flex-col gap-1",
+        (effectiveMobileSize === "lg" || effectiveDesktopSize === "lg") &&
+          "lg:gap-2",
+      )}
     >
       <TeamCard
         team={homeTeam}
@@ -45,7 +62,9 @@ export function Matchup({
         isLoser={winner !== null && winner?.id !== homeTeam?.id}
         onClick={() => homeTeam && handleSelect(homeTeam)}
         disabled={!canSelect}
-        size={size}
+        size={effectiveSize}
+        mobileSize={effectiveMobileSize}
+        desktopSize={effectiveDesktopSize}
       />
       <TeamCard
         team={awayTeam}
@@ -53,7 +72,9 @@ export function Matchup({
         isLoser={winner !== null && winner?.id !== awayTeam?.id}
         onClick={() => awayTeam && handleSelect(awayTeam)}
         disabled={!canSelect}
-        size={size}
+        size={effectiveSize}
+        mobileSize={effectiveMobileSize}
+        desktopSize={effectiveDesktopSize}
       />
       {/* Connector line to next round */}
       {showConnector && (

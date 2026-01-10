@@ -31,7 +31,8 @@ export function BracketControls({ bracketRef }: BracketControlsProps) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-center gap-2">
+      {/* Desktop controls - hidden on mobile since we have MobileActionBar */}
+      <div className="hidden items-center justify-center gap-2 lg:flex">
         <Button
           variant="outline"
           onClick={handleReset}
@@ -60,6 +61,19 @@ export function BracketControls({ bracketRef }: BracketControlsProps) {
         </Button>
 
         <ShareMenu bracketRef={bracketRef} />
+      </div>
+
+      {/* Mobile: Just show reset button at top */}
+      <div className="flex justify-center lg:hidden">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleReset}
+          className="border-gray-600 bg-gray-800 text-white hover:bg-gray-700"
+        >
+          <RotateCcw className="mr-2 h-4 w-4" />
+          Reset Bracket
+        </Button>
       </div>
 
       <SaveBracketDialog

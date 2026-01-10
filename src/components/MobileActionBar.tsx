@@ -1,0 +1,226 @@
+"use client";
+
+import { FolderOpen, Loader2, Save, Share2, Trophy } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { useBracket } from "@/contexts/BracketContext";
+import {
+  downloadImage,
+  generateBracketImage,
+  shareImage,
+} from "@/lib/image-generator";
+import { LoadBracketDialog } from "./dialogs/LoadBracketDialog";
+import { SaveBracketDialog } from "./dialogs/SaveBracketDialog";
+
+interface MobileActionBarProps {
+  bracketRef: React.RefObject<HTMLDivElement | null>;
+}
+
+function ActionButton({
+  onClick,
+  disabled,
+  icon: Icon,
+  label,
+  variant = "default",
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  icon: React.ElementType;
+  label: string;
+  variant?: "default" | "primary";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "group relative flex flex-col items-center gap-1 rounded-xl px-5 py-2.5 transition-all duration-150",
+        "active:scale-95",
+        variant === "default" && [
+          "text-white/60",
+          "hover:bg-white/5 hover:text-white",
+          "active:bg-white/10",
+        ],
+        variant === "primary" && [
+          "bg-white text-black",
+          "shadow-[0_0_20px_rgba(255,255,255,0.15)]",
+          "hover:bg-white/90",
+          "active:bg-white/80",
+        ],
+        disabled && "pointer-events-none opacity-50",
+      )}
+    >
+      <Icon
+        className={cn(
+          "h-5 w-5 transition-transform duration-150",
+          variant === "default" && "group-hover:scale-110",
+        )}
+      />
+      <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+    </button>
+  );
+}
+
+export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
+  const { bracket } = useBracket();
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const generateImage = async (): Promise<Blob | null> => {
+    if (!bracketRef.current) {
+      toast.error("Cannot generate image");
+      return null;
+    }
+
+    setIsGenerating(true);
+    try {
+      const blob = await generateBracketImage(bracketRef.current, {
+        userName: bracket.userName,
+        bracketName: bracket.name,
+      });
+      return blob;
+    } catch {
+      toast.error("Failed to generate image");
+      return null;
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const blob = await generateImage();
+    if (blob) {
+      const shared = await shareImage(
+        blob,
+        `${bracket.userName}'s NFL Playoff Bracket`,
+        "Check out my NFL playoff predictions!",
+      );
+      if (!shared) {
+        const filename = `${bracket.userName.replace(/\s+/g, "-")}-bracket-${Date.now()}.png`;
+        await downloadImage(blob, filename);
+        toast.success("Image downloaded!");
+      }
+    }
+  };
+
+  // When bracket is complete, show celebratory completion state
+  if (bracket.isComplete) {
+    return (
+      <>
+        <div className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-3 lg:hidden safe-area-bottom">
+          {/* Clean card with white border accent */}
+          <div className="overflow-hidden rounded-2xl border border-white/20 bg-black shadow-2xl">
+            {/* Main content */}
+            <div className="flex items-center gap-4 p-4">
+              {/* Trophy */}
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-white">
+                <Trophy className="h-7 w-7 text-black" />
+              </div>
+
+              {/* Text content */}
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">
+                  Champion
+                </span>
+                <p className="truncate text-lg font-black uppercase tracking-tight text-white">
+                  {bracket.superBowl?.winner?.city} {bracket.superBowl?.winner?.name}
+                </p>
+                <p className="text-xs font-medium text-white/40">Super Bowl LX</p>
+              </div>
+
+              {/* Share button */}
+              <button
+                type="button"
+                onClick={handleShare}
+                disabled={isGenerating}
+                className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-white transition-all duration-150 hover:bg-white/90 active:scale-95 disabled:opacity-50"
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-black" />
+                ) : (
+                  <Share2 className="h-5 w-5 text-black" />
+                )}
+              </button>
+            </div>
+
+            {/* Secondary actions */}
+            <div className="flex border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setSaveDialogOpen(true)}
+                className="flex flex-1 items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:bg-white/5 hover:text-white active:bg-white/10"
+              >
+                <Save className="h-4 w-4" />
+                Save
+              </button>
+              <div className="w-px bg-white/10" />
+              <button
+                type="button"
+                onClick={() => setLoadDialogOpen(true)}
+                className="flex flex-1 items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider text-white/50 transition-colors hover:bg-white/5 hover:text-white active:bg-white/10"
+              >
+                <FolderOpen className="h-4 w-4" />
+                Load
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <SaveBracketDialog
+          open={saveDialogOpen}
+          onOpenChange={setSaveDialogOpen}
+        />
+        <LoadBracketDialog
+          open={loadDialogOpen}
+          onOpenChange={setLoadDialogOpen}
+        />
+      </>
+    );
+  }
+
+  // Normal state: clean floating dock
+  return (
+    <>
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-4 lg:hidden safe-area-bottom">
+        {/* Dock */}
+        <div className="flex items-center gap-1 rounded-2xl border border-white/10 bg-black p-1.5 shadow-2xl">
+          <ActionButton
+            onClick={() => setLoadDialogOpen(true)}
+            icon={FolderOpen}
+            label="Load"
+          />
+          
+          <ActionButton
+            onClick={() => setSaveDialogOpen(true)}
+            icon={Save}
+            label="Save"
+          />
+
+          {/* Divider */}
+          <div className="mx-1.5 h-8 w-px bg-white/10" />
+
+          {/* Share - Primary action with white bg */}
+          <ActionButton
+            onClick={handleShare}
+            disabled={isGenerating}
+            icon={isGenerating ? Loader2 : Share2}
+            label="Share"
+            variant="primary"
+          />
+        </div>
+      </div>
+
+      <SaveBracketDialog
+        open={saveDialogOpen}
+        onOpenChange={setSaveDialogOpen}
+      />
+      <LoadBracketDialog
+        open={loadDialogOpen}
+        onOpenChange={setLoadDialogOpen}
+      />
+    </>
+  );
+}
