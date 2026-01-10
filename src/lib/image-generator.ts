@@ -34,16 +34,18 @@ async function imageToDataUri(url: string): Promise<string> {
  * Replace all external image sources with data URIs to avoid CORS issues during capture
  * Returns a cleanup function to restore original sources
  */
-async function replaceImagesWithDataUris(element: HTMLElement): Promise<() => void> {
+async function replaceImagesWithDataUris(
+  element: HTMLElement,
+): Promise<() => void> {
   const restoreFunctions: (() => void)[] = [];
-  
+
   // Find all img elements (including those inside Next.js Image components)
   const images = element.querySelectorAll("img");
-  
+
   // Create a map of unique URLs to avoid fetching duplicates
   const urlToDataUri = new Map<string, string>();
   const urlsToFetch: string[] = [];
-  
+
   for (const img of images) {
     const src = img.src;
     // Only process external ESPN CDN images
@@ -51,13 +53,13 @@ async function replaceImagesWithDataUris(element: HTMLElement): Promise<() => vo
       urlsToFetch.push(src);
     }
   }
-  
+
   // Fetch all unique images in parallel
   const dataUris = await Promise.all(urlsToFetch.map(imageToDataUri));
   urlsToFetch.forEach((url, index) => {
     urlToDataUri.set(url, dataUris[index]);
   });
-  
+
   // Replace all image sources
   for (const img of images) {
     const originalSrc = img.src;
@@ -65,11 +67,11 @@ async function replaceImagesWithDataUris(element: HTMLElement): Promise<() => vo
     if (dataUri) {
       // Also store the original srcset if any
       const originalSrcset = img.srcset;
-      
+
       img.src = dataUri;
       img.srcset = ""; // Clear srcset to prevent Next.js Image from overriding
       img.removeAttribute("data-nimg"); // Remove Next.js image marker
-      
+
       restoreFunctions.push(() => {
         img.src = originalSrc;
         if (originalSrcset) {
@@ -78,7 +80,7 @@ async function replaceImagesWithDataUris(element: HTMLElement): Promise<() => vo
       });
     }
   }
-  
+
   return () => {
     for (let i = restoreFunctions.length - 1; i >= 0; i--) {
       restoreFunctions[i]();
@@ -92,31 +94,35 @@ async function replaceImagesWithDataUris(element: HTMLElement): Promise<() => vo
  */
 function forceDesktopLayout(element: HTMLElement): () => void {
   const restoreFunctions: (() => void)[] = [];
-  
+
   // Hide the in-bracket header (we have our own in the exported image)
-  const bracketHeader = element.querySelector('.text-center') as HTMLElement;
-  if (bracketHeader && bracketHeader.querySelector('h2')) {
+  const bracketHeader = element.querySelector(".text-center") as HTMLElement;
+  if (bracketHeader && bracketHeader.querySelector("h2")) {
     const originalDisplay = bracketHeader.style.display;
-    bracketHeader.style.display = 'none';
-    restoreFunctions.push(() => { bracketHeader.style.display = originalDisplay; });
+    bracketHeader.style.display = "none";
+    restoreFunctions.push(() => {
+      bracketHeader.style.display = originalDisplay;
+    });
   }
-  
+
   // Force the main layout container to be horizontal (desktop layout)
   // Find the flex container that has flex-col on mobile, flex-row on desktop
-  const layoutContainer = element.querySelector('.flex.flex-col.lg\\:flex-row') as HTMLElement;
+  const layoutContainer = element.querySelector(
+    ".flex.flex-col.lg\\:flex-row",
+  ) as HTMLElement;
   if (layoutContainer) {
     const originalFlexDirection = layoutContainer.style.flexDirection;
     const originalAlignItems = layoutContainer.style.alignItems;
     const originalJustifyContent = layoutContainer.style.justifyContent;
     const originalGap = layoutContainer.style.gap;
     const originalWidth = layoutContainer.style.width;
-    
-    layoutContainer.style.flexDirection = 'row';
-    layoutContainer.style.alignItems = 'flex-start';
-    layoutContainer.style.justifyContent = 'center';
-    layoutContainer.style.gap = '2.5rem';
-    layoutContainer.style.width = 'auto';
-    
+
+    layoutContainer.style.flexDirection = "row";
+    layoutContainer.style.alignItems = "flex-start";
+    layoutContainer.style.justifyContent = "center";
+    layoutContainer.style.gap = "2.5rem";
+    layoutContainer.style.width = "auto";
+
     restoreFunctions.push(() => {
       layoutContainer.style.flexDirection = originalFlexDirection;
       layoutContainer.style.alignItems = originalAlignItems;
@@ -125,129 +131,139 @@ function forceDesktopLayout(element: HTMLElement): () => void {
       layoutContainer.style.width = originalWidth;
     });
   }
-  
+
   // Fix Super Bowl ordering (remove order-last, make it center)
-  const superBowlContainer = element.querySelector('.order-last.lg\\:order-none') as HTMLElement;
+  const superBowlContainer = element.querySelector(
+    ".order-last.lg\\:order-none",
+  ) as HTMLElement;
   if (superBowlContainer) {
     const originalOrder = superBowlContainer.style.order;
     const originalAlignSelf = superBowlContainer.style.alignSelf;
-    superBowlContainer.style.order = '0';
-    superBowlContainer.style.alignSelf = 'center';
+    superBowlContainer.style.order = "0";
+    superBowlContainer.style.alignSelf = "center";
     restoreFunctions.push(() => {
       superBowlContainer.style.order = originalOrder;
       superBowlContainer.style.alignSelf = originalAlignSelf;
     });
   }
-  
+
   // Fix NFC bracket direction - should be row-reverse on desktop (mirrored from AFC)
   // The NFC bracket has lg:flex-row-reverse class which we need to apply
-  const nfcBracketRounds = element.querySelectorAll('.lg\\:flex-row-reverse');
+  const nfcBracketRounds = element.querySelectorAll(".lg\\:flex-row-reverse");
   for (const bracketRounds of nfcBracketRounds) {
     if (bracketRounds instanceof HTMLElement) {
       const originalFlexDirection = bracketRounds.style.flexDirection;
-      bracketRounds.style.flexDirection = 'row-reverse';
+      bracketRounds.style.flexDirection = "row-reverse";
       restoreFunctions.push(() => {
         bracketRounds.style.flexDirection = originalFlexDirection;
       });
     }
   }
-  
+
   // Fix NFC conference header alignment (should be right-aligned on desktop)
-  const nfcHeader = element.querySelector('.lg\\:self-end') as HTMLElement;
+  const nfcHeader = element.querySelector(".lg\\:self-end") as HTMLElement;
   if (nfcHeader) {
     const originalAlignSelf = nfcHeader.style.alignSelf;
-    nfcHeader.style.alignSelf = 'flex-end';
+    nfcHeader.style.alignSelf = "flex-end";
     restoreFunctions.push(() => {
       nfcHeader.style.alignSelf = originalAlignSelf;
     });
   }
-  
+
   // Hide mobile-only UI elements (scroll hints, gradients, arrows)
-  const mobileOnlyElements = element.querySelectorAll('.lg\\:hidden');
+  const mobileOnlyElements = element.querySelectorAll(".lg\\:hidden");
   for (const el of mobileOnlyElements) {
     if (el instanceof HTMLElement) {
       const originalDisplay = el.style.display;
-      el.style.display = 'none';
-      restoreFunctions.push(() => { el.style.display = originalDisplay; });
+      el.style.display = "none";
+      restoreFunctions.push(() => {
+        el.style.display = originalDisplay;
+      });
     }
   }
-  
+
   // Show desktop-only elements (like completion status)
-  const desktopOnlyElements = element.querySelectorAll('.hidden.lg\\:flex');
+  const desktopOnlyElements = element.querySelectorAll(".hidden.lg\\:flex");
   for (const el of desktopOnlyElements) {
     if (el instanceof HTMLElement) {
       const originalDisplay = el.style.display;
-      el.style.display = 'flex';
-      restoreFunctions.push(() => { el.style.display = originalDisplay; });
+      el.style.display = "flex";
+      restoreFunctions.push(() => {
+        el.style.display = originalDisplay;
+      });
     }
   }
-  
+
   // Fix scroll wrapper widths (remove w-full, set auto width, clear max-width)
-  const scrollWrappers = element.querySelectorAll('.relative.w-full');
+  const scrollWrappers = element.querySelectorAll(".relative.w-full");
   for (const wrapper of scrollWrappers) {
     if (wrapper instanceof HTMLElement) {
       const originalWidth = wrapper.style.width;
       const originalMaxWidth = wrapper.style.maxWidth;
-      wrapper.style.width = 'auto';
-      wrapper.style.maxWidth = 'none';
-      restoreFunctions.push(() => { 
-        wrapper.style.width = originalWidth; 
+      wrapper.style.width = "auto";
+      wrapper.style.maxWidth = "none";
+      restoreFunctions.push(() => {
+        wrapper.style.width = originalWidth;
         wrapper.style.maxWidth = originalMaxWidth;
       });
     }
   }
-  
+
   // Fix scroll containers inside wrappers
-  const scrollContainers = element.querySelectorAll('.overflow-x-auto');
+  const scrollContainers = element.querySelectorAll(".overflow-x-auto");
   for (const container of scrollContainers) {
     if (container instanceof HTMLElement) {
       const originalOverflow = container.style.overflow;
       const originalWidth = container.style.width;
-      container.style.overflow = 'visible';
-      container.style.width = 'auto';
+      container.style.overflow = "visible";
+      container.style.width = "auto";
       restoreFunctions.push(() => {
         container.style.overflow = originalOverflow;
         container.style.width = originalWidth;
       });
     }
   }
-  
+
   // Fix Super Bowl container - ensure proper width and spacing
-  const superBowlInner = element.querySelector('.flex.flex-col.items-center.gap-3') as HTMLElement;
+  const superBowlInner = element.querySelector(
+    ".flex.flex-col.items-center.gap-3",
+  ) as HTMLElement;
   if (superBowlInner) {
     const originalMinWidth = superBowlInner.style.minWidth;
-    superBowlInner.style.minWidth = '220px';
-    restoreFunctions.push(() => { superBowlInner.style.minWidth = originalMinWidth; });
+    superBowlInner.style.minWidth = "220px";
+    restoreFunctions.push(() => {
+      superBowlInner.style.minWidth = originalMinWidth;
+    });
   }
-  
+
   // Fix column widths - the bracket round columns need to be wider for export
   // These have classes like w-44, lg:w-36 - we need to override to a proper width
-  const roundColumns = element.querySelectorAll('.flex-shrink-0.flex-col');
+  const roundColumns = element.querySelectorAll(".flex-shrink-0.flex-col");
   for (const col of roundColumns) {
     if (col instanceof HTMLElement) {
       const originalWidth = col.style.width;
       const originalMinWidth = col.style.minWidth;
-      col.style.width = '180px';
-      col.style.minWidth = '180px';
+      col.style.width = "180px";
+      col.style.minWidth = "180px";
       restoreFunctions.push(() => {
         col.style.width = originalWidth;
         col.style.minWidth = originalMinWidth;
       });
     }
   }
-  
+
   // Fix team card sizes - force medium size for export (not small)
   // Cards have h-10 (sm), h-12 (md), h-14 (lg) - force h-12 (48px) minimum
-  const teamCards = element.querySelectorAll('button.rounded-lg.border-2');
+  const teamCards = element.querySelectorAll("button.rounded-lg.border-2");
   for (const card of teamCards) {
     if (card instanceof HTMLElement) {
       const originalHeight = card.style.height;
       const originalPadding = card.style.padding;
       const originalMinWidth = card.style.minWidth;
-      card.style.height = '48px';
-      card.style.paddingLeft = '12px';
-      card.style.paddingRight = '12px';
-      card.style.minWidth = '160px';
+      card.style.height = "48px";
+      card.style.paddingLeft = "12px";
+      card.style.paddingRight = "12px";
+      card.style.minWidth = "160px";
       restoreFunctions.push(() => {
         card.style.height = originalHeight;
         card.style.padding = originalPadding;
@@ -255,22 +271,22 @@ function forceDesktopLayout(element: HTMLElement): () => void {
       });
     }
   }
-  
+
   // Also fix empty/TBD cards
-  const emptyCards = element.querySelectorAll('.border-dashed.border-gray-600');
+  const emptyCards = element.querySelectorAll(".border-dashed.border-gray-600");
   for (const card of emptyCards) {
     if (card instanceof HTMLElement) {
       const originalHeight = card.style.height;
       const originalMinWidth = card.style.minWidth;
-      card.style.height = '48px';
-      card.style.minWidth = '160px';
+      card.style.height = "48px";
+      card.style.minWidth = "160px";
       restoreFunctions.push(() => {
         card.style.height = originalHeight;
         card.style.minWidth = originalMinWidth;
       });
     }
   }
-  
+
   return () => {
     // Restore in reverse order
     for (let i = restoreFunctions.length - 1; i >= 0; i--) {
@@ -285,30 +301,32 @@ export async function generateBracketImage(
 ): Promise<Blob> {
   // Replace external images with data URIs to avoid CORS issues
   const restoreImages = await replaceImagesWithDataUris(element);
-  
+
   // Force desktop/landscape layout
   const restoreLayout = forceDesktopLayout(element);
-  
+
   // Find all elements with overflow that might clip content and temporarily disable
   const overflowElements: { el: HTMLElement; original: string }[] = [];
-  const scrollContainers = element.querySelectorAll('.overflow-x-auto, .overflow-hidden, [style*="overflow"]');
+  const scrollContainers = element.querySelectorAll(
+    '.overflow-x-auto, .overflow-hidden, [style*="overflow"]',
+  );
   for (const el of scrollContainers) {
     if (el instanceof HTMLElement) {
       overflowElements.push({ el, original: el.style.overflow });
-      el.style.overflow = 'visible';
+      el.style.overflow = "visible";
     }
   }
   // Also handle the main element
   const originalOverflow = element.style.overflow;
-  element.style.overflow = 'visible';
-  
+  element.style.overflow = "visible";
+
   // Small delay to ensure layout reflow is complete
   await new Promise((resolve) => setTimeout(resolve, 150));
-  
+
   // Get the full scroll dimensions (content may be wider than visible area)
   const fullWidth = Math.max(element.scrollWidth, element.offsetWidth);
   const fullHeight = Math.max(element.scrollHeight, element.offsetHeight);
-  
+
   let canvas: HTMLCanvasElement;
   try {
     // Use html-to-image which has better CSS support
@@ -333,13 +351,13 @@ export async function generateBracketImage(
     restoreImages();
     throw captureError;
   }
-  
+
   // Restore overflow after successful capture
   element.style.overflow = originalOverflow;
   for (const { el, original } of overflowElements) {
     el.style.overflow = original;
   }
-  
+
   // Restore layout and images
   restoreLayout();
   restoreImages();
@@ -402,7 +420,9 @@ export async function generateBracketImage(
           if (blob) {
             resolve(blob);
           } else {
-            reject(new Error("Failed to generate image - toBlob returned null"));
+            reject(
+              new Error("Failed to generate image - toBlob returned null"),
+            );
           }
         },
         "image/png",

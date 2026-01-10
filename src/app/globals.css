@@ -162,7 +162,8 @@
 
 /* Horizontal bounce animation for scroll hint arrow */
 @keyframes bounce-x {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   50% {

@@ -61,37 +61,41 @@ export function LoadBracketDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-gray-700 bg-gray-900 text-white sm:max-w-lg">
+      <DialogContent className="border-gray-700 bg-gray-900 text-white sm:max-w-lg md:max-w-xl md:p-8">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
-            <FolderOpen className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-2 text-white md:text-xl">
+            <FolderOpen className="h-5 w-5 md:h-6 md:w-6" />
             Load Bracket
           </DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogDescription className="text-gray-400 md:text-base">
             Load a previously saved bracket.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-80 space-y-2 overflow-y-auto">
+        <div className="max-h-80 space-y-2 overflow-y-auto md:max-h-96 md:space-y-3">
           {brackets.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">
-              <FolderOpen className="mx-auto mb-2 h-12 w-12 opacity-50" />
-              <p>No saved brackets yet.</p>
-              <p className="text-sm">Save your first bracket to see it here.</p>
+            <div className="py-8 text-center text-gray-500 md:py-12">
+              <FolderOpen className="mx-auto mb-2 h-12 w-12 opacity-50 md:mb-4 md:h-16 md:w-16" />
+              <p className="md:text-lg">No saved brackets yet.</p>
+              <p className="text-sm md:text-base">
+                Save your first bracket to see it here.
+              </p>
             </div>
           ) : (
             brackets.map((saved) => (
               <div
                 key={saved.id}
-                className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-800/50 p-3"
+                className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-800/50 p-3 md:p-4"
               >
                 <div className="flex-1">
-                  <h4 className="font-medium text-white">{saved.name}</h4>
-                  <div className="flex items-center gap-1 text-xs text-gray-400">
-                    <Calendar className="h-3 w-3" />
+                  <h4 className="font-medium text-white md:text-lg">
+                    {saved.name}
+                  </h4>
+                  <div className="flex items-center gap-1 text-xs text-gray-400 md:text-sm">
+                    <Calendar className="h-3 w-3 md:h-4 md:w-4" />
                     {formatDate(saved.updatedAt)}
                   </div>
-                  <div className="mt-1 text-xs">
+                  <div className="mt-1 text-xs md:text-sm">
                     {saved.state.isComplete ? (
                       <span className="text-green-400">Complete</span>
                     ) : (
@@ -99,19 +103,19 @@ export function LoadBracketDialog({
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 md:gap-3">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleDelete(saved.id, saved.name)}
-                    className="border-red-600/50 bg-transparent text-red-400 hover:bg-red-600/20 hover:text-red-300"
+                    className="border-red-600/50 bg-transparent text-red-400 hover:bg-red-600/20 hover:text-red-300 md:h-10 md:px-4"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 md:h-5 md:w-5" />
                   </Button>
                   <Button
                     size="sm"
                     onClick={() => handleLoad(saved)}
-                    className="bg-gradient-to-r from-red-600 to-blue-600 hover:from-red-700 hover:to-blue-700"
+                    className="bg-gradient-to-r from-red-600 to-blue-600 hover:from-red-700 hover:to-blue-700 md:h-10 md:px-5 md:text-base"
                   >
                     Load
                   </Button>
@@ -125,7 +129,7 @@ export function LoadBracketDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="border-gray-600 bg-transparent text-gray-300 hover:bg-gray-800"
+            className="border-gray-600 bg-transparent text-gray-300 hover:bg-gray-800 md:h-11 md:px-6 md:text-base"
           >
             Close
           </Button>
