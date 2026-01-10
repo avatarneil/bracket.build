@@ -6,28 +6,120 @@ export interface GenerateImageOptions {
 }
 
 /**
+ * Extract the original image URL from a Next.js optimized image URL
+ * Next.js Image serves images from /_next/image?url=<encoded-url>&w=...&q=...
+ */
+function extractOriginalUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url, window.location.origin);
+    if (urlObj.pathname === "/_next/image") {
+      const originalUrl = urlObj.searchParams.get("url");
+      if (originalUrl) {
+        return originalUrl;
+      }
+    }
+  } catch {
+    // Not a valid URL
+  }
+  return null;
+}
+
+/**
+ * Check if an image URL is from ESPN CDN (either directly or via Next.js optimization)
+ */
+function isEspnImage(url: string): boolean {
+  if (!url) return false;
+
+  // Direct ESPN CDN URL
+  if (url.includes("espncdn.com")) return true;
+
+  // Next.js optimized ESPN image
+  const originalUrl = extractOriginalUrl(url);
+  if (originalUrl?.includes("espncdn.com")) return true;
+
+  return false;
+}
+
+/**
+ * Get the URL to use for fetching (extract original from Next.js if needed)
+ */
+function getImageFetchUrl(url: string): string {
+  const originalUrl = extractOriginalUrl(url);
+  return originalUrl || url;
+}
+
+/**
  * Convert an image URL to a data URI by fetching through our proxy
+ * Also pre-loads the data URI to ensure it's ready for rendering
  */
 async function imageToDataUri(url: string): Promise<string> {
   try {
+    // Get the actual URL to fetch (extract from Next.js optimization if needed)
+    const fetchUrl = getImageFetchUrl(url);
+
     // Use our proxy to avoid CORS issues
-    const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(url)}`;
+    const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(fetchUrl)}`;
     const response = await fetch(proxyUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch: ${response.status}`);
     }
     const blob = await response.blob();
-    return new Promise((resolve, reject) => {
+    const dataUri = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
+
+    // Pre-load the data URI to ensure it's cached and ready for rendering
+    // This is especially important for Safari which can be slow to decode data URIs
+    await new Promise<void>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve(); // Continue even on error
+      img.src = dataUri;
+      // Timeout fallback
+      setTimeout(resolve, 1000);
+    });
+
+    return dataUri;
   } catch (error) {
     console.error("Failed to convert image to data URI:", url, error);
     // Return a transparent 1x1 pixel as fallback
     return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
   }
+}
+
+/**
+ * Wait for an image element to fully load
+ */
+function waitForImageLoad(img: HTMLImageElement): Promise<void> {
+  return new Promise((resolve) => {
+    // If already loaded (complete and has dimensions), resolve immediately
+    if (img.complete && img.naturalWidth > 0) {
+      resolve();
+      return;
+    }
+
+    const onLoad = () => {
+      img.removeEventListener("load", onLoad);
+      img.removeEventListener("error", onError);
+      resolve();
+    };
+
+    const onError = () => {
+      img.removeEventListener("load", onLoad);
+      img.removeEventListener("error", onError);
+      // Resolve anyway to not block the capture
+      resolve();
+    };
+
+    img.addEventListener("load", onLoad);
+    img.addEventListener("error", onError);
+
+    // Timeout fallback for Safari - if image doesn't load within 2s, continue anyway
+    setTimeout(resolve, 2000);
+  });
 }
 
 /**
@@ -48,8 +140,8 @@ async function replaceImagesWithDataUris(
 
   for (const img of images) {
     const src = img.src;
-    // Only process external ESPN CDN images
-    if (src && src.includes("espncdn.com") && !urlToDataUri.has(src)) {
+    // Process ESPN CDN images (both direct and via Next.js optimization)
+    if (isEspnImage(src) && !urlToDataUri.has(src)) {
       urlsToFetch.push(src);
     }
   }
@@ -60,26 +152,60 @@ async function replaceImagesWithDataUris(
     urlToDataUri.set(url, dataUris[index]);
   });
 
-  // Replace all image sources
+  // Replace all image sources and collect promises for load events
+  const loadPromises: Promise<void>[] = [];
+
   for (const img of images) {
     const originalSrc = img.src;
     const dataUri = urlToDataUri.get(originalSrc);
     if (dataUri) {
-      // Also store the original srcset if any
+      // Store original attributes for restoration
       const originalSrcset = img.srcset;
+      const originalStyle = img.getAttribute("style") || "";
+      const originalLoading = img.getAttribute("loading");
+      const originalDecoding = img.getAttribute("decoding");
 
-      img.src = dataUri;
-      img.srcset = ""; // Clear srcset to prevent Next.js Image from overriding
+      // Clear srcset first to prevent Next.js Image from interfering
+      img.srcset = "";
       img.removeAttribute("data-nimg"); // Remove Next.js image marker
+      img.removeAttribute("loading"); // Remove lazy loading
+      img.removeAttribute("decoding"); // Remove async decoding
+
+      // Fix Next.js Image styling - ensure image is visible and properly sized
+      // Next.js Image uses position:absolute with object-fit, which can cause issues
+      const computedStyle = window.getComputedStyle(img);
+      if (computedStyle.position === "absolute") {
+        // Keep position absolute but ensure dimensions are correct
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.inset = "0";
+        img.style.objectFit = "contain";
+      }
+
+      // Set the new source and wait for it to load
+      img.src = dataUri;
+
+      // Wait for the new image to load (important for Safari)
+      loadPromises.push(waitForImageLoad(img));
 
       restoreFunctions.push(() => {
         img.src = originalSrc;
+        img.setAttribute("style", originalStyle);
         if (originalSrcset) {
           img.srcset = originalSrcset;
+        }
+        if (originalLoading) {
+          img.setAttribute("loading", originalLoading);
+        }
+        if (originalDecoding) {
+          img.setAttribute("decoding", originalDecoding);
         }
       });
     }
   }
+
+  // Wait for all images to fully load with their new data URI sources
+  await Promise.all(loadPromises);
 
   return () => {
     for (let i = restoreFunctions.length - 1; i >= 0; i--) {
@@ -320,8 +446,13 @@ export async function generateBracketImage(
   const originalOverflow = element.style.overflow;
   element.style.overflow = "visible";
 
-  // Small delay to ensure layout reflow is complete
-  await new Promise((resolve) => setTimeout(resolve, 150));
+  // Delay to ensure layout reflow is complete
+  // Use a longer delay on Safari/iOS which has slower rendering for dynamically changed images
+  const isSafari =
+    typeof navigator !== "undefined" &&
+    /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const delay = isSafari ? 500 : 200;
+  await new Promise((resolve) => setTimeout(resolve, delay));
 
   // Get the full scroll dimensions (content may be wider than visible area)
   const fullWidth = Math.max(element.scrollWidth, element.offsetWidth);
@@ -330,12 +461,19 @@ export async function generateBracketImage(
   let canvas: HTMLCanvasElement;
   try {
     // Use html-to-image which has better CSS support
+    // Safari-specific: use skipAutoScale and lower pixelRatio to avoid memory issues
+    const isSafariDevice =
+      typeof navigator !== "undefined" &&
+      /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
     canvas = await htmlToImage.toCanvas(element, {
       backgroundColor: "#000000", // Pure black for OLED
-      pixelRatio: 2, // Higher resolution
+      pixelRatio: isSafariDevice ? 1.5 : 2, // Lower resolution on Safari to avoid memory issues
       cacheBust: true, // Avoid cache issues
       width: fullWidth,
       height: fullHeight,
+      skipAutoScale: isSafariDevice, // Skip auto-scaling on Safari which can cause issues
+      includeQueryParams: true, // Include query params in image URLs (for cache busting)
       fetchRequestInit: {
         mode: "cors",
         credentials: "omit",
