@@ -29,14 +29,14 @@ export function SuperBowl() {
     <div className="flex flex-col items-center gap-3 sm:gap-4">
       {/* Super Bowl Header */}
       <div className="flex flex-col items-center gap-1 sm:gap-2">
-        <Trophy className="h-6 w-6 text-[#FFD700] sm:h-8 sm:w-8" />
+        <Trophy className="h-6 w-6 text-[#D4BE8C] sm:h-8 sm:w-8" />
         <div className="rounded-lg border border-white/20 bg-black px-4 py-1.5 text-center text-sm font-bold uppercase tracking-wider text-white shadow-lg sm:px-6 sm:py-2 sm:text-base">
           Super Bowl LX
         </div>
       </div>
 
       {/* Matchup */}
-      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-[#FFD700]/30 bg-gray-800/50 p-4 sm:gap-4 sm:p-6">
+      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-[#D4BE8C]/30 bg-gray-800/50 p-4 sm:gap-4 sm:p-6">
         {/* AFC Champion */}
         <div className="w-44 sm:w-48">
           <div className="mb-1 text-center text-xs font-semibold uppercase text-red-400">
@@ -73,10 +73,10 @@ export function SuperBowl() {
 
         {/* Champion Display */}
         {winner && (
-          <div className="mt-2 flex flex-col items-center gap-2 rounded-lg bg-[#FFD700]/15 px-4 py-3 sm:mt-4 sm:px-6 sm:py-4">
-            <Trophy className="h-8 w-8 text-[#FFD700] sm:h-10 sm:w-10" />
+          <div className="mt-2 flex flex-col items-center gap-2 rounded-lg bg-[#D4BE8C]/15 px-4 py-3 sm:mt-4 sm:px-6 sm:py-4">
+            <Trophy className="h-8 w-8 text-[#D4BE8C] sm:h-10 sm:w-10" />
             <div className="text-center">
-              <div className="text-xs font-semibold uppercase text-[#FFD700] sm:text-sm">
+              <div className="text-xs font-semibold uppercase text-[#D4BE8C] sm:text-sm">
                 Super Bowl Champion
               </div>
               <div className="text-lg font-bold text-white sm:text-xl">

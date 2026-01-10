@@ -143,7 +143,7 @@ export function TeamCard({
         getSizeClasses(),
         // Winner state - using pure gold for NFL championship feel
         isWinner &&
-          "border-[#FFD700] bg-[#FFD700]/15 shadow-lg shadow-[#FFD700]/20",
+          "border-[#D4BE8C] bg-[#D4BE8C]/15 shadow-lg shadow-[#D4BE8C]/20",
         // Loser state
         isLoser && "border-gray-600 bg-gray-800/50 opacity-50",
         // Neutral state (clickable)
@@ -157,7 +157,7 @@ export function TeamCard({
           "cursor-not-allowed border-gray-700 bg-gray-800/50 opacity-70",
       )}
       style={{
-        borderLeftColor: isWinner ? "#FFD700" : team.primaryColor,
+        borderLeftColor: isWinner ? "#D4BE8C" : team.primaryColor,
         borderLeftWidth: "6px",
         boxShadow: isWinner
           ? "inset 4px 0 8px -2px rgba(255, 215, 0, 0.4)"
@@ -209,7 +209,7 @@ export function TeamCard({
       {/* Winner Checkmark - absolutely positioned for consistent alignment */}
       {isWinner && (
         <svg
-          className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#FFD700] lg:right-3"
+          className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#D4BE8C] lg:right-3"
           fill="currentColor"
           viewBox="0 0 20 20"
           aria-label="Winner"
