@@ -178,6 +178,7 @@ export function createInitialBracket(userName: string): BracketState {
   return {
     id: nanoid(),
     name: "",
+    subtitle: null,
     userName,
     afc: {
       wildCard: createWildCardMatchups("AFC"),

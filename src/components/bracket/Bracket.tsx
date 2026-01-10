@@ -226,6 +226,11 @@ export const Bracket = forwardRef<HTMLDivElement, BracketProps>(
                 {bracket.name}
               </h3>
             )}
+            {bracket.subtitle && (
+              <p className="mt-1 text-xs italic text-gray-500 sm:text-sm">
+                {bracket.subtitle}
+              </p>
+            )}
           </div>
         )}
 

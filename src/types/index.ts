@@ -29,6 +29,7 @@ export interface Matchup {
 export interface BracketState {
   id: string;
   name: string;
+  subtitle: string | null;
   userName: string;
   afc: {
     wildCard: Matchup[];
@@ -61,4 +62,5 @@ export type BracketAction =
   | { type: "RESET_BRACKET" }
   | { type: "LOAD_BRACKET"; bracket: BracketState }
   | { type: "SET_BRACKET_NAME"; name: string }
-  | { type: "SET_USER_NAME"; userName: string };
+  | { type: "SET_USER_NAME"; userName: string }
+  | { type: "SET_SUBTITLE"; subtitle: string | null };

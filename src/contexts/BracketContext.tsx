@@ -35,6 +35,7 @@ interface BracketContextType {
   loadBracket: (bracket: BracketState) => void;
   setBracketName: (name: string) => void;
   setUserName: (userName: string) => void;
+  setSubtitle: (subtitle: string | null) => void;
 }
 
 const BracketContext = createContext<BracketContextType | null>(null);
@@ -306,6 +307,10 @@ function bracketReducer(
       return { ...state, userName: action.userName, updatedAt: Date.now() };
     }
 
+    case "SET_SUBTITLE": {
+      return { ...state, subtitle: action.subtitle, updatedAt: Date.now() };
+    }
+
     default:
       return state;
   }
@@ -351,6 +356,10 @@ export function BracketProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "SET_USER_NAME", userName });
   };
 
+  const setSubtitle = (subtitle: string | null) => {
+    dispatch({ type: "SET_SUBTITLE", subtitle });
+  };
+
   return (
     <BracketContext.Provider
       value={{
@@ -362,6 +371,7 @@ export function BracketProvider({ children }: { children: ReactNode }) {
         loadBracket,
         setBracketName,
         setUserName,
+        setSubtitle,
       }}
     >
       {children}

@@ -27,24 +27,28 @@ export function SaveBracketDialog({
   open,
   onOpenChange,
 }: SaveBracketDialogProps) {
-  const { bracket, setBracketName } = useBracket();
+  const { bracket, setBracketName, setSubtitle } = useBracket();
   const [name, setName] = useState(bracket.name);
+  const [subtitle, setSubtitleValue] = useState(bracket.subtitle || "");
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = () => {
     setIsSaving(true);
     try {
       const trimmedName = name.trim();
+      const trimmedSubtitle = subtitle.trim() || null;
       // Create a new bracket with a new ID for saving as a new version
       const bracketToSave = {
         ...bracket,
         id: nanoid(),
         name: trimmedName,
+        subtitle: trimmedSubtitle,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
 
       setBracketName(trimmedName);
+      setSubtitle(trimmedSubtitle);
       saveBracket(bracketToSave);
       toast.success("Bracket saved!", {
         description: trimmedName
@@ -87,6 +91,23 @@ export function SaveBracketDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. My Dream Bracket"
+              className="border-gray-600 bg-gray-800 text-white placeholder:text-gray-500 md:h-12 md:text-base"
+            />
+          </div>
+
+          <div className="space-y-2 md:space-y-3">
+            <Label
+              htmlFor="bracket-subtitle"
+              className="text-gray-300 md:text-base"
+            >
+              Subtitle{" "}
+              <span className="font-normal text-gray-500">(optional)</span>
+            </Label>
+            <Input
+              id="bracket-subtitle"
+              value={subtitle}
+              onChange={(e) => setSubtitleValue(e.target.value)}
+              placeholder="e.g. Bold predictions for the playoffs"
               className="border-gray-600 bg-gray-800 text-white placeholder:text-gray-500 md:h-12 md:text-base"
             />
           </div>

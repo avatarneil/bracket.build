@@ -24,7 +24,7 @@ function BracketApp() {
 
   if (!isHydrated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950">
+      <div className="flex min-h-screen items-center justify-center bg-black">
         <div className="text-white">Loading...</div>
       </div>
     );
@@ -33,7 +33,7 @@ function BracketApp() {
   return (
     <>
       {/* Main content with bottom padding for mobile/tablet action bar */}
-      <main className="min-h-screen overflow-x-hidden bg-gray-950 px-3 pb-28 pt-4 sm:px-4 sm:py-8 md:px-6 md:pb-32 md:pt-6 lg:pb-8">
+      <main className="min-h-screen overflow-x-hidden bg-black px-3 pb-28 pt-4 sm:px-4 sm:py-8 md:px-6 md:pb-32 md:pt-6 lg:pb-8">
         {/* Use inline-flex wrapper to let content determine its own width and center it */}
         <div className="flex justify-center overflow-x-hidden">
           <div className="inline-flex max-w-full flex-col items-center overflow-x-hidden">
