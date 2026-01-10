@@ -18,14 +18,10 @@ import { SaveBracketDialog } from "./dialogs/SaveBracketDialog";
 import { ShareMenu } from "./ShareMenu";
 
 interface BracketControlsProps {
-  bracketRef: React.RefObject<HTMLDivElement | null>;
   onResetName?: () => void;
 }
 
-export function BracketControls({
-  bracketRef,
-  onResetName,
-}: BracketControlsProps) {
+export function BracketControls({ onResetName }: BracketControlsProps) {
   const { resetBracket, setUserName } = useBracket();
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -104,7 +100,7 @@ export function BracketControls({
           Load
         </Button>
 
-        <ShareMenu bracketRef={bracketRef} />
+        <ShareMenu />
       </div>
 
       {/* Mobile/Tablet: Show reset dropdown at top - larger on tablets */}

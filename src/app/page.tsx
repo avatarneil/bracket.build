@@ -22,6 +22,8 @@ function BracketApp() {
     }
   }, []);
 
+  // Note: bracketRef is still used for the Bracket component's forwardRef
+
   if (!isHydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
@@ -49,10 +51,7 @@ function BracketApp() {
 
             {/* Controls */}
             <div className="mb-4 w-full sm:mb-6 md:mb-8">
-              <BracketControls
-                bracketRef={bracketRef}
-                onResetName={() => setShowWelcome(true)}
-              />
+              <BracketControls onResetName={() => setShowWelcome(true)} />
             </div>
 
             {/* Bracket */}
@@ -78,7 +77,7 @@ function BracketApp() {
       </main>
 
       {/* Mobile/Tablet Action Bar - fixed to bottom on mobile and tablet */}
-      <MobileActionBar bracketRef={bracketRef} />
+      <MobileActionBar />
     </>
   );
 }

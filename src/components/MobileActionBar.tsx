@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FolderOpen, Loader2, Save, Share2 } from "lucide-react";
+import { FolderOpen, Loader2, Save, Share2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useBracket } from "@/contexts/BracketContext";
@@ -12,10 +12,6 @@ import {
 import { cn } from "@/lib/utils";
 import { LoadBracketDialog } from "./dialogs/LoadBracketDialog";
 import { SaveBracketDialog } from "./dialogs/SaveBracketDialog";
-
-interface MobileActionBarProps {
-  bracketRef: React.RefObject<HTMLDivElement | null>;
-}
 
 function ActionButton({
   onClick,
@@ -65,25 +61,16 @@ function ActionButton({
   );
 }
 
-export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
+export function MobileActionBar() {
   const { bracket } = useBracket();
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const generateImage = async (): Promise<Blob | null> => {
-    if (!bracketRef.current) {
-      toast.error("Cannot generate image");
-      return null;
-    }
-
     setIsGenerating(true);
     try {
-      const blob = await generateBracketImage(bracketRef.current, {
-        userName: bracket.userName,
-        bracketName: bracket.name,
-      });
+      const blob = await generateBracketImage(bracket);
       return blob;
     } catch {
       toast.error("Failed to generate image");
@@ -91,17 +78,6 @@ export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const handleSaveScreenshot = async () => {
-    setIsSaving(true);
-    const blob = await generateImage();
-    if (blob) {
-      const filename = `${bracket.userName.replace(/\s+/g, "-")}-bracket-${Date.now()}.png`;
-      await downloadImage(blob, filename);
-      toast.success("Bracket saved as image!");
-    }
-    setIsSaving(false);
   };
 
   const handleShare = async () => {

@@ -34,7 +34,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - [React 19](https://react.dev/)
 - [Tailwind CSS 4](https://tailwindcss.com/)
 - [Radix UI](https://www.radix-ui.com/) primitives
-- [html-to-image](https://github.com/bubkoo/html-to-image) for bracket export
+- [@vercel/og](https://vercel.com/docs/functions/edge-functions/og-image-generation) for server-side bracket image generation
 
 ## License
 
