@@ -109,17 +109,20 @@ function forceDesktopLayout(element: HTMLElement): () => void {
     const originalAlignItems = layoutContainer.style.alignItems;
     const originalJustifyContent = layoutContainer.style.justifyContent;
     const originalGap = layoutContainer.style.gap;
+    const originalWidth = layoutContainer.style.width;
     
     layoutContainer.style.flexDirection = 'row';
     layoutContainer.style.alignItems = 'flex-start';
     layoutContainer.style.justifyContent = 'center';
-    layoutContainer.style.gap = '2rem';
+    layoutContainer.style.gap = '2.5rem';
+    layoutContainer.style.width = 'auto';
     
     restoreFunctions.push(() => {
       layoutContainer.style.flexDirection = originalFlexDirection;
       layoutContainer.style.alignItems = originalAlignItems;
       layoutContainer.style.justifyContent = originalJustifyContent;
       layoutContainer.style.gap = originalGap;
+      layoutContainer.style.width = originalWidth;
     });
   }
   
@@ -179,18 +182,23 @@ function forceDesktopLayout(element: HTMLElement): () => void {
     }
   }
   
-  // Fix scroll wrapper widths (remove w-full, set auto width)
-  const scrollWrappers = element.querySelectorAll('.relative.w-full.lg\\:w-auto');
+  // Fix scroll wrapper widths (remove w-full, set auto width, clear max-width)
+  const scrollWrappers = element.querySelectorAll('.relative.w-full');
   for (const wrapper of scrollWrappers) {
     if (wrapper instanceof HTMLElement) {
       const originalWidth = wrapper.style.width;
+      const originalMaxWidth = wrapper.style.maxWidth;
       wrapper.style.width = 'auto';
-      restoreFunctions.push(() => { wrapper.style.width = originalWidth; });
+      wrapper.style.maxWidth = 'none';
+      restoreFunctions.push(() => { 
+        wrapper.style.width = originalWidth; 
+        wrapper.style.maxWidth = originalMaxWidth;
+      });
     }
   }
   
   // Fix scroll containers inside wrappers
-  const scrollContainers = element.querySelectorAll('.overflow-x-auto.lg\\:overflow-visible');
+  const scrollContainers = element.querySelectorAll('.overflow-x-auto');
   for (const container of scrollContainers) {
     if (container instanceof HTMLElement) {
       const originalOverflow = container.style.overflow;
@@ -202,6 +210,14 @@ function forceDesktopLayout(element: HTMLElement): () => void {
         container.style.width = originalWidth;
       });
     }
+  }
+  
+  // Fix Super Bowl container - ensure proper width and spacing
+  const superBowlInner = element.querySelector('.flex.flex-col.items-center.gap-3') as HTMLElement;
+  if (superBowlInner) {
+    const originalMinWidth = superBowlInner.style.minWidth;
+    superBowlInner.style.minWidth = '220px';
+    restoreFunctions.push(() => { superBowlInner.style.minWidth = originalMinWidth; });
   }
   
   // Fix column widths - the bracket round columns need to be wider for export
