@@ -21,13 +21,35 @@ export async function generateBracketImage(
   });
 
   if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ error: "Unknown error" }));
-    throw new Error(error.error || "Failed to generate image");
+    // Try to get error details from response
+    let errorMessage = "Failed to generate image";
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.error || errorMessage;
+    } catch {
+      // If response isn't JSON, try text
+      try {
+        const text = await response.text();
+        if (text) {
+          errorMessage = text.slice(0, 200); // Limit error message length
+        }
+      } catch {
+        // Ignore - use default message
+      }
+    }
+    console.error("Image generation failed:", response.status, errorMessage);
+    throw new Error(errorMessage);
   }
 
-  return response.blob();
+  const blob = await response.blob();
+
+  // Verify we got an image
+  if (!blob.type.startsWith("image/")) {
+    console.error("Unexpected response type:", blob.type);
+    throw new Error("Server returned non-image response");
+  }
+
+  return blob;
 }
 
 export async function downloadImage(

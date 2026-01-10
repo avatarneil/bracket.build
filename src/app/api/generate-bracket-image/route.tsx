@@ -11,6 +11,18 @@ interface TeamCardData {
 }
 
 /**
+ * Convert ArrayBuffer to base64 string (Edge-compatible, no Buffer needed)
+ */
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+/**
  * Fetches an image and returns it as a base64 data URI
  */
 async function fetchImageAsBase64(url: string): Promise<string> {
@@ -24,7 +36,7 @@ async function fetchImageAsBase64(url: string): Promise<string> {
       throw new Error(`Failed to fetch: ${response.status}`);
     }
     const arrayBuffer = await response.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
+    const base64 = arrayBufferToBase64(arrayBuffer);
     const contentType = response.headers.get("content-type") || "image/png";
     return `data:${contentType};base64,${base64}`;
   } catch (error) {
@@ -238,18 +250,7 @@ function TeamCard({
             flexShrink: 0,
           }}
         >
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 20 20"
-            role="img"
-            aria-label="Winner checkmark"
-          >
-            <path
-              fill="#0f172a"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-            />
-          </svg>
+          <span style={{ fontSize: "10px", color: "#0f172a" }}>✓</span>
         </div>
       )}
     </div>
@@ -444,26 +445,8 @@ function SuperBowlComponent({
         gap: "12px",
       }}
     >
-      {/* Trophy */}
-      <svg
-        width="40"
-        height="40"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#D4BE8C"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        role="img"
-        aria-label="Trophy"
-      >
-        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-        <path d="M4 22h16" />
-        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-      </svg>
+      {/* Trophy emoji */}
+      <div style={{ fontSize: "36px" }}>🏆</div>
 
       {/* Super Bowl Header */}
       <div
@@ -568,25 +551,7 @@ function SuperBowlComponent({
               backgroundColor: "rgba(212, 190, 140, 0.15)",
             }}
           >
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#D4BE8C"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              role="img"
-              aria-label="Champion trophy"
-            >
-              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-              <path d="M4 22h16" />
-              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-            </svg>
+            <div style={{ fontSize: "28px" }}>🏆</div>
             <div style={{ textAlign: "center" }}>
               <div
                 style={{
@@ -658,7 +623,8 @@ function BracketImage({
               fontWeight: 700,
             }}
           >
-            {bracket.userName}&apos;s Playoff Bracket
+            {bracket.userName}
+            {"'"}s Playoff Bracket
           </span>
           {bracket.name && (
             <span
@@ -771,8 +737,10 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error generating bracket image:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to generate image" },
+      { error: `Failed to generate image: ${errorMessage}` },
       { status: 500 },
     );
   }
