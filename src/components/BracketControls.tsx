@@ -1,12 +1,16 @@
 "use client";
 
-import { FolderOpen, RotateCcw, Save } from "lucide-react";
+import { FolderOpen, Loader2, RotateCcw, Save } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useBracket } from "@/contexts/BracketContext";
+import {
+  downloadImage,
+  generateBracketImage,
+  shareImage,
+} from "@/lib/image-generator";
 import { LoadBracketDialog } from "./dialogs/LoadBracketDialog";
-import { SaveBracketDialog } from "./dialogs/SaveBracketDialog";
 import { ShareMenu } from "./ShareMenu";
 
 interface BracketControlsProps {
@@ -14,9 +18,9 @@ interface BracketControlsProps {
 }
 
 export function BracketControls({ bracketRef }: BracketControlsProps) {
-  const { resetBracket } = useBracket();
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const { bracket, resetBracket } = useBracket();
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleReset = () => {
     if (
@@ -26,6 +30,38 @@ export function BracketControls({ bracketRef }: BracketControlsProps) {
     ) {
       resetBracket();
       toast.success("Bracket reset!");
+    }
+  };
+
+  const handleSave = async () => {
+    if (!bracketRef.current) {
+      toast.error("Cannot generate image");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const blob = await generateBracketImage(bracketRef.current, {
+        userName: bracket.userName,
+        bracketName: bracket.name,
+      });
+      
+      const shared = await shareImage(
+        blob,
+        `${bracket.userName}'s NFL Playoff Bracket`,
+        "Check out my NFL playoff predictions!",
+      );
+      
+      if (!shared) {
+        // Fallback to download if share not supported
+        const filename = `${bracket.userName.replace(/\s+/g, "-")}-bracket-${Date.now()}.png`;
+        await downloadImage(blob, filename);
+        toast.success("Image downloaded!");
+      }
+    } catch {
+      toast.error("Failed to generate image");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -44,10 +80,15 @@ export function BracketControls({ bracketRef }: BracketControlsProps) {
 
         <Button
           variant="outline"
-          onClick={() => setSaveDialogOpen(true)}
+          onClick={handleSave}
+          disabled={isSaving}
           className="border-gray-600 bg-gray-800 text-white hover:bg-gray-700"
         >
-          <Save className="mr-2 h-4 w-4" />
+          {isSaving ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
           Save
         </Button>
 
@@ -76,10 +117,6 @@ export function BracketControls({ bracketRef }: BracketControlsProps) {
         </Button>
       </div>
 
-      <SaveBracketDialog
-        open={saveDialogOpen}
-        onOpenChange={setSaveDialogOpen}
-      />
       <LoadBracketDialog
         open={loadDialogOpen}
         onOpenChange={setLoadDialogOpen}

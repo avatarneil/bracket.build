@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, FolderOpen, Loader2, Share2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useBracket } from "@/contexts/BracketContext";
@@ -67,7 +67,6 @@ export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const hasAutoSaved = useRef(false);
 
   const generateImage = async (): Promise<Blob | null> => {
     if (!bracketRef.current) {
@@ -116,32 +115,6 @@ export function MobileActionBar({ bracketRef }: MobileActionBarProps) {
       }
     }
   };
-
-  // Auto-save screenshot when bracket becomes complete
-  useEffect(() => {
-    if (bracket.isComplete && !hasAutoSaved.current && bracketRef.current) {
-      hasAutoSaved.current = true;
-      // Small delay to ensure the UI has updated
-      const timer = setTimeout(async () => {
-        try {
-          const blob = await generateBracketImage(bracketRef.current!, {
-            userName: bracket.userName,
-            bracketName: bracket.name,
-          });
-          const filename = `${bracket.userName.replace(/\s+/g, "-")}-bracket-${Date.now()}.png`;
-          await downloadImage(blob, filename);
-          toast.success("Bracket auto-saved as image!");
-        } catch {
-          // Silently fail auto-save, user can still manually save
-        }
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-    // Reset the flag if bracket becomes incomplete again
-    if (!bracket.isComplete) {
-      hasAutoSaved.current = false;
-    }
-  }, [bracket.isComplete, bracket.userName, bracket.name, bracketRef]);
 
   // When bracket is complete, show celebratory completion state
   if (bracket.isComplete && bracket.superBowl?.winner) {
