@@ -32,23 +32,24 @@ export function SaveBracketDialog({
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = () => {
-    if (!name.trim()) return;
-
     setIsSaving(true);
     try {
+      const trimmedName = name.trim();
       // Create a new bracket with a new ID for saving as a new version
       const bracketToSave = {
         ...bracket,
         id: nanoid(),
-        name: name.trim(),
+        name: trimmedName,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
 
-      setBracketName(name.trim());
+      setBracketName(trimmedName);
       saveBracket(bracketToSave);
       toast.success("Bracket saved!", {
-        description: `"${name.trim()}" has been saved.`,
+        description: trimmedName
+          ? `"${trimmedName}" has been saved.`
+          : "Your bracket has been saved.",
       });
       onOpenChange(false);
     } catch (error) {
@@ -75,13 +76,14 @@ export function SaveBracketDialog({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="bracket-name" className="text-gray-300">
-              Bracket Name
+              Bracket Name{" "}
+              <span className="font-normal text-gray-500">(optional)</span>
             </Label>
             <Input
               id="bracket-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="My Bracket"
+              placeholder="e.g. My Dream Bracket"
               className="border-gray-600 bg-gray-800 text-white placeholder:text-gray-500"
             />
           </div>
@@ -113,7 +115,7 @@ export function SaveBracketDialog({
           </Button>
           <Button
             onClick={handleSave}
-            disabled={!name.trim() || isSaving}
+            disabled={isSaving}
             className="bg-gradient-to-r from-red-600 to-blue-600 hover:from-red-700 hover:to-blue-700"
           >
             {isSaving ? "Saving..." : "Save Bracket"}

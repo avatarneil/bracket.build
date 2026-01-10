@@ -152,7 +152,9 @@ export const Bracket = forwardRef<HTMLDivElement, BracketProps>(
             <h2 className="text-base font-semibold text-gray-400 sm:text-lg">
               {bracket.userName}&apos;s Bracket
             </h2>
-            <h3 className="text-xs text-gray-500 sm:text-sm">{bracket.name}</h3>
+            {bracket.name && (
+              <h3 className="text-xs text-gray-500 sm:text-sm">{bracket.name}</h3>
+            )}
           </div>
         )}
 

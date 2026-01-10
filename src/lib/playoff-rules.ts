@@ -177,7 +177,7 @@ export function calculateChampionshipMatchup(
 export function createInitialBracket(userName: string): BracketState {
   return {
     id: nanoid(),
-    name: "My Bracket",
+    name: "",
     userName,
     afc: {
       wildCard: createWildCardMatchups("AFC"),

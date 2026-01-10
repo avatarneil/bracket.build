@@ -375,9 +375,12 @@ export async function generateBracketImage(
     35,
   );
 
-  ctx.font = "20px system-ui, -apple-system, sans-serif";
-  ctx.fillStyle = "#A1A1AA"; // Muted gray
-  ctx.fillText(options.bracketName, finalCanvas.width / 2, 62);
+  // Only show bracket name subtitle if one was set
+  if (options.bracketName) {
+    ctx.font = "20px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = "#A1A1AA"; // Muted gray
+    ctx.fillText(options.bracketName, finalCanvas.width / 2, 62);
+  }
 
   // Draw the bracket
   ctx.drawImage(canvas, padding, headerHeight + padding);
