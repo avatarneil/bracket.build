@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 /**
  * API route to proxy external images, adding CORS headers
@@ -8,7 +8,10 @@ export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
 
   if (!url) {
-    return NextResponse.json({ error: "URL parameter required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "URL parameter required" },
+      { status: 400 },
+    );
   }
 
   try {
@@ -23,7 +26,7 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       return NextResponse.json(
         { error: `Failed to fetch image: ${response.status}` },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -43,7 +46,7 @@ export async function GET(request: NextRequest) {
     console.error("Image proxy error:", error);
     return NextResponse.json(
       { error: "Failed to proxy image" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

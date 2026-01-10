@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BracketControls } from "@/components/BracketControls";
-import { MobileActionBar } from "@/components/MobileActionBar";
 import { Bracket } from "@/components/bracket/Bracket";
 import { WelcomeDialog } from "@/components/dialogs/WelcomeDialog";
+import { MobileActionBar } from "@/components/MobileActionBar";
 import { BracketProvider, useBracket } from "@/contexts/BracketContext";
 import { getStoredUser } from "@/lib/storage";
 
@@ -32,23 +32,23 @@ function BracketApp() {
 
   return (
     <>
-      {/* Main content with bottom padding for mobile action bar */}
-      <main className="min-h-screen overflow-x-hidden bg-gray-950 px-3 pb-28 pt-4 sm:px-4 sm:py-8 lg:pb-8">
+      {/* Main content with bottom padding for mobile/tablet action bar */}
+      <main className="min-h-screen overflow-x-hidden bg-gray-950 px-3 pb-28 pt-4 sm:px-4 sm:py-8 md:px-6 md:pb-32 md:pt-6 lg:pb-8">
         {/* Use inline-flex wrapper to let content determine its own width and center it */}
         <div className="flex justify-center overflow-x-hidden">
           <div className="inline-flex max-w-full flex-col items-center overflow-x-hidden">
-            {/* Header - smaller on mobile */}
-            <header className="mb-4 text-center sm:mb-8">
-              <h1 className="font-mono bg-gradient-to-r from-red-500 via-white to-blue-500 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl md:text-5xl">
+            {/* Header - scales with viewport, larger on tablets */}
+            <header className="mb-4 text-center sm:mb-8 md:mb-10">
+              <h1 className="font-mono bg-gradient-to-r from-red-500 via-white to-blue-500 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl md:text-5xl lg:text-5xl">
                 bracket.build
               </h1>
-              <p className="mt-1 text-sm text-gray-400 sm:mt-2 sm:text-lg">
+              <p className="mt-1 text-sm text-gray-400 sm:mt-2 sm:text-lg md:text-xl">
                 NFL Playoff Predictions • 2025-26
               </p>
             </header>
 
             {/* Controls */}
-            <div className="mb-4 w-full sm:mb-6">
+            <div className="mb-4 w-full sm:mb-6 md:mb-8">
               <BracketControls
                 bracketRef={bracketRef}
                 onResetName={() => setShowWelcome(true)}
@@ -56,11 +56,11 @@ function BracketApp() {
             </div>
 
             {/* Bracket */}
-            <div className="pb-4 sm:pb-8">
+            <div className="pb-4 sm:pb-8 md:pb-10">
               <Bracket ref={bracketRef} />
             </div>
 
-            {/* Instructions - hidden on mobile (they use the app naturally) */}
+            {/* Instructions - hidden on mobile/tablet (they use the app naturally) */}
             <div className="mt-8 hidden text-center text-sm text-gray-500 lg:block">
               <p>
                 Click on a team to select them as the winner of each matchup.
@@ -77,7 +77,7 @@ function BracketApp() {
         />
       </main>
 
-      {/* Mobile Action Bar - fixed to bottom on mobile */}
+      {/* Mobile/Tablet Action Bar - fixed to bottom on mobile and tablet */}
       <MobileActionBar bracketRef={bracketRef} />
     </>
   );

@@ -48,6 +48,7 @@ export function TeamCard({
   const desktop = desktopSize || size;
 
   // Helper to generate responsive classes for height/padding
+  // Includes tablet (md) sizing for better touch targets on iPad
   const getSizeClasses = () => {
     const mobileClasses =
       mobile === "sm"
@@ -55,60 +56,95 @@ export function TeamCard({
         : mobile === "md"
           ? "h-12 px-3"
           : "h-14 px-4";
+    // Tablet gets slightly larger sizing for better touch targets
+    const tabletClasses =
+      mobile === "sm"
+        ? "md:h-11 md:px-2.5"
+        : mobile === "md"
+          ? "md:h-14 md:px-4"
+          : "md:h-16 md:px-5";
     const desktopClasses =
       desktop === "sm"
         ? "lg:h-10 lg:px-2"
         : desktop === "md"
           ? "lg:h-12 lg:px-3"
           : "lg:h-14 lg:px-4";
-    return `${mobileClasses} ${desktopClasses}`;
+    return `${mobileClasses} ${tabletClasses} ${desktopClasses}`;
   };
 
   // Helper for icon/logo sizes
   const getIconSizeClasses = () => {
     const mobileClasses =
       mobile === "sm" ? "h-6 w-6" : mobile === "md" ? "h-8 w-8" : "h-10 w-10";
+    // Tablet gets slightly larger icons
+    const tabletClasses =
+      mobile === "sm"
+        ? "md:h-7 md:w-7"
+        : mobile === "md"
+          ? "md:h-9 md:w-9"
+          : "md:h-11 md:w-11";
     const desktopClasses =
       desktop === "sm"
         ? "lg:h-6 lg:w-6"
         : desktop === "md"
           ? "lg:h-8 lg:w-8"
           : "lg:h-10 lg:w-10";
-    return `${mobileClasses} ${desktopClasses}`;
+    return `${mobileClasses} ${tabletClasses} ${desktopClasses}`;
   };
 
   // Helper for seed badge sizes
   const getSeedBadgeClasses = () => {
     const mobileClasses =
       mobile === "lg" ? "h-6 w-6 text-sm" : "h-5 w-5 text-xs";
+    // Tablet gets slightly larger badges
+    const tabletClasses =
+      mobile === "lg"
+        ? "md:h-7 md:w-7 md:text-base"
+        : "md:h-6 md:w-6 md:text-sm";
     const desktopClasses =
-      desktop === "lg" ? "lg:h-6 lg:w-6 lg:text-sm" : "lg:h-5 lg:w-5 lg:text-xs";
-    return `${mobileClasses} ${desktopClasses}`;
+      desktop === "lg"
+        ? "lg:h-6 lg:w-6 lg:text-sm"
+        : "lg:h-5 lg:w-5 lg:text-xs";
+    return `${mobileClasses} ${tabletClasses} ${desktopClasses}`;
   };
 
   // Helper for text sizes
   const getCityTextClasses = () => {
     const mobileClasses =
       mobile === "sm" ? "text-xs" : mobile === "md" ? "text-sm" : "text-base";
+    // Tablet gets slightly larger text
+    const tabletClasses =
+      mobile === "sm"
+        ? "md:text-sm"
+        : mobile === "md"
+          ? "md:text-base"
+          : "md:text-lg";
     const desktopClasses =
       desktop === "sm"
         ? "lg:text-xs"
         : desktop === "md"
           ? "lg:text-sm"
           : "lg:text-base";
-    return `${mobileClasses} ${desktopClasses}`;
+    return `${mobileClasses} ${tabletClasses} ${desktopClasses}`;
   };
 
   const getTeamNameTextClasses = () => {
     const mobileClasses =
       mobile === "sm" ? "text-xs" : mobile === "md" ? "text-xs" : "text-sm";
+    // Tablet gets slightly larger text
+    const tabletClasses =
+      mobile === "sm"
+        ? "md:text-xs"
+        : mobile === "md"
+          ? "md:text-sm"
+          : "md:text-base";
     const desktopClasses =
       desktop === "sm"
         ? "lg:text-xs"
         : desktop === "md"
           ? "lg:text-xs"
           : "lg:text-sm";
-    return `${mobileClasses} ${desktopClasses}`;
+    return `${mobileClasses} ${tabletClasses} ${desktopClasses}`;
   };
 
   if (!team) {
@@ -201,7 +237,9 @@ export function TeamCard({
         >
           {team.name}
         </span>
-        <span className={cn("truncate text-gray-400", getTeamNameTextClasses())}>
+        <span
+          className={cn("truncate text-gray-400", getTeamNameTextClasses())}
+        >
           {team.city}
         </span>
       </div>
