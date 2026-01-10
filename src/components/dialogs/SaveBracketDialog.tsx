@@ -51,7 +51,7 @@ export function SaveBracketDialog({
         description: `"${name.trim()}" has been saved.`,
       });
       onOpenChange(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to save bracket");
     } finally {
       setIsSaving(false);

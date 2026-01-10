@@ -5,20 +5,88 @@ export interface GenerateImageOptions {
   bracketName: string;
 }
 
+// Detect if running on mobile
+function isMobile(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent,
+  );
+}
+
+// Wait for all images in an element to load
+async function waitForImages(element: HTMLElement): Promise<void> {
+  const images = element.querySelectorAll("img");
+  const imagePromises: Promise<void>[] = [];
+
+  for (const img of images) {
+    if (!img.complete) {
+      imagePromises.push(
+        new Promise((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // Resolve even on error to not block
+        }),
+      );
+    }
+  }
+
+  // Wait max 3 seconds for images
+  await Promise.race([
+    Promise.all(imagePromises),
+    new Promise((resolve) => setTimeout(resolve, 3000)),
+  ]);
+}
+
 export async function generateBracketImage(
   element: HTMLElement,
   options: GenerateImageOptions,
 ): Promise<Blob> {
+  // Wait for all images to load first
+  await waitForImages(element);
+
+  // Use lower scale on mobile to avoid memory issues
+  const scale = isMobile() ? 1 : 2;
+
   const canvas = await html2canvas(element, {
     backgroundColor: "#111827", // gray-900
-    scale: 2, // Higher resolution
+    scale,
     useCORS: true,
+    allowTaint: false,
     logging: false,
+    // Fix for Next.js Image components and cross-origin images
+    onclone: (clonedDoc) => {
+      // Convert all Next.js Image elements to regular img tags with inline styles
+      const images = clonedDoc.querySelectorAll("img");
+      for (const img of images) {
+        // Remove Next.js specific attributes that can cause issues
+        img.removeAttribute("loading");
+        img.removeAttribute("decoding");
+        img.removeAttribute("data-nimg");
+        img.removeAttribute("srcset");
+        img.removeAttribute("sizes");
+
+        // Ensure the image has explicit dimensions
+        const rect = img.getBoundingClientRect();
+        if (rect.width && rect.height) {
+          img.style.width = `${rect.width}px`;
+          img.style.height = `${rect.height}px`;
+        }
+
+        // Handle images that failed to load - replace with placeholder
+        if (!img.complete || img.naturalHeight === 0) {
+          img.style.backgroundColor = "#374151";
+          img.src =
+            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect fill='%23374151' width='32' height='32'/%3E%3C/svg%3E";
+        }
+      }
+    },
   });
 
   // Add header with user info
   const finalCanvas = document.createElement("canvas");
-  const ctx = finalCanvas.getContext("2d")!;
+  const ctx = finalCanvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Failed to get canvas 2D context");
+  }
   const headerHeight = 80;
   const padding = 40;
 
@@ -99,7 +167,7 @@ export async function copyImageToClipboard(blob: Blob): Promise<void> {
         "image/png": blob,
       }),
     ]);
-  } catch (error) {
+  } catch {
     throw new Error("Failed to copy image to clipboard");
   }
 }
@@ -126,7 +194,7 @@ export async function shareImage(
       files: [file],
     });
     return true;
-  } catch (error) {
+  } catch {
     // User cancelled or share failed
     return false;
   }

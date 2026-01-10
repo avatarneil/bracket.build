@@ -28,7 +28,9 @@ export function ShareMenu({ bracketRef }: ShareMenuProps) {
 
   const generateImage = async (): Promise<Blob | null> => {
     if (!bracketRef.current) {
-      toast.error("Cannot generate image");
+      toast.error("Cannot generate image", {
+        description: "Bracket element not found",
+      });
       return null;
     }
 
@@ -39,8 +41,12 @@ export function ShareMenu({ bracketRef }: ShareMenuProps) {
         bracketName: bracket.name,
       });
       return blob;
-    } catch {
-      toast.error("Failed to generate image");
+    } catch (error) {
+      console.error("Image generation failed:", error);
+      toast.error("Failed to generate image", {
+        description:
+          "Try scrolling the bracket into view and trying again. On mobile, some features may be limited.",
+      });
       return null;
     } finally {
       setIsGenerating(false);
