@@ -9,8 +9,8 @@ export interface GenerateImageOptions {
   /**
    * Image size preset:
    * - "hd" (1280x720) - fastest, good for web sharing
-   * - "fullhd" (1920x1080) - default, balanced quality/speed
-   * - "4k" (3840x2160) - highest quality, slower to generate
+   * - "fullhd" (1920x1080) - balanced quality/speed
+   * - "4k" (3840x2160) - default, highest quality
    */
   size?: ImageSize;
 }
@@ -32,7 +32,7 @@ export async function generateBracketImage(
       bracket,
       userName: options.userName,
       bracketName: options.bracketName,
-      size: options.size || "fullhd",
+      size: options.size,
     }),
   });
 

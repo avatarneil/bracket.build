@@ -17,19 +17,28 @@ interface RequestBody {
   bracket: BracketState;
   userName: string;
   bracketName: string;
-  size?: ImageSize; // Optional - defaults to "fullhd" for better performance
+  size?: ImageSize; // Optional - defaults to "4k" for best quality
 }
 
 // Cache for fetched logo data URIs
 const logoCache = new Map<string, string>();
 
+// Convert 500px ESPN logo URL to smaller 100px version for faster fetching
+function getOptimizedLogoUrl(url: string): string {
+  // ESPN CDN supports different sizes: /500/, /100/, etc.
+  return url.replace("/500/", "/100/");
+}
+
 async function fetchLogoAsDataUri(url: string): Promise<string> {
-  if (logoCache.has(url)) {
-    return logoCache.get(url)!;
+  // Use optimized (smaller) logo URL for faster fetching
+  const optimizedUrl = getOptimizedLogoUrl(url);
+
+  if (logoCache.has(optimizedUrl)) {
+    return logoCache.get(optimizedUrl)!;
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(optimizedUrl, {
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; NFLBracket/1.0)",
       },
@@ -47,10 +56,10 @@ async function fetchLogoAsDataUri(url: string): Promise<string> {
     const contentType = response.headers.get("content-type") || "image/png";
     const dataUri = `data:${contentType};base64,${base64}`;
 
-    logoCache.set(url, dataUri);
+    logoCache.set(optimizedUrl, dataUri);
     return dataUri;
   } catch (error) {
-    console.error("Failed to fetch logo:", url, error);
+    console.error("Failed to fetch logo:", optimizedUrl, error);
     // Return transparent 1x1 pixel as fallback
     return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
   }
@@ -534,7 +543,7 @@ function SuperBowlImage({
 export async function POST(request: NextRequest) {
   try {
     const body: RequestBody = await request.json();
-    const { bracket, userName, bracketName, size = "fullhd" } = body;
+    const { bracket, userName, bracketName, size = "4k" } = body;
 
     // Prefetch all logos in parallel
     const logoUrls = collectLogos(bracket);
