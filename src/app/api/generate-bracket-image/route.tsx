@@ -4,10 +4,20 @@ import type { BracketState, Matchup, SeededTeam } from "@/types";
 
 export const runtime = "edge";
 
+// Image size presets - smaller sizes render faster
+type ImageSize = "hd" | "fullhd" | "4k";
+
+const IMAGE_SIZES: Record<ImageSize, { width: number; height: number }> = {
+  hd: { width: 1280, height: 720 },
+  fullhd: { width: 1920, height: 1080 },
+  "4k": { width: 3840, height: 2160 },
+};
+
 interface RequestBody {
   bracket: BracketState;
   userName: string;
   bracketName: string;
+  size?: ImageSize; // Optional - defaults to "fullhd" for better performance
 }
 
 // Cache for fetched logo data URIs
@@ -23,6 +33,9 @@ async function fetchLogoAsDataUri(url: string): Promise<string> {
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; NFLBracket/1.0)",
       },
+      // Enable Next.js edge caching - cache for 24 hours, revalidate in background
+      cache: "force-cache",
+      next: { revalidate: 86400 },
     });
 
     if (!response.ok) {
@@ -78,9 +91,7 @@ function collectLogos(bracket: BracketState): string[] {
 }
 
 // Pre-fetch all logos and return a map
-async function prefetchLogos(
-  logoUrls: string[],
-): Promise<Map<string, string>> {
+async function prefetchLogos(logoUrls: string[]): Promise<Map<string, string>> {
   const entries = await Promise.all(
     logoUrls.map(async (url) => {
       const dataUri = await fetchLogoAsDataUri(url);
@@ -523,114 +534,121 @@ function SuperBowlImage({
 export async function POST(request: NextRequest) {
   try {
     const body: RequestBody = await request.json();
-    const { bracket, userName, bracketName } = body;
+    const { bracket, userName, bracketName, size = "fullhd" } = body;
 
-    // Prefetch all logos
+    // Prefetch all logos in parallel
     const logoUrls = collectLogos(bracket);
     const logoMap = await prefetchLogos(logoUrls);
 
-    // 4K Image dimensions
-    const width = 3840;
-    const height = 2160;
+    // Get image dimensions based on requested size
+    const { width, height } = IMAGE_SIZES[size] || IMAGE_SIZES.fullhd;
 
-    return new ImageResponse(
-      (
+    const imageResponse = new ImageResponse(
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: "#000000",
+          fontFamily: "system-ui, -apple-system, sans-serif",
+        }}
+      >
         <div
           style={{
-            width: "100%",
-            height: "100%",
             display: "flex",
             flexDirection: "column",
-            backgroundColor: "#000000",
-            fontFamily: "system-ui, -apple-system, sans-serif",
+            alignItems: "center",
+            justifyContent: "center",
+            height: 140,
+            background:
+              "linear-gradient(90deg, #dc2626 0%, #1f1f1f 50%, #2563eb 100%)",
           }}
         >
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              height: 140,
-              background:
-                "linear-gradient(90deg, #dc2626 0%, #1f1f1f 50%, #2563eb 100%)",
+              color: "#ffffff",
+              fontSize: 52,
+              fontWeight: 700,
             }}
           >
+            {userName}&apos;s Playoff Bracket
+          </div>
+          {bracketName && (
             <div
               style={{
                 display: "flex",
-                color: "#ffffff",
-                fontSize: 52,
-                fontWeight: 700,
+                color: "#a1a1aa",
+                fontSize: 28,
+                marginTop: 6,
               }}
             >
-              {userName}&apos;s Playoff Bracket
+              {bracketName}
             </div>
-            {bracketName && (
-              <div
-                style={{
-                  display: "flex",
-                  color: "#a1a1aa",
-                  fontSize: 28,
-                  marginTop: 6,
-                }}
-              >
-                {bracketName}
-              </div>
-            )}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "40px 80px",
-              gap: 60,
-            }}
-          >
-            <ConferenceBracketImage
-              conference="AFC"
-              bracket={bracket}
-              logoMap={logoMap}
-            />
-            <SuperBowlImage bracket={bracket} logoMap={logoMap} />
-            <ConferenceBracketImage
-              conference="NFC"
-              bracket={bracket}
-              logoMap={logoMap}
-              reversed
-            />
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              padding: "16px 40px",
-              color: "#6b7280",
-              fontSize: 26,
-              fontWeight: 600,
-            }}
-          >
-            bracket.build • NFL Playoffs 2025-26
-          </div>
+          )}
         </div>
-      ),
+
+        <div
+          style={{
+            display: "flex",
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "40px 80px",
+            gap: 60,
+          }}
+        >
+          <ConferenceBracketImage
+            conference="AFC"
+            bracket={bracket}
+            logoMap={logoMap}
+          />
+          <SuperBowlImage bracket={bracket} logoMap={logoMap} />
+          <ConferenceBracketImage
+            conference="NFC"
+            bracket={bracket}
+            logoMap={logoMap}
+            reversed
+          />
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            padding: "16px 40px",
+            color: "#6b7280",
+            fontSize: 26,
+            fontWeight: 600,
+          }}
+        >
+          bracket.build • NFL Playoffs 2025-26
+        </div>
+      </div>,
       {
         width,
         height,
       },
     );
+
+    // Add cache headers to improve subsequent request performance
+    // Cache for 1 hour on CDN, allow stale-while-revalidate for 24 hours
+    const headers = new Headers(imageResponse.headers);
+    headers.set(
+      "Cache-Control",
+      "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
+    );
+
+    return new Response(imageResponse.body, {
+      status: 200,
+      headers,
+    });
   } catch (error) {
     console.error("Error generating bracket image:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to generate image" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify({ error: "Failed to generate image" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }

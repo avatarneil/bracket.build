@@ -1,8 +1,18 @@
 import type { BracketState } from "@/types";
 
+// Image size presets - smaller sizes render faster
+export type ImageSize = "hd" | "fullhd" | "4k";
+
 export interface GenerateImageOptions {
   userName: string;
   bracketName: string;
+  /**
+   * Image size preset:
+   * - "hd" (1280x720) - fastest, good for web sharing
+   * - "fullhd" (1920x1080) - default, balanced quality/speed
+   * - "4k" (3840x2160) - highest quality, slower to generate
+   */
+  size?: ImageSize;
 }
 
 /**
@@ -22,6 +32,7 @@ export async function generateBracketImage(
       bracket,
       userName: options.userName,
       bracketName: options.bracketName,
+      size: options.size || "fullhd",
     }),
   });
 
