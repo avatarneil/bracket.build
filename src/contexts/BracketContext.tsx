@@ -13,8 +13,8 @@ import {
 import { AFC_SEEDS, NFC_SEEDS } from "@/data/teams";
 import { hasCompletedGames, hasInProgressGames } from "@/lib/espn-api";
 
-// Auto-refresh interval when games are in progress (10 seconds for near real-time)
-const LIVE_REFRESH_INTERVAL = 10 * 1000;
+// Fallback polling interval (only used if SSE disconnects)
+const FALLBACK_REFRESH_INTERVAL = 5 * 1000;
 import {
   calculateChampionshipMatchup,
   calculateDivisionalMatchups,
@@ -538,39 +538,68 @@ export function BracketProvider({ children }: { children: ReactNode }) {
     }
   }, [bracket]);
 
-  // Track if we have live games for auto-refresh
+  // Track if we have live games for SSE subscription
   const hasLiveGames = hasInProgressGames(bracket.liveResults);
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const fallbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-refresh when games are in progress
+  // Subscribe to SSE stream when games are in progress
   useEffect(() => {
-    // Clear any existing interval
-    if (refreshIntervalRef.current) {
-      clearInterval(refreshIntervalRef.current);
-      refreshIntervalRef.current = null;
+    // Clean up any existing connections
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+    if (fallbackIntervalRef.current) {
+      clearInterval(fallbackIntervalRef.current);
+      fallbackIntervalRef.current = null;
     }
 
-    // Set up auto-refresh if there are live games
-    if (hasLiveGames) {
-      refreshIntervalRef.current = setInterval(() => {
-        // Only refresh if not already loading
-        if (!isLoadingLiveResults) {
+    // Only subscribe when there are live games
+    if (!hasLiveGames) return;
+
+    // Create SSE connection
+    const eventSource = new EventSource("/api/standings/stream");
+    eventSourceRef.current = eventSource;
+
+    eventSource.onmessage = (event) => {
+      try {
+        const results: LiveResults = JSON.parse(event.data);
+        dispatch({ type: "SET_LIVE_RESULTS", results });
+      } catch (err) {
+        console.error("Failed to parse SSE data:", err);
+      }
+    };
+
+    eventSource.onerror = () => {
+      console.warn("SSE connection error, falling back to polling");
+      eventSource.close();
+      eventSourceRef.current = null;
+
+      // Fall back to polling if SSE fails
+      if (!fallbackIntervalRef.current) {
+        fallbackIntervalRef.current = setInterval(() => {
           fetch("/api/standings")
             .then((res) => res.json())
             .then((results: LiveResults) => {
               dispatch({ type: "SET_LIVE_RESULTS", results });
             })
-            .catch((err) => console.error("Auto-refresh failed:", err));
-        }
-      }, LIVE_REFRESH_INTERVAL);
-    }
-
-    return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
+            .catch((err) => console.error("Fallback refresh failed:", err));
+        }, FALLBACK_REFRESH_INTERVAL);
       }
     };
-  }, [hasLiveGames, isLoadingLiveResults]);
+
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+      if (fallbackIntervalRef.current) {
+        clearInterval(fallbackIntervalRef.current);
+        fallbackIntervalRef.current = null;
+      }
+    };
+  }, [hasLiveGames]);
 
   const selectWinner = (matchupId: string, winner: SeededTeam) => {
     dispatch({ type: "SELECT_WINNER", matchupId, winner });
