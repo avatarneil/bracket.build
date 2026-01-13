@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { fetchLiveResults } from "@/lib/espn-api";
 
-// Cache the results for 60 seconds to avoid hammering ESPN's API
+// Cache the results for 10 seconds for near real-time updates
 let cachedResults: Awaited<ReturnType<typeof fetchLiveResults>> | null = null;
 let cacheTimestamp = 0;
-const CACHE_TTL = 60 * 1000; // 60 seconds
+const CACHE_TTL = 10 * 1000; // 10 seconds
 
 export async function GET() {
   const now = Date.now();
@@ -13,7 +13,7 @@ export async function GET() {
   if (cachedResults && now - cacheTimestamp < CACHE_TTL) {
     return NextResponse.json(cachedResults, {
       headers: {
-        "Cache-Control": "public, max-age=60, stale-while-revalidate=120",
+        "Cache-Control": "public, max-age=10, stale-while-revalidate=30",
       },
     });
   }
@@ -25,7 +25,7 @@ export async function GET() {
 
     return NextResponse.json(results, {
       headers: {
-        "Cache-Control": "public, max-age=60, stale-while-revalidate=120",
+        "Cache-Control": "public, max-age=10, stale-while-revalidate=30",
       },
     });
   } catch (error) {
@@ -35,7 +35,7 @@ export async function GET() {
     if (cachedResults) {
       return NextResponse.json(cachedResults, {
         headers: {
-          "Cache-Control": "public, max-age=60, stale-while-revalidate=120",
+          "Cache-Control": "public, max-age=10, stale-while-revalidate=30",
           "X-Stale": "true",
         },
       });

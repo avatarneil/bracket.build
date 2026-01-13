@@ -2,7 +2,7 @@
 
 import { Lock, LockOpen, RefreshCw } from "lucide-react";
 import { useBracket } from "@/contexts/BracketContext";
-import { hasCompletedGames } from "@/lib/espn-api";
+import { hasCompletedGames, hasInProgressGames } from "@/lib/espn-api";
 import { cn } from "@/lib/utils";
 import type { RoundName } from "@/types";
 import { Button } from "./ui/button";
@@ -74,6 +74,7 @@ export function RoundLockControl() {
   };
 
   const anyRoundsWithGames = Object.values(roundsWithGames).some(Boolean);
+  const hasLiveGames = hasInProgressGames(liveResults);
 
   return (
     <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-3">
@@ -83,6 +84,15 @@ export function RoundLockControl() {
           {liveResults && (
             <span className="text-xs text-gray-500">
               Updated {new Date(liveResults.fetchedAt).toLocaleTimeString()}
+            </span>
+          )}
+          {hasLiveGames && (
+            <span className="flex items-center gap-1 rounded-full bg-yellow-500/20 px-2 py-0.5 text-[10px] font-medium text-yellow-400">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-yellow-400 opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-yellow-400" />
+              </span>
+              Live
             </span>
           )}
         </div>

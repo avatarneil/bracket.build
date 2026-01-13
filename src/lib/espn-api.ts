@@ -85,12 +85,23 @@ interface ESPNCompetition {
   date: string;
   competitors: ESPNCompetitor[];
   status: {
+    clock: number; // Seconds remaining in the period
+    displayClock: string; // Formatted time (e.g., "5:23")
+    period: number; // Quarter (1-4, or 5+ for OT)
     type: {
       id: string;
       name: string;
       state: "pre" | "in" | "post";
       completed: boolean;
+      description?: string; // e.g., "Halftime", "End of 1st Quarter"
+      detail?: string; // e.g., "3rd - 5:23"
+      shortDetail?: string; // e.g., "3rd - 5:23"
     };
+  };
+  situation?: {
+    possession?: string; // Team ID with possession
+    isRedZone?: boolean;
+    downDistanceText?: string; // e.g., "1st & 10"
   };
   conferenceCompetition?: boolean;
 }
@@ -162,9 +173,10 @@ function parseESPNEvent(event: ESPNEvent): LiveMatchupResult | null {
   const homeScore = Number.parseInt(homeCompetitor.score, 10) || null;
   const awayScore = Number.parseInt(awayCompetitor.score, 10) || null;
 
-  const status = competition.status.type;
-  const isComplete = status.completed;
-  const isInProgress = status.state === "in";
+  const status = competition.status;
+  const statusType = status.type;
+  const isComplete = statusType.completed;
+  const isInProgress = statusType.state === "in";
 
   // Determine winner
   let winnerId: string | null = null;
@@ -187,6 +199,21 @@ function parseESPNEvent(event: ESPNEvent): LiveMatchupResult | null {
   // This needs to match the format used in playoff-rules.ts
   const matchupId = `${conference.toLowerCase()}-${round}-${event.id}`;
 
+  // Extract game clock information for in-progress games
+  const quarter = isInProgress ? status.period : null;
+  const timeRemaining = isInProgress ? status.displayClock : null;
+  
+  // Check for special game states
+  const description = statusType.description?.toLowerCase() || "";
+  const isHalftime = description.includes("halftime");
+  const isEndOfQuarter = description.includes("end of");
+  
+  // Get possession info
+  const possessionTeamId = competition.situation?.possession 
+    ? mapTeamAbbreviation(competition.situation.possession)
+    : null;
+  const isRedZone = competition.situation?.isRedZone ?? false;
+
   return {
     matchupId,
     homeTeamId,
@@ -197,6 +224,12 @@ function parseESPNEvent(event: ESPNEvent): LiveMatchupResult | null {
     isComplete,
     isInProgress,
     gameDate: competition.date,
+    quarter,
+    timeRemaining,
+    possession: possessionTeamId,
+    isRedZone,
+    isHalftime,
+    isEndOfQuarter,
   };
 }
 
@@ -287,6 +320,25 @@ export function parsePlayoffResults(
 export async function fetchLiveResults(): Promise<LiveResults> {
   const responses = await fetchAllPlayoffWeeks();
   return parsePlayoffResults(responses);
+}
+
+/**
+ * Check if there are any in-progress games
+ */
+export function hasInProgressGames(liveResults: LiveResults | null): boolean {
+  if (!liveResults) return false;
+
+  const allMatchups = [
+    ...liveResults.afc.wildCard,
+    ...liveResults.nfc.wildCard,
+    ...liveResults.afc.divisional,
+    ...liveResults.nfc.divisional,
+    liveResults.afc.championship,
+    liveResults.nfc.championship,
+    liveResults.superBowl,
+  ].filter(Boolean) as LiveMatchupResult[];
+
+  return allMatchups.some((m) => m.isInProgress);
 }
 
 /**

@@ -83,6 +83,13 @@ export interface LiveMatchupResult {
   isComplete: boolean;
   isInProgress: boolean;
   gameDate: string | null;
+  // Game clock info for in-progress games
+  quarter: number | null;
+  timeRemaining: string | null;
+  possession: string | null; // Team ID with possession
+  isRedZone: boolean;
+  isHalftime: boolean;
+  isEndOfQuarter: boolean;
 }
 
 export interface LiveResults {

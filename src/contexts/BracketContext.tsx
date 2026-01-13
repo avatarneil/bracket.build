@@ -7,10 +7,14 @@ import {
   useContext,
   useEffect,
   useReducer,
+  useRef,
   useState,
 } from "react";
 import { AFC_SEEDS, NFC_SEEDS } from "@/data/teams";
-import { hasCompletedGames } from "@/lib/espn-api";
+import { hasCompletedGames, hasInProgressGames } from "@/lib/espn-api";
+
+// Auto-refresh interval when games are in progress (10 seconds for near real-time)
+const LIVE_REFRESH_INTERVAL = 10 * 1000;
 import {
   calculateChampionshipMatchup,
   calculateDivisionalMatchups,
@@ -533,6 +537,40 @@ export function BracketProvider({ children }: { children: ReactNode }) {
       saveCurrentBracket(bracket);
     }
   }, [bracket]);
+
+  // Track if we have live games for auto-refresh
+  const hasLiveGames = hasInProgressGames(bracket.liveResults);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-refresh when games are in progress
+  useEffect(() => {
+    // Clear any existing interval
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
+    }
+
+    // Set up auto-refresh if there are live games
+    if (hasLiveGames) {
+      refreshIntervalRef.current = setInterval(() => {
+        // Only refresh if not already loading
+        if (!isLoadingLiveResults) {
+          fetch("/api/standings")
+            .then((res) => res.json())
+            .then((results: LiveResults) => {
+              dispatch({ type: "SET_LIVE_RESULTS", results });
+            })
+            .catch((err) => console.error("Auto-refresh failed:", err));
+        }
+      }, LIVE_REFRESH_INTERVAL);
+    }
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [hasLiveGames, isLoadingLiveResults]);
 
   const selectWinner = (matchupId: string, winner: SeededTeam) => {
     dispatch({ type: "SELECT_WINNER", matchupId, winner });

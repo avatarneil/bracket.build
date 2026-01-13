@@ -21,6 +21,18 @@ interface MatchupProps {
   connectorSide?: "left" | "right";
 }
 
+/**
+ * Format quarter number to display string
+ */
+function formatQuarter(quarter: number): string {
+  if (quarter === 1) return "1st";
+  if (quarter === 2) return "2nd";
+  if (quarter === 3) return "3rd";
+  if (quarter === 4) return "4th";
+  if (quarter >= 5) return `OT${quarter > 5 ? quarter - 4 : ""}`;
+  return `Q${quarter}`;
+}
+
 export function Matchup({
   matchup,
   onSelectWinner,
@@ -65,6 +77,22 @@ export function Matchup({
   const showScores = liveResult && (liveResult.isInProgress || liveResult.isComplete);
   const isInProgress = liveResult?.isInProgress;
 
+  // Get game clock info
+  const quarter = liveResult?.quarter;
+  const timeRemaining = liveResult?.timeRemaining;
+  const isHalftime = liveResult?.isHalftime;
+  const isRedZone = liveResult?.isRedZone;
+  const possession = liveResult?.possession;
+
+  // Format the game status text
+  const getGameStatusText = () => {
+    if (isHalftime) return "HALFTIME";
+    if (liveResult?.isEndOfQuarter && quarter) return `END ${formatQuarter(quarter)}`;
+    if (quarter && timeRemaining) return `${formatQuarter(quarter)} ${timeRemaining}`;
+    if (quarter) return formatQuarter(quarter);
+    return "LIVE";
+  };
+
   return (
     <div
       className={cn(
@@ -80,13 +108,21 @@ export function Matchup({
         </div>
       )}
 
-      {/* In-progress indicator with "LIVE" badge */}
+      {/* In-progress game clock badge */}
       {isInProgress && (
-        <div className="absolute -right-1 -top-1 z-10 flex items-center gap-1">
-          <span className="relative flex h-3 w-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
-          </span>
+        <div className="absolute -top-3 left-1/2 z-10 -translate-x-1/2">
+          <div className={cn(
+            "flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-lg",
+            isRedZone 
+              ? "bg-red-600 text-white" 
+              : "bg-yellow-500 text-black"
+          )}>
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-current" />
+            </span>
+            <span>{getGameStatusText()}</span>
+          </div>
         </div>
       )}
 
@@ -102,6 +138,12 @@ export function Matchup({
           desktopSize={effectiveDesktopSize}
           isLocked={isLocked}
         />
+        {/* Possession indicator */}
+        {isInProgress && possession === homeTeam?.id && (
+          <div className="absolute -left-2 top-1/2 -translate-y-1/2">
+            <div className="h-2 w-2 rounded-full bg-yellow-400 shadow-sm" title="Has possession" />
+          </div>
+        )}
         {/* Score display for live/completed games */}
         {showScores && homeScore !== null && homeScore !== undefined && (
           <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -131,6 +173,12 @@ export function Matchup({
           desktopSize={effectiveDesktopSize}
           isLocked={isLocked}
         />
+        {/* Possession indicator */}
+        {isInProgress && possession === awayTeam?.id && (
+          <div className="absolute -left-2 top-1/2 -translate-y-1/2">
+            <div className="h-2 w-2 rounded-full bg-yellow-400 shadow-sm" title="Has possession" />
+          </div>
+        )}
         {/* Score display for live/completed games */}
         {showScores && awayScore !== null && awayScore !== undefined && (
           <div className="absolute right-2 top-1/2 -translate-y-1/2">
