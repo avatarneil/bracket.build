@@ -18,6 +18,12 @@ interface TeamCardProps {
   mobileSize?: Size;
   /** Size on desktop (>= lg breakpoint). Takes precedence over size on desktop. */
   desktopSize?: Size;
+  /** Whether this matchup is locked with live results */
+  isLocked?: boolean;
+  /** Whether this team currently has possession (live games only) */
+  hasPossession?: boolean;
+  /** Whether this team is in the red zone */
+  isRedZone?: boolean;
 }
 
 export function TeamCard({
@@ -29,6 +35,9 @@ export function TeamCard({
   size = "md",
   mobileSize,
   desktopSize,
+  isLocked = false,
+  hasPossession = false,
+  isRedZone = false,
 }: TeamCardProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -168,6 +177,15 @@ export function TeamCard({
     );
   }
 
+  // Determine the glow color based on state
+  const getPossessionGlow = () => {
+    if (!hasPossession) return undefined;
+    if (isRedZone) {
+      return "0 0 20px 4px rgba(239, 68, 68, 0.6), 0 0 40px 8px rgba(239, 68, 68, 0.3)";
+    }
+    return `0 0 15px 3px ${team.primaryColor}80, 0 0 30px 6px ${team.primaryColor}40`;
+  };
+
   return (
     <button
       ref={buttonRef}
@@ -182,22 +200,35 @@ export function TeamCard({
           "border-[#D4BE8C] bg-[#D4BE8C]/15 shadow-lg shadow-[#D4BE8C]/20",
         // Loser state
         isLoser && "border-gray-600 bg-gray-800/50 opacity-50",
+        // Possession state - pulsing glow animation
+        hasPossession && !isWinner && !isLoser && "animate-pulse-subtle",
+        // Red zone possession
+        hasPossession && isRedZone && !isWinner && !isLoser && "border-red-500/70",
+        // Normal possession  
+        hasPossession && !isRedZone && !isWinner && !isLoser && "border-yellow-400/70",
+        // Locked state (live results applied)
+        isLocked && !isWinner && !isLoser && !hasPossession && "cursor-default border-green-700/50 bg-gray-800/70",
         // Neutral state (clickable)
         !isWinner &&
           !isLoser &&
           !disabled &&
+          !isLocked &&
+          !hasPossession &&
           "cursor-pointer border-gray-600 bg-gray-800 hover:border-gray-400 hover:bg-gray-700 active:scale-[0.98]",
         // Disabled state
         disabled &&
           !isLoser &&
+          !isLocked &&
           "cursor-not-allowed border-gray-700 bg-gray-800/50 opacity-70",
       )}
       style={{
-        borderLeftColor: isWinner ? "#D4BE8C" : team.primaryColor,
+        borderLeftColor: isWinner ? "#D4BE8C" : hasPossession && isRedZone ? "#ef4444" : hasPossession ? "#facc15" : team.primaryColor,
         borderLeftWidth: "6px",
         boxShadow: isWinner
           ? "inset 4px 0 8px -2px rgba(255, 215, 0, 0.4)"
-          : `inset 4px 0 8px -2px ${team.primaryColor}40`,
+          : hasPossession
+            ? getPossessionGlow()
+            : `inset 4px 0 8px -2px ${team.primaryColor}40`,
       }}
     >
       {/* Team Logo */}
@@ -258,6 +289,27 @@ export function TeamCard({
               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
             />
           </svg>
+        </div>
+      )}
+
+      {/* Possession indicator - football icon with glow */}
+      {hasPossession && !isWinner && (
+        <div 
+          className={cn(
+            "absolute -left-3 top-1/2 -translate-y-1/2 flex items-center justify-center",
+            "animate-bounce-subtle"
+          )}
+        >
+          <div 
+            className={cn(
+              "flex h-6 w-6 items-center justify-center rounded-full shadow-lg",
+              isRedZone 
+                ? "bg-red-500 shadow-red-500/50" 
+                : "bg-yellow-400 shadow-yellow-400/50"
+            )}
+          >
+            <span className="text-sm" role="img" aria-label="Has possession">🏈</span>
+          </div>
         </div>
       )}
     </button>

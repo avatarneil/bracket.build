@@ -45,6 +45,10 @@ export interface BracketState {
   createdAt: number;
   updatedAt: number;
   isComplete: boolean;
+  // Lock preferences for using live results vs predictions per round
+  lockedRounds: RoundLockState;
+  // Cached live results from ESPN
+  liveResults: LiveResults | null;
 }
 
 export interface SavedBracket {
@@ -63,4 +67,49 @@ export type BracketAction =
   | { type: "LOAD_BRACKET"; bracket: BracketState }
   | { type: "SET_BRACKET_NAME"; name: string }
   | { type: "SET_USER_NAME"; userName: string }
-  | { type: "SET_SUBTITLE"; subtitle: string | null };
+  | { type: "SET_SUBTITLE"; subtitle: string | null }
+  | { type: "TOGGLE_ROUND_LOCK"; round: RoundName }
+  | { type: "SET_LIVE_RESULTS"; results: LiveResults }
+  | { type: "APPLY_LIVE_RESULTS" };
+
+// Live standings types for fetching real NFL playoff results
+export interface LiveMatchupResult {
+  matchupId: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  winnerId: string | null;
+  isComplete: boolean;
+  isInProgress: boolean;
+  gameDate: string | null;
+  // Game clock info for in-progress games
+  quarter: number | null;
+  timeRemaining: string | null;
+  possession: string | null; // Team ID with possession
+  isRedZone: boolean;
+  isHalftime: boolean;
+  isEndOfQuarter: boolean;
+}
+
+export interface LiveResults {
+  afc: {
+    wildCard: LiveMatchupResult[];
+    divisional: LiveMatchupResult[];
+    championship: LiveMatchupResult | null;
+  };
+  nfc: {
+    wildCard: LiveMatchupResult[];
+    divisional: LiveMatchupResult[];
+    championship: LiveMatchupResult | null;
+  };
+  superBowl: LiveMatchupResult | null;
+  fetchedAt: number;
+}
+
+export interface RoundLockState {
+  wildCard: boolean;
+  divisional: boolean;
+  conference: boolean;
+  superBowl: boolean;
+}

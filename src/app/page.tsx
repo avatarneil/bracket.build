@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BracketControls } from "@/components/BracketControls";
+import { RoundLockControl } from "@/components/RoundLockControl";
 import { Bracket } from "@/components/bracket/Bracket";
 import { WelcomeDialog } from "@/components/dialogs/WelcomeDialog";
 import { MobileActionBar } from "@/components/MobileActionBar";
@@ -9,7 +10,7 @@ import { BracketProvider, useBracket } from "@/contexts/BracketContext";
 import { getStoredUser } from "@/lib/storage";
 
 function BracketApp() {
-  useBracket(); // Access context to ensure it's available
+  const { refreshLiveResults, bracket } = useBracket();
   const [showWelcome, setShowWelcome] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -20,6 +21,13 @@ function BracketApp() {
       setShowWelcome(true);
     }
   }, []);
+
+  // Auto-fetch live results on initial load
+  useEffect(() => {
+    if (isHydrated && !bracket.liveResults) {
+      refreshLiveResults();
+    }
+  }, [isHydrated, bracket.liveResults, refreshLiveResults]);
 
   if (!isHydrated) {
     return (
@@ -49,6 +57,11 @@ function BracketApp() {
             {/* Controls */}
             <div className="mb-4 w-full sm:mb-6 md:mb-8">
               <BracketControls onResetName={() => setShowWelcome(true)} />
+            </div>
+
+            {/* Live Results Control */}
+            <div className="mb-4 w-full max-w-2xl sm:mb-6">
+              <RoundLockControl />
             </div>
 
             {/* Bracket */}

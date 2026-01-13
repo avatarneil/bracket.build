@@ -194,6 +194,14 @@ export function createInitialBracket(userName: string): BracketState {
     createdAt: Date.now(),
     updatedAt: Date.now(),
     isComplete: false,
+    // Default: no rounds locked (will be updated when live results are fetched)
+    lockedRounds: {
+      wildCard: false,
+      divisional: false,
+      conference: false,
+      superBowl: false,
+    },
+    liveResults: null,
   };
 }
 
