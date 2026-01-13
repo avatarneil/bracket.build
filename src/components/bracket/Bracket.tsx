@@ -91,7 +91,7 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
 
   return (
     <div
-      className="relative w-full max-w-[calc(100vw-24px)] md:max-w-[calc(100vw-48px)] lg:w-auto lg:max-w-none"
+      className="relative w-full max-w-[calc(100vw-24px)] md:max-w-[calc(100vw-48px)] 2xl:w-auto 2xl:max-w-none"
       data-conference={conference}
     >
       {/* Scroll container */}
@@ -99,46 +99,46 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
         ref={scrollRef}
         onScroll={handleScroll}
         onTouchStart={() => setShowHint(false)}
-        className="w-full overflow-x-auto lg:overflow-visible scrollbar-hide scroll-smooth touch-pan-x"
+        className="w-full overflow-x-auto 2xl:overflow-visible scrollbar-hide scroll-smooth touch-pan-x"
         style={{ touchAction: "pan-x pan-y" }}
       >
         {children}
       </div>
 
-      {/* Left fade gradient (mobile/tablet only) */}
+      {/* Left fade gradient (mobile/tablet/medium desktop only) */}
       {canScrollLeft && (
         <div
-          className="pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-black via-black/60 to-transparent md:w-12 lg:hidden"
+          className="pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-black via-black/60 to-transparent md:w-12 2xl:hidden"
           aria-hidden="true"
         />
       )}
 
-      {/* Right fade gradient (mobile/tablet only) */}
+      {/* Right fade gradient (mobile/tablet/medium desktop only) */}
       {canScrollRight && (
         <div
-          className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-black via-black/60 to-transparent md:w-12 lg:hidden"
+          className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-black via-black/60 to-transparent md:w-12 2xl:hidden"
           aria-hidden="true"
         />
       )}
 
-      {/* Left scroll arrow (mobile/tablet only) */}
+      {/* Left scroll arrow (mobile/tablet/medium desktop only) */}
       {canScrollLeft && (
         <button
           type="button"
           onClick={() => scrollTo("left")}
-          className="absolute left-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/30 active:scale-90 md:left-2 md:h-10 md:w-10 lg:hidden"
+          className="absolute left-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/30 active:scale-90 md:left-2 md:h-10 md:w-10 2xl:hidden"
           aria-label="Scroll left"
         >
           <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
         </button>
       )}
 
-      {/* Right scroll arrow (mobile/tablet only) */}
+      {/* Right scroll arrow (mobile/tablet/medium desktop only) */}
       {canScrollRight && (
         <button
           type="button"
           onClick={() => scrollTo("right")}
-          className="absolute right-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/30 active:scale-90 md:right-2 md:h-10 md:w-10 lg:hidden"
+          className="absolute right-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/30 active:scale-90 md:right-2 md:h-10 md:w-10 2xl:hidden"
           aria-label="Scroll right"
         >
           <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
@@ -232,17 +232,17 @@ export function Bracket({ showUserName = true }: BracketProps) {
 
         {/* Main Bracket Layout
             Mobile (< md): Vertical stack (AFC, NFC, Super Bowl) - each bracket scrolls horizontally left-to-right
-            Tablet (md): Vertical stack with more spacing and larger elements
-            Desktop (lg+): Horizontal (AFC | Super Bowl | NFC) - traditional bracket layout meeting in middle
+            Tablet/Medium Desktop (md to 2xl): Vertical stack with more spacing and larger elements
+            Wide Desktop (2xl+): Horizontal (AFC | Super Bowl | NFC) - traditional bracket layout meeting in middle
         */}
-        <div className="flex w-full flex-col gap-4 sm:gap-6 md:gap-8 lg:flex-row lg:items-start lg:justify-center lg:gap-4 xl:gap-8">
+        <div className="flex w-full flex-col gap-4 sm:gap-6 md:gap-8 2xl:flex-row 2xl:items-start 2xl:justify-center 2xl:gap-8">
           {/* AFC Bracket */}
           <ScrollHintWrapper conference="AFC">
             <ConferenceBracket conference="AFC" />
           </ScrollHintWrapper>
 
           {/* Super Bowl - Between conferences on desktop, after both on mobile */}
-          <div className="order-last flex justify-center lg:order-none lg:self-center">
+          <div className="order-last flex justify-center 2xl:order-none 2xl:self-center">
             <SuperBowl />
           </div>
 
@@ -254,7 +254,7 @@ export function Bracket({ showUserName = true }: BracketProps) {
 
       {/* Completion status - hidden on mobile since MobileActionBar shows it prominently */}
       {bracket.isComplete && (
-        <div className="mt-2 hidden items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2 text-center text-sm font-bold uppercase tracking-wider text-white lg:flex">
+        <div className="mt-2 hidden items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-2 text-center text-sm font-bold uppercase tracking-wider text-white 2xl:flex">
           <Trophy className="h-4 w-4" />
           Bracket Complete
         </div>

@@ -20,10 +20,10 @@ export function ConferenceBracket({ conference }: ConferenceBracketProps) {
       <div
         className={cn(
           "rounded-lg px-4 py-2 text-center font-bold text-white",
-          // On mobile: always left-aligned
-          // On desktop: AFC left-aligned (above Wild Card on outer edge), NFC right-aligned (above Wild Card on outer edge)
-          "self-start lg:self-auto",
-          isAFC ? "lg:self-start" : "lg:self-end",
+          // On mobile/tablet/medium desktop: always left-aligned
+          // On wide desktop (2xl+): AFC left-aligned (above Wild Card on outer edge), NFC right-aligned (above Wild Card on outer edge)
+          "self-start 2xl:self-auto",
+          isAFC ? "2xl:self-start" : "2xl:self-end",
           isAFC ? "bg-red-700" : "bg-blue-700",
         )}
       >
@@ -31,23 +31,22 @@ export function ConferenceBracket({ conference }: ConferenceBracketProps) {
       </div>
 
       {/* Bracket Rounds
-          Mobile: Always left-to-right (flex-row) - Wild Card -> Divisional -> Championship
-          Tablet: Similar to mobile but with larger cards and more spacing
-          Desktop: Outside-in layout where Wild Card is on the outer edges, Championship near Super Bowl
+          Mobile/Tablet/Medium Desktop: Always left-to-right (flex-row) - Wild Card -> Divisional -> Championship
+          Wide Desktop (2xl+): Outside-in layout where Wild Card is on the outer edges, Championship near Super Bowl
           - AFC (left side): Wild Card on far left, Championship on right (near Super Bowl)
           - NFC (right side): Championship on left (near Super Bowl), Wild Card on far right
       */}
       <div
         className={cn(
           "flex items-center gap-3 sm:gap-4 md:gap-5",
-          // Mobile/Tablet: always left to right (Wild Card -> Championship)
+          // Mobile/Tablet/Medium Desktop: always left to right (Wild Card -> Championship)
           "flex-row",
-          // Desktop: AFC stays left-to-right (WC outer, Champ center), NFC reverses (Champ center, WC outer)
-          isAFC ? "lg:flex-row" : "lg:flex-row-reverse",
+          // Wide Desktop (2xl+): AFC stays left-to-right (WC outer, Champ center), NFC reverses (Champ center, WC outer)
+          isAFC ? "2xl:flex-row" : "2xl:flex-row-reverse",
         )}
       >
         {/* Wild Card Round - fixed width columns prevent layout shift */}
-        <div className="flex w-44 flex-shrink-0 flex-col gap-3 sm:w-48 sm:gap-4 md:w-52 md:gap-5 lg:w-44 xl:w-48">
+        <div className="flex w-44 flex-shrink-0 flex-col gap-3 sm:w-48 sm:gap-4 md:w-52 md:gap-5 2xl:w-44">
           <div className="text-center text-xs font-semibold uppercase text-gray-400 md:text-sm">
             Wild Card
           </div>
@@ -64,7 +63,7 @@ export function ConferenceBracket({ conference }: ConferenceBracketProps) {
         </div>
 
         {/* Divisional Round - fixed width columns prevent layout shift */}
-        <div className="flex w-44 flex-shrink-0 flex-col gap-6 sm:w-48 sm:gap-8 md:w-52 md:gap-12 lg:w-44 lg:gap-16 xl:w-48">
+        <div className="flex w-44 flex-shrink-0 flex-col gap-6 sm:w-48 sm:gap-8 md:w-52 md:gap-12 2xl:w-44 2xl:gap-16">
           <div className="text-center text-xs font-semibold uppercase text-gray-400 md:text-sm">
             Divisional
           </div>
@@ -81,7 +80,7 @@ export function ConferenceBracket({ conference }: ConferenceBracketProps) {
         </div>
 
         {/* Conference Championship - fixed width columns prevent layout shift */}
-        <div className="flex w-44 flex-shrink-0 flex-col sm:w-48 md:w-52 lg:w-44 xl:w-48">
+        <div className="flex w-44 flex-shrink-0 flex-col sm:w-48 md:w-52 2xl:w-44">
           <div className="text-center text-xs font-semibold uppercase text-gray-400 md:text-sm">
             {conference} Champ
           </div>
