@@ -43,6 +43,8 @@ function LeaderRow({
                   <img
                     src={awayLeader.headshot}
                     alt={awayLeader.name}
+                    width={40}
+                    height={40}
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -74,6 +76,8 @@ function LeaderRow({
                   <img
                     src={homeLeader.headshot}
                     alt={homeLeader.name}
+                    width={40}
+                    height={40}
                     className="h-full w-full object-cover"
                   />
                 </div>

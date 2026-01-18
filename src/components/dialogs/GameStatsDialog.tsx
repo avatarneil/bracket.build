@@ -173,6 +173,8 @@ export function GameStatsDialog({
                 <img
                   src={awayTeam.logoUrl}
                   alt={awayTeam.name}
+                  width={48}
+                  height={48}
                   className="h-10 w-10 md:h-12 md:w-12"
                 />
               )}
@@ -235,6 +237,8 @@ export function GameStatsDialog({
                 <img
                   src={homeTeam.logoUrl}
                   alt={homeTeam.name}
+                  width={48}
+                  height={48}
                   className="h-10 w-10 md:h-12 md:w-12"
                 />
               )}

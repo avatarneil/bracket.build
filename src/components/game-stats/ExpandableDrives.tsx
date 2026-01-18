@@ -137,6 +137,8 @@ export function ExpandableDrives({
                         <img
                           src={drive.teamLogo}
                           alt={drive.teamAbbr}
+                          width={20}
+                          height={20}
                           className="h-5 w-5"
                         />
                       ) : (
