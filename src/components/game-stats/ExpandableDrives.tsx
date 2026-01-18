@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import type { Drive } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, getContrastSafeColor } from "@/lib/utils";
 
 interface ExpandableDrivesProps {
   drives: Drive[];
@@ -113,7 +113,7 @@ export function ExpandableDrives({
             {drivesByQuarter[quarter].map((drive) => {
               const isExpanded = expandedDrives.has(drive.id);
               const isHomeTeam = drive.teamAbbr === homeTeamId;
-              const teamColor = isHomeTeam ? homeColor : awayColor;
+              const teamColor = getContrastSafeColor(isHomeTeam ? homeColor : awayColor);
               const resultIcon = getResultIcon(drive.result);
               const resultColorClass = getResultColor(drive.result);
 

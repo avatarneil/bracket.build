@@ -1,7 +1,7 @@
 "use client";
 
 import type { ScoringPlay } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, getContrastSafeColor } from "@/lib/utils";
 
 interface ScoringPlaysProps {
   plays: ScoringPlay[];
@@ -77,7 +77,7 @@ export function ScoringPlays({
           <div className="space-y-2">
             {playsByQuarter[quarter].map((play) => {
               const isHomeTeam = play.teamAbbr === homeTeamId;
-              const teamColor = isHomeTeam ? homeColor : awayColor;
+              const teamColor = getContrastSafeColor(isHomeTeam ? homeColor : awayColor);
 
               return (
                 <div

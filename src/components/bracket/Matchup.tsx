@@ -198,8 +198,7 @@ export function Matchup({
           className={cn(
             "absolute -bottom-5 left-1/2 -translate-x-1/2",
             "flex items-center gap-1 rounded-full px-2.5 py-1",
-            "text-[9px] font-semibold transition-colors",
-            "bg-gray-800/80 hover:bg-gray-700 active:scale-95",
+            "text-[9px] font-semibold transition-colors active:scale-95",
             liveResult?.isInProgress ? "animate-color-shimmer" : "text-gray-400 hover:text-white",
           )}
         >

@@ -1,7 +1,7 @@
 "use client";
 
 import type { PlayerLeaders, PlayerStatLine } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, getContrastSafeColor } from "@/lib/utils";
 
 interface PlayerLeadersCardProps {
   awayLeaders: PlayerLeaders;
@@ -109,8 +109,8 @@ export function PlayerLeadersCard({
     <div className="space-y-3">
       {/* Team headers */}
       <div className="flex items-center justify-between px-3 text-xs font-medium">
-        <span style={{ color: awayColor }}>{awayTeamName}</span>
-        <span style={{ color: homeColor }}>{homeTeamName}</span>
+        <span style={{ color: getContrastSafeColor(awayColor) }}>{awayTeamName}</span>
+        <span style={{ color: getContrastSafeColor(homeColor) }}>{homeTeamName}</span>
       </div>
 
       <LeaderRow
