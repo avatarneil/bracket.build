@@ -46,7 +46,7 @@ export function ConferenceBracket({ conference }: ConferenceBracketProps) {
         )}
       >
         {/* Wild Card Round - fixed width columns prevent layout shift */}
-        <div className="flex w-44 flex-shrink-0 flex-col gap-3 sm:w-48 sm:gap-4 md:w-52 md:gap-5 2xl:w-44">
+        <div className="flex w-52 flex-shrink-0 flex-col gap-3 sm:w-56 sm:gap-4 md:w-60 md:gap-5 2xl:w-52">
           <div className="text-center text-xs font-semibold uppercase text-gray-400 md:text-sm">
             Wild Card
           </div>
@@ -63,7 +63,7 @@ export function ConferenceBracket({ conference }: ConferenceBracketProps) {
         </div>
 
         {/* Divisional Round - fixed width columns prevent layout shift */}
-        <div className="flex w-44 flex-shrink-0 flex-col gap-6 sm:w-48 sm:gap-8 md:w-52 md:gap-12 2xl:w-44 2xl:gap-16">
+        <div className="flex w-52 flex-shrink-0 flex-col gap-6 sm:w-56 sm:gap-8 md:w-60 md:gap-12 2xl:w-52 2xl:gap-16">
           <div className="text-center text-xs font-semibold uppercase text-gray-400 md:text-sm">
             Divisional
           </div>
@@ -80,7 +80,7 @@ export function ConferenceBracket({ conference }: ConferenceBracketProps) {
         </div>
 
         {/* Conference Championship - fixed width columns prevent layout shift */}
-        <div className="flex w-44 flex-shrink-0 flex-col sm:w-48 md:w-52 2xl:w-44">
+        <div className="flex w-52 flex-shrink-0 flex-col sm:w-56 md:w-60 2xl:w-52">
           <div className="text-center text-xs font-semibold uppercase text-gray-400 md:text-sm">
             {conference} Champ
           </div>

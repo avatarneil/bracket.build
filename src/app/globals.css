@@ -224,3 +224,18 @@
 .animate-glow-pulse {
   animation: glow-pulse 1s ease-in-out infinite;
 }
+
+/* Color shimmer animation for stats button (works for text and icons) */
+@keyframes color-shimmer {
+  0%,
+  100% {
+    color: #9ca3af;
+  }
+  50% {
+    color: #fbbf24;
+  }
+}
+
+.animate-color-shimmer {
+  animation: color-shimmer 1.5s ease-in-out infinite;
+}

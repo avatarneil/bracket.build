@@ -24,6 +24,10 @@ interface TeamCardProps {
   hasPossession?: boolean;
   /** Whether this team is in the red zone */
   isRedZone?: boolean;
+  /** Score to display on the right side of the card */
+  score?: number | null;
+  /** Color class for the score (e.g., "text-yellow-400" for live games) */
+  scoreColorClass?: string;
 }
 
 export function TeamCard({
@@ -38,6 +42,8 @@ export function TeamCard({
   isLocked = false,
   hasPossession = false,
   isRedZone = false,
+  score,
+  scoreColorClass = "text-gray-400",
 }: TeamCardProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -274,6 +280,18 @@ export function TeamCard({
           {team.city}
         </span>
       </div>
+
+      {/* Score display */}
+      {score !== undefined && score !== null && (
+        <div className="ml-1 flex-shrink-0 rounded bg-gray-900/80 px-1.5 py-0.5 md:px-2">
+          <span className={cn(
+            "font-mono text-sm font-bold tabular-nums md:text-base",
+            scoreColorClass
+          )}>
+            {score}
+          </span>
+        </div>
+      )}
 
       {/* Winner Checkmark - positioned in top-right corner */}
       {isWinner && (

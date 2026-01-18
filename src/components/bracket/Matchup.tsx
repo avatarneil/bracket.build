@@ -1,10 +1,12 @@
 "use client";
 
-import { Lock } from "lucide-react";
+import { Lock, BarChart3 } from "lucide-react";
+import { useState } from "react";
 import { useBracket } from "@/contexts/BracketContext";
 import { cn } from "@/lib/utils";
 import type { Matchup as MatchupType, SeededTeam } from "@/types";
 import { TeamCard } from "./TeamCard";
+import { GameStatsDialog } from "@/components/dialogs/GameStatsDialog";
 
 type Size = "sm" | "md" | "lg";
 
@@ -48,6 +50,12 @@ export function Matchup({
   const isLocked = isMatchupLocked(matchup.id);
   const liveResult = getLiveResultForMatchup(matchup.id);
   const canSelect = homeTeam !== null && awayTeam !== null && !isLocked;
+
+  // State for game stats dialog
+  const [showStatsDialog, setShowStatsDialog] = useState(false);
+
+  // Show stats button for games with live data (in progress or completed)
+  const hasGameData = liveResult && (liveResult.isInProgress || liveResult.isComplete);
 
   const handleSelect = (team: SeededTeam) => {
     if (!canSelect) return;
@@ -99,6 +107,8 @@ export function Matchup({
         "relative flex flex-col gap-1",
         (effectiveMobileSize === "lg" || effectiveDesktopSize === "lg") &&
           "lg:gap-2",
+        // Add margin-bottom for stats button
+        hasGameData && "mb-6",
       )}
     >
       {/* Lock indicator for locked matchups */}
@@ -126,67 +136,49 @@ export function Matchup({
         </div>
       )}
 
-      <div className="relative">
-        <TeamCard
-          team={homeTeam}
-          isWinner={winner?.id === homeTeam?.id}
-          isLoser={winner !== null && winner?.id !== homeTeam?.id}
-          onClick={() => homeTeam && handleSelect(homeTeam)}
-          disabled={!canSelect}
-          size={effectiveSize}
-          mobileSize={effectiveMobileSize}
-          desktopSize={effectiveDesktopSize}
-          isLocked={isLocked}
-          hasPossession={isInProgress && possession === homeTeam?.id}
-          isRedZone={isRedZone}
-        />
-        {/* Score display for live/completed games */}
-        {showScores && homeScore !== null && homeScore !== undefined && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2">
-            <span className={cn(
-              "font-mono text-lg font-bold tabular-nums",
-              isInProgress 
-                ? "text-yellow-400" 
-                : winner?.id === homeTeam?.id 
-                  ? "text-green-400" 
-                  : "text-gray-400"
-            )}>
-              {homeScore}
-            </span>
-          </div>
-        )}
-      </div>
+      <TeamCard
+        team={homeTeam}
+        isWinner={winner?.id === homeTeam?.id}
+        isLoser={winner !== null && winner?.id !== homeTeam?.id}
+        onClick={() => homeTeam && handleSelect(homeTeam)}
+        disabled={!canSelect}
+        size={effectiveSize}
+        mobileSize={effectiveMobileSize}
+        desktopSize={effectiveDesktopSize}
+        isLocked={isLocked}
+        hasPossession={isInProgress && possession === homeTeam?.id}
+        isRedZone={isRedZone}
+        score={showScores ? homeScore : undefined}
+        scoreColorClass={
+          isInProgress
+            ? "text-yellow-400"
+            : winner?.id === homeTeam?.id
+              ? "text-green-400"
+              : "text-gray-400"
+        }
+      />
 
-      <div className="relative">
-        <TeamCard
-          team={awayTeam}
-          isWinner={winner?.id === awayTeam?.id}
-          isLoser={winner !== null && winner?.id !== awayTeam?.id}
-          onClick={() => awayTeam && handleSelect(awayTeam)}
-          disabled={!canSelect}
-          size={effectiveSize}
-          mobileSize={effectiveMobileSize}
-          desktopSize={effectiveDesktopSize}
-          isLocked={isLocked}
-          hasPossession={isInProgress && possession === awayTeam?.id}
-          isRedZone={isRedZone}
-        />
-        {/* Score display for live/completed games */}
-        {showScores && awayScore !== null && awayScore !== undefined && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2">
-            <span className={cn(
-              "font-mono text-lg font-bold tabular-nums",
-              isInProgress 
-                ? "text-yellow-400" 
-                : winner?.id === awayTeam?.id 
-                  ? "text-green-400" 
-                  : "text-gray-400"
-            )}>
-              {awayScore}
-            </span>
-          </div>
-        )}
-      </div>
+      <TeamCard
+        team={awayTeam}
+        isWinner={winner?.id === awayTeam?.id}
+        isLoser={winner !== null && winner?.id !== awayTeam?.id}
+        onClick={() => awayTeam && handleSelect(awayTeam)}
+        disabled={!canSelect}
+        size={effectiveSize}
+        mobileSize={effectiveMobileSize}
+        desktopSize={effectiveDesktopSize}
+        isLocked={isLocked}
+        hasPossession={isInProgress && possession === awayTeam?.id}
+        isRedZone={isRedZone}
+        score={showScores ? awayScore : undefined}
+        scoreColorClass={
+          isInProgress
+            ? "text-yellow-400"
+            : winner?.id === awayTeam?.id
+              ? "text-green-400"
+              : "text-gray-400"
+        }
+      />
 
       {/* Connector line to next round */}
       {showConnector && (
@@ -197,6 +189,32 @@ export function Matchup({
           )}
         />
       )}
+
+      {/* Stats button for games with data */}
+      {hasGameData && (
+        <button
+          type="button"
+          onClick={() => setShowStatsDialog(true)}
+          className={cn(
+            "absolute -bottom-5 left-1/2 -translate-x-1/2",
+            "flex items-center gap-1 rounded-full px-2.5 py-1",
+            "text-[9px] font-semibold transition-colors",
+            "bg-gray-800/80 hover:bg-gray-700 active:scale-95",
+            liveResult?.isInProgress ? "animate-color-shimmer" : "text-gray-400 hover:text-white",
+          )}
+        >
+          <BarChart3 className="h-2.5 w-2.5" />
+          <span>Stats</span>
+        </button>
+      )}
+
+      {/* Game Stats Dialog */}
+      <GameStatsDialog
+        open={showStatsDialog}
+        onOpenChange={setShowStatsDialog}
+        matchup={matchup}
+        liveResult={liveResult}
+      />
     </div>
   );
 }

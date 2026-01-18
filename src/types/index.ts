@@ -113,3 +113,105 @@ export interface RoundLockState {
   conference: boolean;
   superBowl: boolean;
 }
+
+// Game boxscore types for detailed stats popup
+export interface GameBoxscore {
+  eventId: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  homeScore: number;
+  awayScore: number;
+  isComplete: boolean;
+  isInProgress: boolean;
+  quarter: number | null;
+  timeRemaining: string | null;
+  teamStats: {
+    home: TeamGameStats;
+    away: TeamGameStats;
+  };
+  playerLeaders: {
+    home: PlayerLeaders;
+    away: PlayerLeaders;
+  };
+  scoringPlays: ScoringPlay[];
+  drives: Drive[];
+  lastPlay: string | null;
+  fetchedAt: number;
+}
+
+export interface TeamGameStats {
+  teamId: string;
+  totalYards: number;
+  passingYards: number;
+  rushingYards: number;
+  turnovers: number;
+  timeOfPossession: string;
+  firstDowns: number;
+  thirdDownEfficiency: string;
+  penalties: number;
+  penaltyYards: number;
+  sacks: number;
+  interceptions: number;
+  fumbles: number;
+}
+
+export interface PlayerLeaders {
+  passer: PlayerStatLine | null;
+  rusher: PlayerStatLine | null;
+  receiver: PlayerStatLine | null;
+}
+
+export interface PlayerStatLine {
+  name: string;
+  position: string;
+  headshot?: string;
+  stats: string;
+}
+
+// Play-by-play types
+export interface ScoringPlay {
+  id: string;
+  text: string;
+  awayScore: number;
+  homeScore: number;
+  quarter: number;
+  clock: string;
+  teamId: string;
+  teamAbbr: string;
+  teamLogo: string;
+  type: string;
+}
+
+// Drive types for expandable play-by-play
+export interface Drive {
+  id: string;
+  teamId: string;
+  teamAbbr: string;
+  teamLogo: string;
+  result: string; // "Touchdown", "Field Goal", "Punt", "Fumble", "Interception", "Downs", "End of Half", etc.
+  description: string; // e.g., "10 plays, 75 yards, 5:23"
+  startQuarter: number;
+  startClock: string;
+  startYardLine: string;
+  endYardLine: string;
+  plays: Play[];
+  isScoring: boolean;
+  yards: number;
+  timeElapsed: string;
+}
+
+export interface Play {
+  id: string;
+  text: string;
+  quarter: number;
+  clock: string;
+  down: number | null;
+  distance: number | null;
+  yardLine: string;
+  yardsGained: number;
+  isScoring: boolean;
+  scoreAfter: {
+    away: number;
+    home: number;
+  } | null;
+}
