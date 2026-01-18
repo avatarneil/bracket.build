@@ -49,6 +49,17 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
     updateScrollState();
   }, [updateScrollState]);
 
+  // Allow vertical scrolling to pass through to the page
+  // Some WebViews capture scroll events on overflow-x containers
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    // If scrolling is mostly vertical, manually scroll the window
+    // This fixes WebViews that incorrectly capture vertical scrolls
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      window.scrollBy(0, e.deltaY);
+      e.preventDefault();
+    }
+  }, []);
+
   const scrollTo = useCallback((direction: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
@@ -98,9 +109,10 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
+        onWheel={handleWheel}
         onTouchStart={() => setShowHint(false)}
-        className="w-full overflow-x-auto 2xl:overflow-visible scrollbar-hide scroll-smooth touch-pan-x"
-        style={{ touchAction: "pan-x pan-y" }}
+        className="w-full overflow-x-auto 2xl:overflow-visible scrollbar-hide scroll-smooth"
+        style={{ touchAction: "pan-x pan-y pinch-zoom" }}
       >
         {children}
       </div>
