@@ -152,6 +152,7 @@ export function MobileActionBar() {
                 type="button"
                 onClick={handleShare}
                 disabled={isGenerating}
+                aria-label="Share bracket"
                 className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-white transition-all duration-150 hover:bg-white/90 active:scale-95 disabled:opacity-50 md:h-14 md:w-14"
               >
                 {isGenerating ? (

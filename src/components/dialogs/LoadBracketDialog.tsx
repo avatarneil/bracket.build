@@ -150,6 +150,7 @@ export function LoadBracketDialog({
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(saved.id, saved.name)}
+                        aria-label="Delete bracket"
                         className="border-red-600/50 bg-transparent text-red-400 hover:bg-red-600/20 hover:text-red-300 md:h-10 md:px-4"
                       >
                         <Trash2 className="h-4 w-4 md:h-5 md:w-5" />
