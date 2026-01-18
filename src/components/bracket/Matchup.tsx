@@ -108,7 +108,7 @@ export function Matchup({
         (effectiveMobileSize === "lg" || effectiveDesktopSize === "lg") &&
           "lg:gap-2",
         // Add margin-bottom for stats button
-        hasGameData && "mb-6",
+        hasGameData && "mb-7",
       )}
     >
       {/* Lock indicator for locked matchups */}
@@ -196,13 +196,13 @@ export function Matchup({
           type="button"
           onClick={() => setShowStatsDialog(true)}
           className={cn(
-            "absolute -bottom-5 left-1/2 -translate-x-1/2",
-            "flex items-center gap-1 rounded-full px-2.5 py-1",
-            "text-[9px] font-semibold transition-colors active:scale-95",
+            "absolute -bottom-6 left-1/2 -translate-x-1/2",
+            "flex items-center gap-1.5 rounded-full px-3 py-2",
+            "text-[10px] font-semibold transition-colors active:scale-95",
             liveResult?.isInProgress ? "animate-color-shimmer" : "text-gray-400 hover:text-white",
           )}
         >
-          <BarChart3 className="h-2.5 w-2.5" />
+          <BarChart3 className="h-3 w-3" />
           <span>Stats</span>
         </button>
       )}
