@@ -225,11 +225,15 @@ export function GameStatsDialog({
         </div>
 
         {/* Tab navigation */}
-        <div className="flex gap-1 border-b border-gray-700 px-4 md:px-6">
+        <div role="tablist" className="flex gap-1 border-b border-gray-700 px-4 md:px-6">
           {tabs.map((tab) => (
             <button
               key={tab.id}
+              id={`tab-${tab.id}`}
               type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`tabpanel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
                 "relative px-4 py-2.5 text-sm font-medium transition-colors md:py-3 md:text-base",
@@ -260,7 +264,12 @@ export function GameStatsDialog({
         </div>
 
         {/* Content area */}
-        <div className="max-h-[calc(90vh-180px)] overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-5">
+        <div
+          role="tabpanel"
+          id={`tabpanel-${activeTab}`}
+          aria-labelledby={`tab-${activeTab}`}
+          className="max-h-[calc(90vh-180px)] overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-5"
+        >
           {isLoading && !stats ? (
             <GameStatsLoading />
           ) : error ? (
