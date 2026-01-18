@@ -1,7 +1,7 @@
 "use client";
 
 import { RefreshCw, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -53,6 +53,41 @@ export function GameStatsDialog({
     eventId,
     open,
   );
+
+  // Lock body scroll when dialog is open to prevent background scrolling
+  useEffect(() => {
+    if (open) {
+      // Lock both html and body to prevent all background scrolling
+      const html = document.documentElement;
+      const body = document.body;
+
+      const originalHtmlOverflow = html.style.overflow;
+      const originalBodyOverflow = body.style.overflow;
+
+      html.style.overflow = "hidden";
+      body.style.overflow = "hidden";
+
+      // Block touch events on everything except the dialog content
+      const handleTouchMove = (e: TouchEvent) => {
+        // Find the dialog content element
+        const dialogContent = document.querySelector('[data-slot="dialog-content"]');
+        if (dialogContent && dialogContent.contains(e.target as Node)) {
+          // Allow scrolling within the dialog
+          return;
+        }
+        // Block scrolling outside the dialog
+        e.preventDefault();
+      };
+
+      document.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+      return () => {
+        html.style.overflow = originalHtmlOverflow;
+        body.style.overflow = originalBodyOverflow;
+        document.removeEventListener("touchmove", handleTouchMove);
+      };
+    }
+  }, [open]);
 
   // Get team data
   const homeTeam = matchup.homeTeam ? getTeamById(matchup.homeTeam.id) : null;
@@ -224,7 +259,7 @@ export function GameStatsDialog({
         </div>
 
         {/* Content area */}
-        <div className="max-h-[calc(90vh-180px)] overflow-y-auto px-4 py-4 md:px-6 md:py-5">
+        <div className="max-h-[calc(90vh-180px)] overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-5">
           {isLoading && !stats ? (
             <GameStatsLoading />
           ) : error ? (
