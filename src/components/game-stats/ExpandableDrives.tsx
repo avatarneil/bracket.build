@@ -126,7 +126,7 @@ export function ExpandableDrives({
                   <button
                     type="button"
                     onClick={() => toggleDrive(drive.id)}
-                    className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-gray-700/50"
+                    className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-gray-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                   >
                     {/* Team logo */}
                     <div
