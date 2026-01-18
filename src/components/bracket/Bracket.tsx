@@ -49,32 +49,64 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
     updateScrollState();
   }, [updateScrollState]);
 
-  // Touch handling: we use touch-action: pan-y to let browser handle vertical
-  // scrolling natively, and implement horizontal scrolling ourselves
-  const touchStartX = useRef<number | null>(null);
+  // Touch handling: Use native event listeners with { passive: true } to ensure
+  // the browser can apply momentum scrolling on Android without waiting for JS.
+  // React's synthetic events may interfere with Chrome's momentum calculations.
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
   const touchStartScrollLeft = useRef<number>(0);
+  const touchDirection = useRef<"horizontal" | "vertical" | null>(null);
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    setShowHint(false);
-    const touch = e.touches[0];
-    touchStartX.current = touch.clientX;
-    touchStartScrollLeft.current = scrollRef.current?.scrollLeft ?? 0;
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
+  useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
-    const touch = e.touches[0];
-    const deltaX = touchStartX.current - touch.clientX;
+    const handleTouchStart = (e: TouchEvent) => {
+      setShowHint(false);
+      const touch = e.touches[0];
+      touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+      touchStartScrollLeft.current = el.scrollLeft;
+      touchDirection.current = null;
+    };
 
-    // Scroll the container horizontally
-    el.scrollLeft = touchStartScrollLeft.current + deltaX;
-  }, []);
+    const handleTouchMove = (e: TouchEvent) => {
+      if (touchStartPos.current === null) return;
 
-  const handleTouchEnd = useCallback(() => {
-    touchStartX.current = null;
+      const touch = e.touches[0];
+      const deltaX = touchStartPos.current.x - touch.clientX;
+      const deltaY = touchStartPos.current.y - touch.clientY;
+
+      // On first significant move, determine direction and lock it
+      if (touchDirection.current === null) {
+        const threshold = 5;
+        if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
+          touchDirection.current =
+            Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
+        }
+      }
+
+      // Only handle horizontal scrolling - vertical is handled by browser with momentum
+      if (touchDirection.current === "horizontal") {
+        el.scrollLeft = touchStartScrollLeft.current + deltaX;
+      }
+      // For vertical: do absolutely nothing - browser handles with native momentum
+    };
+
+    const handleTouchEnd = () => {
+      touchStartPos.current = null;
+      touchDirection.current = null;
+    };
+
+    // Use passive: true to tell browser it can apply momentum scrolling immediately
+    // without waiting for JS. This is critical for Android momentum scrolling.
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: true });
+    el.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", handleTouchEnd);
+    };
   }, []);
 
   const scrollTo = useCallback((direction: "left" | "right") => {
@@ -123,13 +155,12 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
       data-conference={conference}
     >
       {/* Scroll container - uses touch-action: pan-y so browser handles vertical
-          scrolling natively, while we handle horizontal scrolling via JS */}
+          scrolling natively with momentum, while we handle horizontal scrolling via JS.
+          Touch handlers are attached as native listeners with { passive: true } to
+          ensure Android can apply momentum scrolling without waiting for JS. */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         className="w-full overflow-x-scroll 2xl:overflow-visible scrollbar-hide"
         style={{ touchAction: "pan-y pinch-zoom" }}
       >
