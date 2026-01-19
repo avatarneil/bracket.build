@@ -2,20 +2,16 @@ import { expect, test } from "../fixtures/test-fixtures";
 
 test.describe("Responsive Behavior", () => {
   // Note: seedUser and mockEspnApi fixtures are applied but not directly used
-  test.beforeEach(
-    async ({ seedUser: _seedUser, mockEspnApi: _mockEspnApi }) => {
-      // Fixtures applied automatically - seedUser skips welcome dialog, mockEspnApi mocks ESPN
-    },
-  );
+  test.beforeEach(async ({ seedUser: _seedUser, mockEspnApi: _mockEspnApi }) => {
+    // Fixtures applied automatically - seedUser skips welcome dialog, mockEspnApi mocks ESPN
+  });
 
   test("mobile viewport shows mobile action bar", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/");
     await expect(page.locator('[data-testid="bracket"]')).toBeVisible();
 
-    await expect(
-      page.locator('[data-testid="mobile-action-bar"]'),
-    ).toBeVisible();
+    await expect(page.locator('[data-testid="mobile-action-bar"]')).toBeVisible();
   });
 
   test("desktop viewport shows desktop controls", async ({ page }) => {
@@ -23,9 +19,7 @@ test.describe("Responsive Behavior", () => {
     await page.goto("/");
     await expect(page.locator('[data-testid="bracket"]')).toBeVisible();
 
-    await expect(
-      page.locator('[data-testid="desktop-controls"]'),
-    ).toBeVisible();
+    await expect(page.locator('[data-testid="desktop-controls"]')).toBeVisible();
   });
 
   test("tablet viewport shows mobile action bar", async ({ page }) => {
@@ -33,9 +27,7 @@ test.describe("Responsive Behavior", () => {
     await page.goto("/");
     await expect(page.locator('[data-testid="bracket"]')).toBeVisible();
 
-    await expect(
-      page.locator('[data-testid="mobile-action-bar"]'),
-    ).toBeVisible();
+    await expect(page.locator('[data-testid="mobile-action-bar"]')).toBeVisible();
   });
 
   test("bracket is scrollable on mobile", async ({ page }) => {
@@ -52,10 +44,7 @@ test.describe("Responsive Behavior", () => {
     expect(scrollWidth).toBeGreaterThanOrEqual(clientWidth);
   });
 
-  test("welcome dialog is responsive", async ({
-    page,
-    clearLocalStorage: _clearLocalStorage,
-  }) => {
+  test("welcome dialog is responsive", async ({ page, clearLocalStorage: _clearLocalStorage }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/");
 

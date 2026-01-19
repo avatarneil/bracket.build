@@ -32,10 +32,7 @@ export async function generateBracketImage(
   return response.blob();
 }
 
-export async function downloadImage(
-  blob: Blob,
-  filename: string,
-): Promise<void> {
+export async function downloadImage(blob: Blob, filename: string): Promise<void> {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -58,11 +55,7 @@ export async function copyImageToClipboard(blob: Blob): Promise<void> {
   }
 }
 
-export async function shareImage(
-  blob: Blob,
-  title: string,
-  text: string,
-): Promise<boolean> {
+export async function shareImage(blob: Blob, title: string, text: string): Promise<boolean> {
   if (!navigator.share || !navigator.canShare) {
     return false;
   }

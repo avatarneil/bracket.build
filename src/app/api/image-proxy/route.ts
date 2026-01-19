@@ -8,10 +8,7 @@ export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
 
   if (!url) {
-    return NextResponse.json(
-      { error: "URL parameter required" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "URL parameter required" }, { status: 400 });
   }
 
   try {
@@ -44,9 +41,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Image proxy error:", error);
-    return NextResponse.json(
-      { error: "Failed to proxy image" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to proxy image" }, { status: 500 });
   }
 }

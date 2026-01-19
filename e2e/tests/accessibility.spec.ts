@@ -17,9 +17,7 @@ test.describe("Accessibility", () => {
       .analyze();
 
     // Only fail on critical violations
-    const criticalViolations = results.violations.filter(
-      (v) => v.impact === "critical",
-    );
+    const criticalViolations = results.violations.filter((v) => v.impact === "critical");
     expect(criticalViolations).toEqual([]);
   });
 

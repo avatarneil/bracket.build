@@ -1,12 +1,10 @@
 import { expect, test } from "../fixtures/test-fixtures";
 
 test.describe("View Toggle", () => {
-  test.beforeEach(
-    async ({ page, seedUser: _seedUser, mockEspnApi: _mockEspnApi }) => {
-      await page.goto("/");
-      await expect(page.locator('[data-testid="bracket"]')).toBeVisible();
-    },
-  );
+  test.beforeEach(async ({ page, seedUser: _seedUser, mockEspnApi: _mockEspnApi }) => {
+    await page.goto("/");
+    await expect(page.locator('[data-testid="bracket"]')).toBeVisible();
+  });
 
   test("starts in bracket view by default", async ({ page }) => {
     await expect(page.locator('[data-testid="bracket"]')).toBeVisible();

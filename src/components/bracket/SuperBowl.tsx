@@ -56,9 +56,7 @@ export function SuperBowl() {
           />
         </div>
 
-        <div className="text-base font-bold text-gray-500 sm:text-lg lg:text-base">
-          VS
-        </div>
+        <div className="text-base font-bold text-gray-500 sm:text-lg lg:text-base">VS</div>
 
         {/* NFC Champion */}
         <div className="w-48 sm:w-52 lg:w-48">

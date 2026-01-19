@@ -157,9 +157,10 @@ export function calculateDivisionalMatchups(
  * Calculate conference championship matchup
  * Higher seed hosts
  */
-export function calculateChampionshipMatchup(
-  divisionalWinners: (SeededTeam | null)[],
-): { home: SeededTeam | null; away: SeededTeam | null } {
+export function calculateChampionshipMatchup(divisionalWinners: (SeededTeam | null)[]): {
+  home: SeededTeam | null;
+  away: SeededTeam | null;
+} {
   const winners = divisionalWinners.filter((w): w is SeededTeam => w !== null);
 
   if (winners.length < 2) {
@@ -209,20 +210,12 @@ export function createInitialBracket(userName: string): BracketState {
  * Check if bracket is complete (all winners selected)
  */
 export function isBracketComplete(bracket: BracketState): boolean {
-  const afcWildCardComplete = bracket.afc.wildCard.every(
-    (m) => m.winner !== null,
-  );
-  const afcDivisionalComplete = bracket.afc.divisional.every(
-    (m) => m.winner !== null,
-  );
+  const afcWildCardComplete = bracket.afc.wildCard.every((m) => m.winner !== null);
+  const afcDivisionalComplete = bracket.afc.divisional.every((m) => m.winner !== null);
   const afcChampionshipComplete = bracket.afc.championship?.winner !== null;
 
-  const nfcWildCardComplete = bracket.nfc.wildCard.every(
-    (m) => m.winner !== null,
-  );
-  const nfcDivisionalComplete = bracket.nfc.divisional.every(
-    (m) => m.winner !== null,
-  );
+  const nfcWildCardComplete = bracket.nfc.wildCard.every((m) => m.winner !== null);
+  const nfcDivisionalComplete = bracket.nfc.divisional.every((m) => m.winner !== null);
   const nfcChampionshipComplete = bracket.nfc.championship?.winner !== null;
 
   const superBowlComplete = bracket.superBowl?.winner !== null;

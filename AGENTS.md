@@ -1,4 +1,5 @@
 # Gitops
+
 - MUST: Use graphite/gt, and prefer stacks for changes. Structure all plans & code changes around this.
 
 # Concise rules for building accessible, fast, delightful UIs. Use MUST/SHOULD/NEVER to guide decisions.

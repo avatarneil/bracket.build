@@ -1,8 +1,7 @@
 import type { LiveMatchupResult, LiveResults, RoundName } from "@/types";
 
 // ESPN API endpoint for NFL playoff scoreboard
-const ESPN_SCOREBOARD_URL =
-  "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
+const ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
 
 // Map ESPN team abbreviations to our team IDs
 // ESPN uses mostly the same abbreviations, but some differ
@@ -171,10 +170,7 @@ function mapTeamAbbreviation(espnAbbr: string): string {
   return ESPN_TO_TEAM_ID[espnAbbr.toUpperCase()] || espnAbbr.toUpperCase();
 }
 
-function determineConference(
-  homeTeamId: string,
-  awayTeamId: string,
-): "AFC" | "NFC" | "superBowl" {
+function determineConference(homeTeamId: string, awayTeamId: string): "AFC" | "NFC" | "superBowl" {
   // AFC teams in our current data
   const afcTeams = [
     "DEN",
@@ -236,12 +232,8 @@ function parseESPNEvent(event: ESPNEvent): LiveMatchupResult | null {
   const competition = event.competitions[0];
   if (!competition) return null;
 
-  const homeCompetitor = competition.competitors.find(
-    (c) => c.homeAway === "home",
-  );
-  const awayCompetitor = competition.competitors.find(
-    (c) => c.homeAway === "away",
-  );
+  const homeCompetitor = competition.competitors.find((c) => c.homeAway === "home");
+  const awayCompetitor = competition.competitors.find((c) => c.homeAway === "away");
 
   if (!homeCompetitor || !awayCompetitor) return null;
 
@@ -289,13 +281,9 @@ function parseESPNEvent(event: ESPNEvent): LiveMatchupResult | null {
   // Only show possession during active play (down > 0)
   const numericTeamId = competition.situation?.lastPlay?.team?.id;
   const isActiveDrive = (competition.situation?.down ?? -1) > 0;
-  const possessionAbbr = numericTeamId
-    ? ESPN_NUMERIC_ID_TO_ABBR[numericTeamId]
-    : null;
+  const possessionAbbr = numericTeamId ? ESPN_NUMERIC_ID_TO_ABBR[numericTeamId] : null;
   const possessionTeamId =
-    isActiveDrive && possessionAbbr
-      ? mapTeamAbbreviation(possessionAbbr)
-      : null;
+    isActiveDrive && possessionAbbr ? mapTeamAbbreviation(possessionAbbr) : null;
   const isRedZone = competition.situation?.isRedZone ?? false;
 
   return {
@@ -317,9 +305,7 @@ function parseESPNEvent(event: ESPNEvent): LiveMatchupResult | null {
   };
 }
 
-export async function fetchPlayoffScoreboard(
-  week?: number,
-): Promise<ESPNScoreboardResponse> {
+export async function fetchPlayoffScoreboard(week?: number): Promise<ESPNScoreboardResponse> {
   const params = new URLSearchParams({
     seasontype: "3", // Playoffs
   });
@@ -337,9 +323,7 @@ export async function fetchPlayoffScoreboard(
   return response.json();
 }
 
-export async function fetchAllPlayoffWeeks(): Promise<
-  ESPNScoreboardResponse[]
-> {
+export async function fetchAllPlayoffWeeks(): Promise<ESPNScoreboardResponse[]> {
   // Fetch all playoff weeks (1-4)
   const weeks = [1, 2, 3, 4];
   const results = await Promise.all(
@@ -348,9 +332,7 @@ export async function fetchAllPlayoffWeeks(): Promise<
   return results.filter((r): r is ESPNScoreboardResponse => r !== null);
 }
 
-export function parsePlayoffResults(
-  responses: ESPNScoreboardResponse[],
-): LiveResults {
+export function parsePlayoffResults(responses: ESPNScoreboardResponse[]): LiveResults {
   const results: LiveResults = {
     afc: {
       wildCard: [],
@@ -374,10 +356,7 @@ export function parsePlayoffResults(
       const round = getPlayoffRound(event.week.number);
       if (!round) continue;
 
-      const conference = determineConference(
-        matchup.homeTeamId,
-        matchup.awayTeamId,
-      );
+      const conference = determineConference(matchup.homeTeamId, matchup.awayTeamId);
 
       if (round === "wildCard") {
         if (conference === "AFC") {
@@ -433,10 +412,7 @@ export function hasInProgressGames(liveResults: LiveResults | null): boolean {
 /**
  * Check if a specific round has any completed games
  */
-export function hasCompletedGames(
-  liveResults: LiveResults | null,
-  round: RoundName,
-): boolean {
+export function hasCompletedGames(liveResults: LiveResults | null, round: RoundName): boolean {
   if (!liveResults) return false;
 
   switch (round) {
@@ -463,27 +439,18 @@ export function hasCompletedGames(
 /**
  * Check if all games in a round are complete
  */
-export function isRoundComplete(
-  liveResults: LiveResults | null,
-  round: RoundName,
-): boolean {
+export function isRoundComplete(liveResults: LiveResults | null, round: RoundName): boolean {
   if (!liveResults) return false;
 
   switch (round) {
     case "wildCard": {
       // 6 wild card games total (3 per conference)
-      const wcGames = [
-        ...liveResults.afc.wildCard,
-        ...liveResults.nfc.wildCard,
-      ];
+      const wcGames = [...liveResults.afc.wildCard, ...liveResults.nfc.wildCard];
       return wcGames.length >= 6 && wcGames.every((m) => m.isComplete);
     }
     case "divisional": {
       // 4 divisional games total (2 per conference)
-      const divGames = [
-        ...liveResults.afc.divisional,
-        ...liveResults.nfc.divisional,
-      ];
+      const divGames = [...liveResults.afc.divisional, ...liveResults.nfc.divisional];
       return divGames.length >= 4 && divGames.every((m) => m.isComplete);
     }
     case "conference":
@@ -514,20 +481,12 @@ export function findLiveResultForMatchup(
     searchResults = [liveResults.superBowl];
   } else if (round === "conference") {
     const champ =
-      conference === "AFC"
-        ? liveResults.afc.championship
-        : liveResults.nfc.championship;
+      conference === "AFC" ? liveResults.afc.championship : liveResults.nfc.championship;
     if (champ) searchResults = [champ];
   } else if (round === "divisional") {
-    searchResults =
-      conference === "AFC"
-        ? liveResults.afc.divisional
-        : liveResults.nfc.divisional;
+    searchResults = conference === "AFC" ? liveResults.afc.divisional : liveResults.nfc.divisional;
   } else if (round === "wildCard") {
-    searchResults =
-      conference === "AFC"
-        ? liveResults.afc.wildCard
-        : liveResults.nfc.wildCard;
+    searchResults = conference === "AFC" ? liveResults.afc.wildCard : liveResults.nfc.wildCard;
   }
 
   // Find by matching both teams (order might differ)

@@ -12,11 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useBracket } from "@/contexts/BracketContext";
-import {
-  deleteBracket,
-  getCurrentBracket,
-  getSavedBrackets,
-} from "@/lib/storage";
+import { deleteBracket, getCurrentBracket, getSavedBrackets } from "@/lib/storage";
 import type { SavedBracket } from "@/types";
 
 interface LoadBracketDialogProps {
@@ -24,10 +20,7 @@ interface LoadBracketDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function LoadBracketDialog({
-  open,
-  onOpenChange,
-}: LoadBracketDialogProps) {
+export function LoadBracketDialog({ open, onOpenChange }: LoadBracketDialogProps) {
   const { loadBracket, bracket: activeBracket } = useBracket();
   const [brackets, setBrackets] = useState<SavedBracket[]>([]);
   const [currentBracketId, setCurrentBracketId] = useState<string | null>(null);
@@ -38,10 +31,7 @@ export function LoadBracketDialog({
       const currentBracket = getCurrentBracket();
 
       // Include the current (autosaved) bracket if it exists and isn't already in the saved list
-      if (
-        currentBracket &&
-        !savedBrackets.some((b) => b.id === currentBracket.id)
-      ) {
+      if (currentBracket && !savedBrackets.some((b) => b.id === currentBracket.id)) {
         const autosavedBracket: SavedBracket = {
           id: currentBracket.id,
           name: currentBracket.name || "Current Session",
@@ -104,9 +94,7 @@ export function LoadBracketDialog({
             <div className="py-8 text-center text-gray-500 md:py-12">
               <FolderOpen className="mx-auto mb-2 h-12 w-12 opacity-50 md:mb-4 md:h-16 md:w-16" />
               <p className="md:text-lg">No saved brackets yet.</p>
-              <p className="text-sm md:text-base">
-                Save your first bracket to see it here.
-              </p>
+              <p className="text-sm md:text-base">Save your first bracket to see it here.</p>
             </div>
           ) : (
             brackets.map((saved) => {

@@ -48,8 +48,7 @@ function getResultColor(result: string): string {
 
 function formatDown(down: number | null, distance: number | null): string {
   if (down === null) return "";
-  const ordinal =
-    down === 1 ? "1st" : down === 2 ? "2nd" : down === 3 ? "3rd" : "4th";
+  const ordinal = down === 1 ? "1st" : down === 2 ? "2nd" : down === 3 ? "3rd" : "4th";
   return distance ? `${ordinal} & ${distance}` : ordinal;
 }
 
@@ -63,11 +62,7 @@ export function ExpandableDrives({
   const [expandedDrives, setExpandedDrives] = useState<Set<string>>(new Set());
 
   if (!drives || drives.length === 0) {
-    return (
-      <div className="py-8 text-center text-gray-400">
-        No drives available yet
-      </div>
-    );
+    return <div className="py-8 text-center text-gray-400">No drives available yet</div>;
   }
 
   const toggleDrive = (driveId: string) => {
@@ -115,17 +110,12 @@ export function ExpandableDrives({
             {drivesByQuarter[quarter].map((drive) => {
               const isExpanded = expandedDrives.has(drive.id);
               const isHomeTeam = drive.teamAbbr === homeTeamId;
-              const teamColor = getContrastSafeColor(
-                isHomeTeam ? homeColor : awayColor,
-              );
+              const teamColor = getContrastSafeColor(isHomeTeam ? homeColor : awayColor);
               const resultIcon = getResultIcon(drive.result);
               const resultColorClass = getResultColor(drive.result);
 
               return (
-                <div
-                  key={drive.id}
-                  className="overflow-hidden rounded-lg bg-gray-800/50"
-                >
+                <div key={drive.id} className="overflow-hidden rounded-lg bg-gray-800/50">
                   {/* Drive header (clickable) */}
                   <button
                     type="button"
@@ -146,10 +136,7 @@ export function ExpandableDrives({
                           className="h-5 w-5"
                         />
                       ) : (
-                        <span
-                          className="text-xs font-bold"
-                          style={{ color: teamColor }}
-                        >
+                        <span className="text-xs font-bold" style={{ color: teamColor }}>
                           {drive.teamAbbr}
                         </span>
                       )}
@@ -158,23 +145,16 @@ export function ExpandableDrives({
                     {/* Drive info */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span
-                          className="text-xs font-bold"
-                          style={{ color: teamColor }}
-                        >
+                        <span className="text-xs font-bold" style={{ color: teamColor }}>
                           {drive.teamAbbr}
                         </span>
-                        <span className="text-[10px] text-gray-500">
-                          {drive.startClock}
-                        </span>
+                        <span className="text-[10px] text-gray-500">{drive.startClock}</span>
                         {resultIcon && (
                           <span
                             className={cn(
                               "rounded px-1.5 py-0.5 text-[9px] font-bold",
                               resultColorClass,
-                              drive.isScoring
-                                ? "bg-green-900/30"
-                                : "bg-gray-700/50",
+                              drive.isScoring ? "bg-green-900/30" : "bg-gray-700/50",
                             )}
                           >
                             {resultIcon}
@@ -230,9 +210,7 @@ export function ExpandableDrives({
                               <span
                                 className={cn(
                                   "shrink-0 font-mono text-[10px]",
-                                  play.yardsGained > 0
-                                    ? "text-green-400"
-                                    : "text-red-400",
+                                  play.yardsGained > 0 ? "text-green-400" : "text-red-400",
                                 )}
                               >
                                 {play.yardsGained > 0 ? "+" : ""}

@@ -16,9 +16,7 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
   // Group games by status
   const liveGames = games.filter((g) => g.liveResult.isInProgress);
   const completedGames = games.filter((g) => g.liveResult.isComplete);
-  const upcomingGames = games.filter(
-    (g) => !g.liveResult.isInProgress && !g.liveResult.isComplete,
-  );
+  const upcomingGames = games.filter((g) => !g.liveResult.isInProgress && !g.liveResult.isComplete);
 
   if (isLoadingLiveResults) {
     return (
@@ -32,22 +30,16 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
     return (
       <div className="flex min-h-[300px] flex-col items-center justify-center px-4 text-center">
         <div className="mb-4 text-6xl">🏈</div>
-        <h3 className="mb-2 text-xl font-semibold text-white">
-          No Games Available
-        </h3>
+        <h3 className="mb-2 text-xl font-semibold text-white">No Games Available</h3>
         <p className="max-w-sm text-gray-400">
-          Check back during Wild Card weekend to see live game updates and
-          scores.
+          Check back during Wild Card weekend to see live game updates and scores.
         </p>
       </div>
     );
   }
 
   return (
-    <div
-      data-testid="live-games-view"
-      className="w-full max-w-lg space-y-6 px-4"
-    >
+    <div data-testid="live-games-view" className="w-full max-w-lg space-y-6 px-4">
       {/* Live Games */}
       {liveGames.length > 0 && (
         <section>
@@ -60,11 +52,7 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
           </h2>
           <div className="space-y-3">
             {liveGames.map((game) => (
-              <LiveGameCard
-                key={game.matchup.id}
-                game={game}
-                onTap={() => onGameTap(game)}
-              />
+              <LiveGameCard key={game.matchup.id} game={game} onTap={() => onGameTap(game)} />
             ))}
           </div>
         </section>
@@ -78,11 +66,7 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
           </h2>
           <div className="space-y-3">
             {upcomingGames.map((game) => (
-              <LiveGameCard
-                key={game.matchup.id}
-                game={game}
-                onTap={() => onGameTap(game)}
-              />
+              <LiveGameCard key={game.matchup.id} game={game} onTap={() => onGameTap(game)} />
             ))}
           </div>
         </section>
@@ -96,11 +80,7 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
           </h2>
           <div className="space-y-3">
             {completedGames.map((game) => (
-              <LiveGameCard
-                key={game.matchup.id}
-                game={game}
-                onTap={() => onGameTap(game)}
-              />
+              <LiveGameCard key={game.matchup.id} game={game} onTap={() => onGameTap(game)} />
             ))}
           </div>
         </section>

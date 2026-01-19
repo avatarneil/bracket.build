@@ -160,10 +160,7 @@ export function getTeamById(id: string): Team | undefined {
   return NFL_TEAMS[id];
 }
 
-export function getSeededTeam(
-  conference: "AFC" | "NFC",
-  seed: number,
-): SeededTeam | undefined {
+export function getSeededTeam(conference: "AFC" | "NFC", seed: number): SeededTeam | undefined {
   const seeds = conference === "AFC" ? AFC_SEEDS : NFC_SEEDS;
   return seeds.find((t) => t.seed === seed);
 }

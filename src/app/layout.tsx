@@ -29,16 +29,7 @@ export const metadata: Metadata = {
     "Build your NFL playoff bracket and share your Super Bowl predictions with friends and family. An unofficial bracket builder for the NFL postseason.",
   applicationName: "bracket.build",
   authors: [{ name: "bracket.build" }],
-  keywords: [
-    "NFL",
-    "playoffs",
-    "bracket",
-    "Super Bowl",
-    "predictions",
-    "football",
-    "2025",
-    "2026",
-  ],
+  keywords: ["NFL", "playoffs", "bracket", "Super Bowl", "predictions", "football", "2025", "2026"],
   openGraph: {
     title: "bracket.build | NFL Playoff Predictions 2025-26",
     description:
@@ -50,8 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "bracket.build | NFL Playoff Predictions 2025-26",
-    description:
-      "Build your NFL playoff bracket and share your Super Bowl predictions!",
+    description: "Build your NFL playoff bracket and share your Super Bowl predictions!",
   },
   appleWebApp: {
     capable: true,
@@ -70,9 +60,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
         {/* Position toaster at top on mobile to avoid fixed bottom bar, bottom-right on desktop */}
         <Toaster richColors position="top-center" />

@@ -23,10 +23,7 @@ interface SaveBracketDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function SaveBracketDialog({
-  open,
-  onOpenChange,
-}: SaveBracketDialogProps) {
+export function SaveBracketDialog({ open, onOpenChange }: SaveBracketDialogProps) {
   const { bracket, setBracketName, setSubtitle } = useBracket();
   const [name, setName] = useState(bracket.name);
   const [subtitle, setSubtitleValue] = useState(bracket.subtitle || "");
@@ -72,19 +69,15 @@ export function SaveBracketDialog({
             Save Bracket
           </DialogTitle>
           <DialogDescription className="text-gray-400 md:text-base">
-            Save your current bracket to access it later. You can save multiple
-            versions with different names.
+            Save your current bracket to access it later. You can save multiple versions with
+            different names.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 md:space-y-6">
           <div className="space-y-2 md:space-y-3">
-            <Label
-              htmlFor="bracket-name"
-              className="text-gray-300 md:text-base"
-            >
-              Bracket Name{" "}
-              <span className="font-normal text-gray-500">(optional)</span>
+            <Label htmlFor="bracket-name" className="text-gray-300 md:text-base">
+              Bracket Name <span className="font-normal text-gray-500">(optional)</span>
             </Label>
             <Input
               id="bracket-name"
@@ -96,12 +89,8 @@ export function SaveBracketDialog({
           </div>
 
           <div className="space-y-2 md:space-y-3">
-            <Label
-              htmlFor="bracket-subtitle"
-              className="text-gray-300 md:text-base"
-            >
-              Subtitle{" "}
-              <span className="font-normal text-gray-500">(optional)</span>
+            <Label htmlFor="bracket-subtitle" className="text-gray-300 md:text-base">
+              Subtitle <span className="font-normal text-gray-500">(optional)</span>
             </Label>
             <Input
               id="bracket-subtitle"
