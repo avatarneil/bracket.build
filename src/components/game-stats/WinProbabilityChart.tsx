@@ -224,14 +224,15 @@ export function WinProbabilityChart({
           />
 
           {/* Main probability line - rendered last to be on top */}
+          {/* Subtle gray for less stark contrast */}
           <Area
             type="monotone"
             dataKey="homeWinPercentage"
-            stroke="#ffffff"
+            stroke="#9ca3af"
             fill="transparent"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, fill: "#ffffff", stroke: "#374151", strokeWidth: 2 }}
+            activeDot={{ r: 4, fill: "#9ca3af", stroke: "#374151", strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>
