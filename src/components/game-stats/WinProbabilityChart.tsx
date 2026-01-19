@@ -101,6 +101,12 @@ function CustomTooltip({ active, payload, homeTeamName, awayTeamName }: CustomTo
   );
 }
 
+// Extended data point with territory values for coloring
+interface ChartDataPoint extends WinProbabilityPoint {
+  homeTerritory: number; // Value for home team's area (above 50%)
+  awayTerritory: number; // Value for away team's area (below 50%)
+}
+
 export function WinProbabilityChart({
   data,
   homeColor,
@@ -120,6 +126,15 @@ export function WinProbabilityChart({
     );
   }
 
+  // Process data to create territory values for each team
+  // homeTerritory: shows area above 50% (when home is winning)
+  // awayTerritory: shows area below 50% (when away is winning)
+  const chartData: ChartDataPoint[] = data.map((point) => ({
+    ...point,
+    homeTerritory: Math.max(point.homeWinPercentage, 50),
+    awayTerritory: Math.min(point.homeWinPercentage, 50),
+  }));
+
   // Calculate domain for x-axis
   const maxSeconds = Math.max(...data.map((d) => d.secondsElapsed));
   const xDomain = [0, Math.max(maxSeconds, 60 * 60)]; // At least show to end of regulation
@@ -130,17 +145,17 @@ export function WinProbabilityChart({
   return (
     <div className="h-48 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <defs>
+            {/* Home team gradient: fills from 50% upward */}
             <linearGradient id="homeGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={visibleHomeColor} stopOpacity={0.8} />
-              <stop offset="50%" stopColor={visibleHomeColor} stopOpacity={0.3} />
-              <stop offset="100%" stopColor={visibleHomeColor} stopOpacity={0} />
+              <stop offset="100%" stopColor={visibleHomeColor} stopOpacity={0.3} />
             </linearGradient>
-            <linearGradient id="awayGradient" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor={visibleAwayColor} stopOpacity={0.8} />
-              <stop offset="50%" stopColor={visibleAwayColor} stopOpacity={0.3} />
-              <stop offset="100%" stopColor={visibleAwayColor} stopOpacity={0} />
+            {/* Away team gradient: fills from 50% downward */}
+            <linearGradient id="awayGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={visibleAwayColor} stopOpacity={0.3} />
+              <stop offset="100%" stopColor={visibleAwayColor} stopOpacity={0.8} />
             </linearGradient>
           </defs>
 
@@ -164,7 +179,7 @@ export function WinProbabilityChart({
             tickFormatter={(v) => `${v}%`}
           />
 
-          {/* 50% reference line */}
+          {/* 50% reference line - the "battle line" */}
           <ReferenceLine y={50} stroke="#6b7280" strokeDasharray="3 3" />
 
           {/* Quarter dividers */}
@@ -182,14 +197,41 @@ export function WinProbabilityChart({
             cursor={{ stroke: "#6b7280", strokeDasharray: "3 3" }}
           />
 
+          {/* Home team territory: area above 50% */}
+          <Area
+            type="monotone"
+            dataKey="homeTerritory"
+            baseValue={50}
+            stroke="none"
+            fill="url(#homeGradient)"
+            strokeWidth={0}
+            dot={false}
+            activeDot={false}
+            isAnimationActive={false}
+          />
+
+          {/* Away team territory: area below 50% */}
+          <Area
+            type="monotone"
+            dataKey="awayTerritory"
+            baseValue={50}
+            stroke="none"
+            fill="url(#awayGradient)"
+            strokeWidth={0}
+            dot={false}
+            activeDot={false}
+            isAnimationActive={false}
+          />
+
+          {/* Main probability line - rendered last to be on top */}
           <Area
             type="monotone"
             dataKey="homeWinPercentage"
-            stroke={visibleHomeColor}
-            fill="url(#homeGradient)"
+            stroke="#ffffff"
+            fill="transparent"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, fill: visibleHomeColor, stroke: "#fff", strokeWidth: 2 }}
+            activeDot={{ r: 4, fill: "#ffffff", stroke: "#374151", strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>
