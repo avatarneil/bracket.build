@@ -23,10 +23,11 @@ test.describe("Game Stats Dialog", () => {
     if (await statsButton.isVisible()) {
       await statsButton.click();
 
-      // Should have tabs for Stats, Leaders, Plays
+      // Should have tabs for Stats, Leaders, Plays, Momentum
       await expect(page.getByRole("tab", { name: /stats/i })).toBeVisible();
       await expect(page.getByRole("tab", { name: /leaders/i })).toBeVisible();
       await expect(page.getByRole("tab", { name: /plays/i })).toBeVisible();
+      await expect(page.getByRole("tab", { name: /momentum/i })).toBeVisible();
     }
   });
 
