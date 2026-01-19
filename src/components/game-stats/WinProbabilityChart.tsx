@@ -157,6 +157,13 @@ export function WinProbabilityChart({
               <stop offset="0%" stopColor={visibleAwayColor} stopOpacity={0.3} />
               <stop offset="100%" stopColor={visibleAwayColor} stopOpacity={0.8} />
             </linearGradient>
+            {/* Dynamic line gradient: changes color at 50% mark */}
+            <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={visibleHomeColor} />
+              <stop offset="49.9%" stopColor={visibleHomeColor} />
+              <stop offset="50.1%" stopColor={visibleAwayColor} />
+              <stop offset="100%" stopColor={visibleAwayColor} />
+            </linearGradient>
           </defs>
 
           <XAxis
@@ -224,10 +231,11 @@ export function WinProbabilityChart({
           />
 
           {/* Main probability line - rendered last to be on top */}
+          {/* Uses gradient that changes color at 50% mark */}
           <Area
             type="monotone"
             dataKey="homeWinPercentage"
-            stroke="#ffffff"
+            stroke="url(#lineGradient)"
             fill="transparent"
             strokeWidth={2}
             dot={false}
