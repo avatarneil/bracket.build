@@ -41,13 +41,9 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
 
   // Map ESPN home/away to our matchup home/away
   const homeScore =
-    liveResult.homeTeamId === homeTeam.id
-      ? liveResult.homeScore
-      : liveResult.awayScore;
+    liveResult.homeTeamId === homeTeam.id ? liveResult.homeScore : liveResult.awayScore;
   const awayScore =
-    liveResult.awayTeamId === awayTeam.id
-      ? liveResult.awayScore
-      : liveResult.homeScore;
+    liveResult.awayTeamId === awayTeam.id ? liveResult.awayScore : liveResult.homeScore;
 
   const {
     isInProgress,
@@ -64,8 +60,7 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
     if (isComplete) return "FINAL";
     if (isHalftime) return "HALFTIME";
     if (isEndOfQuarter && quarter) return `END ${formatQuarter(quarter)}`;
-    if (quarter && timeRemaining)
-      return `${formatQuarter(quarter)} ${timeRemaining}`;
+    if (quarter && timeRemaining) return `${formatQuarter(quarter)} ${timeRemaining}`;
     if (quarter) return formatQuarter(quarter);
     if (isInProgress) return "LIVE";
     return "Upcoming";
@@ -88,8 +83,7 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
       {/* Round label */}
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
-          {formatRound(game.round)} •{" "}
-          {game.conference === "superBowl" ? "" : game.conference}
+          {formatRound(game.round)} • {game.conference === "superBowl" ? "" : game.conference}
         </span>
         {/* Game status badge */}
         <div
@@ -232,9 +226,7 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
       </div>
 
       {/* Tap hint */}
-      <div className="mt-3 text-center text-xs text-gray-500">
-        Tap for detailed stats
-      </div>
+      <div className="mt-3 text-center text-xs text-gray-500">Tap for detailed stats</div>
     </button>
   );
 }

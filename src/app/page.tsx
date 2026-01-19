@@ -105,10 +105,7 @@ function BracketApp() {
 
                 {/* Instructions - hidden on mobile/tablet (they use the app naturally) */}
                 <div className="mt-8 hidden text-center text-sm text-gray-500 lg:block">
-                  <p>
-                    Click on a team to select them as the winner of each
-                    matchup.
-                  </p>
+                  <p>Click on a team to select them as the winner of each matchup.</p>
                   <p>Your progress is automatically saved.</p>
                 </div>
               </>

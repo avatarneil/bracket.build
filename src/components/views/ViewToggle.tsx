@@ -23,10 +23,7 @@ export function ViewToggle({ className }: ViewToggleProps) {
   ];
 
   return (
-    <div
-      data-testid="view-toggle"
-      className={cn("flex justify-center", className)}
-    >
+    <div data-testid="view-toggle" className={cn("flex justify-center", className)}>
       <div className="inline-flex rounded-full bg-gray-800 p-1">
         {options.map(({ mode, label, icon: Icon }) => {
           const isActive = viewMode === mode;

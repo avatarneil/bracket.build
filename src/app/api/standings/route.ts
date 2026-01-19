@@ -41,9 +41,6 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json(
-      { error: "Failed to fetch live standings" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch live standings" }, { status: 500 });
   }
 }

@@ -13,11 +13,7 @@ const ViewContext = createContext<ViewContextType | null>(null);
 export function ViewProvider({ children }: { children: ReactNode }) {
   const [viewMode, setViewMode] = useState<ViewMode>("bracket");
 
-  return (
-    <ViewContext.Provider value={{ viewMode, setViewMode }}>
-      {children}
-    </ViewContext.Provider>
-  );
+  return <ViewContext.Provider value={{ viewMode, setViewMode }}>{children}</ViewContext.Provider>;
 }
 
 export function useView() {

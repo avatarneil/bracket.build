@@ -1,12 +1,10 @@
 import { expect, test } from "../fixtures/test-fixtures";
 
 test.describe("Save and Load Bracket", () => {
-  test.beforeEach(
-    async ({ page, seedUser: _seedUser, mockEspnApi: _mockEspnApi }) => {
-      await page.goto("/");
-      await expect(page.locator('[data-testid="bracket"]')).toBeVisible();
-    },
-  );
+  test.beforeEach(async ({ page, seedUser: _seedUser, mockEspnApi: _mockEspnApi }) => {
+    await page.goto("/");
+    await expect(page.locator('[data-testid="bracket"]')).toBeVisible();
+  });
 
   test("save button opens save dialog", async ({ page }) => {
     const saveBtn = page.locator('[data-testid="save-bracket-btn"]');
@@ -38,9 +36,7 @@ test.describe("Save and Load Bracket", () => {
       await expect(page.getByRole("dialog")).not.toBeVisible();
 
       // Verify in localStorage
-      const savedBrackets = await page.evaluate(() =>
-        localStorage.getItem("nfl-bracket:brackets"),
-      );
+      const savedBrackets = await page.evaluate(() => localStorage.getItem("nfl-bracket:brackets"));
       if (savedBrackets) {
         const brackets = JSON.parse(savedBrackets);
         expect(brackets.length).toBeGreaterThan(0);
@@ -75,13 +71,9 @@ test.describe("Save and Load Bracket", () => {
     await page.waitForTimeout(500);
 
     // Check localStorage for current bracket data
-    const currentBracket = await page.evaluate(() =>
-      localStorage.getItem("nfl-bracket:current"),
-    );
+    const currentBracket = await page.evaluate(() => localStorage.getItem("nfl-bracket:current"));
     // Current bracket may or may not exist depending on app state
     // This test just verifies the localStorage mechanism works
-    expect(typeof currentBracket === "string" || currentBracket === null).toBe(
-      true,
-    );
+    expect(typeof currentBracket === "string" || currentBracket === null).toBe(true);
   });
 });

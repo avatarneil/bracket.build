@@ -2,11 +2,7 @@ import { expect, test } from "../fixtures/test-fixtures";
 
 test.describe("Welcome Dialog Flow", () => {
   test.beforeEach(
-    async ({
-      page,
-      clearLocalStorage: _clearLocalStorage,
-      mockEspnApi: _mockEspnApi,
-    }) => {
+    async ({ page, clearLocalStorage: _clearLocalStorage, mockEspnApi: _mockEspnApi }) => {
       // Fixtures applied: clearLocalStorage clears storage, mockEspnApi mocks ESPN
       await page.goto("/");
     },
@@ -50,9 +46,7 @@ test.describe("Welcome Dialog Flow", () => {
     await expect(page.locator('[data-testid="bracket"]')).toBeVisible();
 
     // Verify user data was saved to localStorage
-    const storedUser = await page.evaluate(() =>
-      localStorage.getItem("nfl-bracket:user"),
-    );
+    const storedUser = await page.evaluate(() => localStorage.getItem("nfl-bracket:user"));
     expect(storedUser).toBeTruthy();
     expect(JSON.parse(storedUser || "{}").name).toBe("Persistent User");
   });
@@ -63,9 +57,7 @@ test.describe("Welcome Dialog Flow", () => {
 
     await expect(page.getByRole("dialog")).not.toBeVisible();
     // Name should be trimmed in storage
-    const storedUser = await page.evaluate(() =>
-      localStorage.getItem("nfl-bracket:user"),
-    );
+    const storedUser = await page.evaluate(() => localStorage.getItem("nfl-bracket:user"));
     expect(JSON.parse(storedUser || "{}").name).toBe("John Doe");
   });
 });

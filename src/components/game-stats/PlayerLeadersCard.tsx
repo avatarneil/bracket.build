@@ -20,13 +20,7 @@ interface LeaderRowProps {
   homeColor: string;
 }
 
-function LeaderRow({
-  category,
-  awayLeader,
-  homeLeader,
-  awayColor,
-  homeColor,
-}: LeaderRowProps) {
+function LeaderRow({ category, awayLeader, homeLeader, awayColor, homeColor }: LeaderRowProps) {
   return (
     <div className="rounded-lg bg-gray-800/50 p-3">
       <div className="mb-2 text-center text-[10px] font-medium uppercase tracking-wider text-gray-500">
@@ -52,15 +46,9 @@ function LeaderRow({
                   />
                 </div>
               )}
-              <div className="text-xs font-medium text-white truncate">
-                {awayLeader.name}
-              </div>
-              <div className="text-[10px] text-gray-400">
-                {awayLeader.position}
-              </div>
-              <div className="text-xs font-mono text-gray-300">
-                {awayLeader.stats}
-              </div>
+              <div className="text-xs font-medium text-white truncate">{awayLeader.name}</div>
+              <div className="text-[10px] text-gray-400">{awayLeader.position}</div>
+              <div className="text-xs font-mono text-gray-300">{awayLeader.stats}</div>
             </div>
           ) : (
             <div className="text-xs text-gray-600">—</div>
@@ -88,15 +76,9 @@ function LeaderRow({
                   />
                 </div>
               )}
-              <div className="text-xs font-medium text-white truncate">
-                {homeLeader.name}
-              </div>
-              <div className="text-[10px] text-gray-400">
-                {homeLeader.position}
-              </div>
-              <div className="text-xs font-mono text-gray-300">
-                {homeLeader.stats}
-              </div>
+              <div className="text-xs font-medium text-white truncate">{homeLeader.name}</div>
+              <div className="text-[10px] text-gray-400">{homeLeader.position}</div>
+              <div className="text-xs font-mono text-gray-300">{homeLeader.stats}</div>
             </div>
           ) : (
             <div className="text-xs text-gray-600">—</div>
@@ -119,12 +101,8 @@ export function PlayerLeadersCard({
     <div className="space-y-3">
       {/* Team headers */}
       <div className="flex items-center justify-between px-3 text-xs font-medium">
-        <span style={{ color: getContrastSafeColor(awayColor) }}>
-          {awayTeamName}
-        </span>
-        <span style={{ color: getContrastSafeColor(homeColor) }}>
-          {homeTeamName}
-        </span>
+        <span style={{ color: getContrastSafeColor(awayColor) }}>{awayTeamName}</span>
+        <span style={{ color: getContrastSafeColor(homeColor) }}>{homeTeamName}</span>
       </div>
 
       <LeaderRow

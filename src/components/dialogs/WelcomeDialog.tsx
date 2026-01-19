@@ -22,11 +22,7 @@ interface WelcomeDialogProps {
   onSkip?: () => void;
 }
 
-export function WelcomeDialog({
-  open,
-  onComplete,
-  onSkip,
-}: WelcomeDialogProps) {
+export function WelcomeDialog({ open, onComplete, onSkip }: WelcomeDialogProps) {
   const [name, setName] = useState("");
   const { setUserName } = useBracket();
 
@@ -53,8 +49,8 @@ export function WelcomeDialog({
             bracket.build
           </DialogTitle>
           <DialogDescription className="text-center text-gray-400 md:text-base">
-            Build your NFL playoff bracket and share your Super Bowl predictions
-            with friends and family.
+            Build your NFL playoff bracket and share your Super Bowl predictions with friends and
+            family.
           </DialogDescription>
         </DialogHeader>
 

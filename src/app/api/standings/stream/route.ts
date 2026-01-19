@@ -23,8 +23,7 @@ function startPolling() {
   const poll = async () => {
     try {
       const results = await fetchLiveResults();
-      const hasChanged =
-        JSON.stringify(results) !== JSON.stringify(globalCache);
+      const hasChanged = JSON.stringify(results) !== JSON.stringify(globalCache);
 
       globalCache = results;
       _lastFetchTime = Date.now();

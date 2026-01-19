@@ -33,23 +33,13 @@ function formatQuarter(quarter: number): string {
   return `Q${quarter}`;
 }
 
-export function GameStatsDialog({
-  open,
-  onOpenChange,
-  matchup,
-  liveResult,
-}: GameStatsDialogProps) {
+export function GameStatsDialog({ open, onOpenChange, matchup, liveResult }: GameStatsDialogProps) {
   const [activeTab, setActiveTab] = useState<TabId>("stats");
 
   // Extract ESPN event ID from the matchup ID
-  const eventId = liveResult?.matchupId
-    ? extractEventId(liveResult.matchupId)
-    : null;
+  const eventId = liveResult?.matchupId ? extractEventId(liveResult.matchupId) : null;
 
-  const { stats, isLoading, error, refetch, lastUpdated } = useGameStats(
-    eventId,
-    open,
-  );
+  const { stats, isLoading, error, refetch, lastUpdated } = useGameStats(eventId, open);
 
   // Lock body scroll when dialog is open to prevent background scrolling
   useEffect(() => {
@@ -67,9 +57,7 @@ export function GameStatsDialog({
       // Block touch events on everything except the dialog content
       const handleTouchMove = (e: TouchEvent) => {
         // Find the dialog content element
-        const dialogContent = document.querySelector(
-          '[data-slot="dialog-content"]',
-        );
+        const dialogContent = document.querySelector('[data-slot="dialog-content"]');
         if (dialogContent && dialogContent.contains(e.target as Node)) {
           // Allow scrolling within the dialog
           return;
@@ -96,13 +84,9 @@ export function GameStatsDialog({
 
   // Map scores from liveResult (handles ESPN home/away vs bracket home/away)
   const homeScore =
-    liveResult?.homeTeamId === matchup.homeTeam?.id
-      ? liveResult?.homeScore
-      : liveResult?.awayScore;
+    liveResult?.homeTeamId === matchup.homeTeam?.id ? liveResult?.homeScore : liveResult?.awayScore;
   const awayScore =
-    liveResult?.awayTeamId === matchup.awayTeam?.id
-      ? liveResult?.awayScore
-      : liveResult?.homeScore;
+    liveResult?.awayTeamId === matchup.awayTeam?.id ? liveResult?.awayScore : liveResult?.homeScore;
 
   // Get game status text
   const getStatusText = () => {
@@ -259,10 +243,7 @@ export function GameStatsDialog({
         </div>
 
         {/* Tab navigation */}
-        <div
-          role="tablist"
-          className="flex gap-1 border-b border-gray-700 px-4 md:px-6"
-        >
+        <div role="tablist" className="flex gap-1 border-b border-gray-700 px-4 md:px-6">
           {tabs.map((tab, index) => (
             <button
               key={tab.id}
@@ -276,9 +257,7 @@ export function GameStatsDialog({
               onKeyDown={(e) => handleTabKeyDown(e, index)}
               className={cn(
                 "relative px-4 py-2.5 text-sm font-medium transition-colors md:py-3 md:text-base",
-                activeTab === tab.id
-                  ? "text-white"
-                  : "text-gray-400 hover:text-gray-200",
+                activeTab === tab.id ? "text-white" : "text-gray-400 hover:text-gray-200",
               )}
             >
               {tab.label}
@@ -296,9 +275,7 @@ export function GameStatsDialog({
               disabled={isLoading}
               className="ml-auto flex items-center gap-1.5 px-2 py-2 text-xs text-gray-400 hover:text-white disabled:opacity-50"
             >
-              <RefreshCw
-                className={cn("h-3.5 w-3.5", isLoading && "animate-spin")}
-              />
+              <RefreshCw className={cn("h-3.5 w-3.5", isLoading && "animate-spin")} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
           )}
@@ -365,9 +342,7 @@ export function GameStatsDialog({
                 ))}
             </>
           ) : (
-            <div className="py-8 text-center text-gray-400">
-              No stats available
-            </div>
+            <div className="py-8 text-center text-gray-400">No stats available</div>
           )}
         </div>
 

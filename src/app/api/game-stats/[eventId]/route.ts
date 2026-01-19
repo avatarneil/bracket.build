@@ -4,10 +4,7 @@ import { fetchGameBoxscore } from "@/lib/espn-boxscore";
 export const dynamic = "force-dynamic";
 export const revalidate = 30; // Cache for 30 seconds
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ eventId: string }> },
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ eventId: string }> }) {
   try {
     const { eventId } = await params;
 
@@ -24,9 +21,6 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error fetching game stats:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch game stats" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch game stats" }, { status: 500 });
   }
 }

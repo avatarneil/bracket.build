@@ -55,8 +55,7 @@ export function Matchup({
   const [showStatsDialog, setShowStatsDialog] = useState(false);
 
   // Show stats button for games with live data (in progress or completed)
-  const hasGameData =
-    liveResult && (liveResult.isInProgress || liveResult.isComplete);
+  const hasGameData = liveResult && (liveResult.isInProgress || liveResult.isComplete);
 
   const handleSelect = (team: SeededTeam) => {
     if (!canSelect) return;
@@ -76,17 +75,12 @@ export function Matchup({
 
   // Get scores - map ESPN home/away to our matchup home/away
   const homeScore =
-    liveResult?.homeTeamId === homeTeam?.id
-      ? liveResult?.homeScore
-      : liveResult?.awayScore;
+    liveResult?.homeTeamId === homeTeam?.id ? liveResult?.homeScore : liveResult?.awayScore;
   const awayScore =
-    liveResult?.awayTeamId === awayTeam?.id
-      ? liveResult?.awayScore
-      : liveResult?.homeScore;
+    liveResult?.awayTeamId === awayTeam?.id ? liveResult?.awayScore : liveResult?.homeScore;
 
   // Show scores for in-progress or completed games (always visible for live updates)
-  const showScores =
-    liveResult && (liveResult.isInProgress || liveResult.isComplete);
+  const showScores = liveResult && (liveResult.isInProgress || liveResult.isComplete);
   const isInProgress = liveResult?.isInProgress;
 
   // Get game clock info
@@ -99,10 +93,8 @@ export function Matchup({
   // Format the game status text
   const getGameStatusText = () => {
     if (isHalftime) return "HALFTIME";
-    if (liveResult?.isEndOfQuarter && quarter)
-      return `END ${formatQuarter(quarter)}`;
-    if (quarter && timeRemaining)
-      return `${formatQuarter(quarter)} ${timeRemaining}`;
+    if (liveResult?.isEndOfQuarter && quarter) return `END ${formatQuarter(quarter)}`;
+    if (quarter && timeRemaining) return `${formatQuarter(quarter)} ${timeRemaining}`;
     if (quarter) return formatQuarter(quarter);
     return "LIVE";
   };
@@ -112,8 +104,7 @@ export function Matchup({
       data-testid={`matchup-${matchup.conference}-${matchup.round}-${matchup.gameNumber}`}
       className={cn(
         "relative flex flex-col gap-1",
-        (effectiveMobileSize === "lg" || effectiveDesktopSize === "lg") &&
-          "lg:gap-2",
+        (effectiveMobileSize === "lg" || effectiveDesktopSize === "lg") && "lg:gap-2",
         // Add margin-bottom for stats button
         hasGameData && "mb-7",
       )}
@@ -207,9 +198,7 @@ export function Matchup({
             "absolute -bottom-6 left-1/2 -translate-x-1/2",
             "flex items-center gap-1.5 rounded-full px-3 py-2",
             "text-[10px] font-semibold transition-colors active:scale-95",
-            liveResult?.isInProgress
-              ? "animate-color-shimmer"
-              : "text-gray-400 hover:text-white",
+            liveResult?.isInProgress ? "animate-color-shimmer" : "text-gray-400 hover:text-white",
           )}
         >
           <BarChart3 className="h-3 w-3" />

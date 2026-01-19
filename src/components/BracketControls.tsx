@@ -27,20 +27,14 @@ export function BracketControls({ onResetName }: BracketControlsProps) {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
   const handleResetBracket = () => {
-    if (
-      confirm(
-        "Are you sure you want to reset your bracket? This cannot be undone.",
-      )
-    ) {
+    if (confirm("Are you sure you want to reset your bracket? This cannot be undone.")) {
       resetBracket();
       toast.success("Bracket reset!");
     }
   };
 
   const handleResetName = () => {
-    if (
-      confirm("This will clear your name and reset your bracket. Continue?")
-    ) {
+    if (confirm("This will clear your name and reset your bracket. Continue?")) {
       clearStoredUser();
       setUserName("");
       resetBracket();
@@ -142,15 +136,9 @@ export function BracketControls({ onResetName }: BracketControlsProps) {
         </DropdownMenu>
       </div>
 
-      <LoadBracketDialog
-        open={loadDialogOpen}
-        onOpenChange={setLoadDialogOpen}
-      />
+      <LoadBracketDialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen} />
 
-      <SaveBracketDialog
-        open={saveDialogOpen}
-        onOpenChange={setSaveDialogOpen}
-      />
+      <SaveBracketDialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen} />
     </>
   );
 }

@@ -79,8 +79,7 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
       if (touchDirection.current === null) {
         const threshold = 5;
         if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
-          touchDirection.current =
-            Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
+          touchDirection.current = Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
         }
       }
 
@@ -146,8 +145,7 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
   const hasScrollableContent =
     canScrollLeft ||
     canScrollRight ||
-    (scrollRef.current &&
-      scrollRef.current.scrollWidth > scrollRef.current.clientWidth);
+    (scrollRef.current && scrollRef.current.scrollWidth > scrollRef.current.clientWidth);
 
   return (
     <div
@@ -236,13 +234,10 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
               targetElement = document.querySelector('[data-conference="NFC"]');
             } else {
               // From NFC, scroll to Super Bowl (the element with order-last)
-              const currentSection =
-                scrollRef.current?.closest("[data-conference]");
+              const currentSection = scrollRef.current?.closest("[data-conference]");
               const parent = currentSection?.parentElement;
               // Super Bowl is the div with order-last class
-              targetElement = parent?.querySelector(
-                ".order-last",
-              ) as HTMLElement;
+              targetElement = parent?.querySelector(".order-last") as HTMLElement;
             }
 
             if (targetElement) {
@@ -258,9 +253,7 @@ function ScrollHintWrapper({ children, conference }: ScrollHintWrapperProps) {
             "animate-pulse",
           )}
         >
-          <span>
-            Scroll down for {conference === "AFC" ? "NFC" : "Super Bowl"}
-          </span>
+          <span>Scroll down for {conference === "AFC" ? "NFC" : "Super Bowl"}</span>
           <ChevronDown className="h-3 w-3 animate-bounce" />
         </button>
       )}
@@ -283,14 +276,10 @@ export function Bracket({ showUserName = true }: BracketProps) {
             {bracket.userName}&apos;s Bracket
           </h2>
           {bracket.name && (
-            <h3 className="text-xs text-gray-500 sm:text-sm md:text-base">
-              {bracket.name}
-            </h3>
+            <h3 className="text-xs text-gray-500 sm:text-sm md:text-base">{bracket.name}</h3>
           )}
           {bracket.subtitle && (
-            <p className="mt-1 text-xs italic text-gray-500 sm:text-sm">
-              {bracket.subtitle}
-            </p>
+            <p className="mt-1 text-xs italic text-gray-500 sm:text-sm">{bracket.subtitle}</p>
           )}
         </div>
       )}

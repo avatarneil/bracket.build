@@ -31,8 +31,7 @@ export default function OpenGraphImage() {
           left: 0,
           right: 0,
           height: 8,
-          background:
-            "linear-gradient(90deg, #ef4444 0%, #ffffff 50%, #3b82f6 100%)",
+          background: "linear-gradient(90deg, #ef4444 0%, #ffffff 50%, #3b82f6 100%)",
         }}
       />
 
@@ -44,8 +43,7 @@ export default function OpenGraphImage() {
           justifyContent: "center",
           width: 120,
           height: 120,
-          background:
-            "linear-gradient(135deg, #ef4444 0%, #ffffff 50%, #3b82f6 100%)",
+          background: "linear-gradient(135deg, #ef4444 0%, #ffffff 50%, #3b82f6 100%)",
           borderRadius: 30,
           marginBottom: 40,
         }}
@@ -69,8 +67,7 @@ export default function OpenGraphImage() {
           display: "flex",
           fontSize: 72,
           fontWeight: 800,
-          background:
-            "linear-gradient(90deg, #ef4444 0%, #ffffff 50%, #3b82f6 100%)",
+          background: "linear-gradient(90deg, #ef4444 0%, #ffffff 50%, #3b82f6 100%)",
           backgroundClip: "text",
           color: "transparent",
           fontFamily: "system-ui",

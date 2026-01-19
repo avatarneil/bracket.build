@@ -197,13 +197,7 @@ function TeamCardImage({
 }
 
 // Matchup component
-function MatchupImage({
-  matchup,
-  logoMap,
-}: {
-  matchup: Matchup;
-  logoMap: Map<string, string>;
-}) {
+function MatchupImage({ matchup, logoMap }: { matchup: Matchup; logoMap: Map<string, string> }) {
   return (
     <div
       style={{
@@ -549,8 +543,7 @@ export async function POST(request: NextRequest) {
             alignItems: "center",
             justifyContent: "center",
             height: 140,
-            background:
-              "linear-gradient(90deg, #dc2626 0%, #1f1f1f 50%, #2563eb 100%)",
+            background: "linear-gradient(90deg, #dc2626 0%, #1f1f1f 50%, #2563eb 100%)",
           }}
         >
           <div
@@ -587,18 +580,9 @@ export async function POST(request: NextRequest) {
             gap: 60,
           }}
         >
-          <ConferenceBracketImage
-            conference="AFC"
-            bracket={bracket}
-            logoMap={logoMap}
-          />
+          <ConferenceBracketImage conference="AFC" bracket={bracket} logoMap={logoMap} />
           <SuperBowlImage bracket={bracket} logoMap={logoMap} />
-          <ConferenceBracketImage
-            conference="NFC"
-            bracket={bracket}
-            logoMap={logoMap}
-            reversed
-          />
+          <ConferenceBracketImage conference="NFC" bracket={bracket} logoMap={logoMap} reversed />
         </div>
 
         <div

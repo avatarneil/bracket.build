@@ -1,9 +1,5 @@
 import { test as base, expect } from "@playwright/test";
-import {
-  mockGameBoxscore,
-  mockWildCardResults,
-  STORAGE_KEYS,
-} from "./mock-data";
+import { mockGameBoxscore, mockWildCardResults, STORAGE_KEYS } from "./mock-data";
 
 interface TestFixtures {
   // biome-ignore lint/suspicious/noConfusingVoidType: Playwright fixture pattern requires void for non-yielding fixtures
@@ -72,10 +68,7 @@ export const test = base.extend<TestFixtures>({
   // Seed user to skip welcome dialog
   seedUser: async ({ page }, use) => {
     await page.addInitScript((keys) => {
-      window.localStorage.setItem(
-        keys.user,
-        JSON.stringify({ name: "Test User" }),
-      );
+      window.localStorage.setItem(keys.user, JSON.stringify({ name: "Test User" }));
     }, STORAGE_KEYS);
     await use();
   },
@@ -84,16 +77,11 @@ export const test = base.extend<TestFixtures>({
 export { expect };
 
 // Helper to wait for bracket to load
-export async function waitForBracketLoad(
-  page: import("@playwright/test").Page,
-) {
+export async function waitForBracketLoad(page: import("@playwright/test").Page) {
   await page.waitForSelector('[data-testid="bracket"]', { timeout: 10000 });
 }
 
 // Helper to select a team winner
-export async function selectWinner(
-  page: import("@playwright/test").Page,
-  teamId: string,
-) {
+export async function selectWinner(page: import("@playwright/test").Page, teamId: string) {
   await page.click(`[data-testid="team-card-${teamId}"]`);
 }

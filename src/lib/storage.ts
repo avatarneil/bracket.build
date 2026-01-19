@@ -92,10 +92,7 @@ export function getCurrentBracket(): BracketState | null {
 
 export function saveCurrentBracket(bracket: BracketState): void {
   if (!isClient()) return;
-  localStorage.setItem(
-    CURRENT_KEY,
-    JSON.stringify({ ...bracket, updatedAt: Date.now() }),
-  );
+  localStorage.setItem(CURRENT_KEY, JSON.stringify({ ...bracket, updatedAt: Date.now() }));
 }
 
 export function clearCurrentBracket(): void {
