@@ -130,8 +130,8 @@ test.describe("Momentum Tracker", () => {
       const chartArea = page.locator(".recharts-wrapper");
       await expect(chartArea).toBeVisible();
 
-      // Chart should have an area element (the win probability line)
-      const areaPath = page.locator(".recharts-area-area");
+      // Chart should have area elements (team-colored win probability fills)
+      const areaPath = page.locator(".recharts-area-area").first();
       await expect(areaPath).toBeVisible();
     }
   });
