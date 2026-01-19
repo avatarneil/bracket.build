@@ -4,6 +4,7 @@ import { Download, FolderOpen, Loader2, Save, Share2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useBracket } from "@/contexts/BracketContext";
+import { useView } from "@/contexts/ViewContext";
 import {
   downloadImage,
   generateBracketImage,
@@ -63,10 +64,16 @@ function ActionButton({
 
 export function MobileActionBar() {
   const { bracket } = useBracket();
+  const { viewMode } = useView();
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Hide action bar in Live Games view
+  if (viewMode === "live-games") {
+    return null;
+  }
 
   const generateImage = async (): Promise<Blob | null> => {
     setIsGenerating(true);
