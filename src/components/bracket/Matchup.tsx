@@ -1,11 +1,10 @@
 "use client";
 
 import { BarChart3, Lock } from "lucide-react";
-import { useState } from "react";
-import { GameStatsDialog } from "@/components/dialogs/GameStatsDialog";
 import { useBracket } from "@/contexts/BracketContext";
+import { useGameDialog } from "@/contexts/GameDialogContext";
 import { cn } from "@/lib/utils";
-import type { Matchup as MatchupType, SeededTeam } from "@/types";
+import type { LiveGameInfo, Matchup as MatchupType, SeededTeam } from "@/types";
 import { TeamCard } from "./TeamCard";
 
 type Size = "sm" | "md" | "lg";
@@ -46,13 +45,11 @@ export function Matchup({
   connectorSide = "right",
 }: MatchupProps) {
   const { isMatchupLocked, getLiveResultForMatchup } = useBracket();
+  const { openGameDialog } = useGameDialog();
   const { homeTeam, awayTeam, winner } = matchup;
   const isLocked = isMatchupLocked(matchup.id);
   const liveResult = getLiveResultForMatchup(matchup.id);
   const canSelect = homeTeam !== null && awayTeam !== null && !isLocked;
-
-  // State for game stats dialog
-  const [showStatsDialog, setShowStatsDialog] = useState(false);
 
   // Show stats button for games with live data (in progress or completed)
   const hasGameData = liveResult && (liveResult.isInProgress || liveResult.isComplete);
@@ -66,6 +63,39 @@ export function Matchup({
     } else {
       onSelectWinner(matchup.id, team);
     }
+  };
+
+  const handleStatsClick = () => {
+    if (!liveResult) return;
+
+    // Determine conference and round from matchup ID
+    let conference: LiveGameInfo["conference"] = "AFC";
+    let round: LiveGameInfo["round"] = "wildCard";
+
+    if (matchup.id.startsWith("nfc-")) {
+      conference = "NFC";
+    } else if (matchup.id === "super-bowl") {
+      conference = "superBowl";
+    }
+
+    if (matchup.id.includes("-wc-")) {
+      round = "wildCard";
+    } else if (matchup.id.includes("-div-")) {
+      round = "divisional";
+    } else if (matchup.id.includes("-champ")) {
+      round = "conference";
+    } else if (matchup.id === "super-bowl") {
+      round = "superBowl";
+    }
+
+    const gameInfo: LiveGameInfo = {
+      matchup,
+      liveResult,
+      conference,
+      round,
+    };
+
+    openGameDialog(gameInfo);
   };
 
   // Use responsive sizing if mobileSize/desktopSize are provided
@@ -193,7 +223,7 @@ export function Matchup({
         <button
           type="button"
           data-testid={`stats-btn-${matchup.id}`}
-          onClick={() => setShowStatsDialog(true)}
+          onClick={handleStatsClick}
           className={cn(
             "absolute -bottom-6 left-1/2 -translate-x-1/2",
             "flex items-center gap-1.5 rounded-full px-3 py-2",
@@ -205,14 +235,6 @@ export function Matchup({
           <span>Stats</span>
         </button>
       )}
-
-      {/* Game Stats Dialog */}
-      <GameStatsDialog
-        open={showStatsDialog}
-        onOpenChange={setShowStatsDialog}
-        matchup={matchup}
-        liveResult={liveResult}
-      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useState } from "react";
+import { createContext, type ReactNode, useContext } from "react";
+import { useDeepLink } from "@/hooks/useDeepLink";
 import type { ViewMode } from "@/types";
 
 interface ViewContextType {
@@ -11,9 +12,13 @@ interface ViewContextType {
 const ViewContext = createContext<ViewContextType | null>(null);
 
 export function ViewProvider({ children }: { children: ReactNode }) {
-  const [viewMode, setViewMode] = useState<ViewMode>("bracket");
+  const { state, setView } = useDeepLink();
 
-  return <ViewContext.Provider value={{ viewMode, setViewMode }}>{children}</ViewContext.Provider>;
+  return (
+    <ViewContext.Provider value={{ viewMode: state.view, setViewMode: setView }}>
+      {children}
+    </ViewContext.Provider>
+  );
 }
 
 export function useView() {
