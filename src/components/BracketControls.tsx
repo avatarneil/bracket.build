@@ -52,7 +52,10 @@ export function BracketControls({ onResetName }: BracketControlsProps) {
   return (
     <>
       {/* Desktop controls - hidden on mobile since we have MobileActionBar */}
-      <div className="hidden items-center justify-center gap-2 lg:flex">
+      <div
+        data-testid="desktop-controls"
+        className="hidden items-center justify-center gap-2 lg:flex"
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -66,6 +69,7 @@ export function BracketControls({ onResetName }: BracketControlsProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent className="border-gray-700 bg-gray-800">
             <DropdownMenuItem
+              data-testid="reset-btn"
               onClick={handleResetBracket}
               className="cursor-pointer text-white focus:bg-gray-700 focus:text-white"
             >
@@ -84,6 +88,7 @@ export function BracketControls({ onResetName }: BracketControlsProps) {
         </DropdownMenu>
 
         <Button
+          data-testid="save-bracket-btn"
           onClick={() => setSaveDialogOpen(true)}
           className="bg-gradient-to-r from-red-600 to-blue-600 text-white hover:from-red-700 hover:to-blue-700"
         >
@@ -92,6 +97,7 @@ export function BracketControls({ onResetName }: BracketControlsProps) {
         </Button>
 
         <Button
+          data-testid="load-bracket-btn"
           variant="outline"
           onClick={() => setLoadDialogOpen(true)}
           className="border-gray-600 bg-gray-800 text-white hover:bg-gray-700"

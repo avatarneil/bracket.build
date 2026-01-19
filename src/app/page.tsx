@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { BracketControls } from "@/components/BracketControls";
-import { RoundLockControl } from "@/components/RoundLockControl";
 import { Bracket } from "@/components/bracket/Bracket";
-import { WelcomeDialog } from "@/components/dialogs/WelcomeDialog";
 import { GameStatsDialog } from "@/components/dialogs/GameStatsDialog";
+import { WelcomeDialog } from "@/components/dialogs/WelcomeDialog";
 import { MobileActionBar } from "@/components/MobileActionBar";
-import { ViewToggle } from "@/components/views/ViewToggle";
+import { RoundLockControl } from "@/components/RoundLockControl";
 import { LiveGamesView } from "@/components/views/LiveGamesView";
+import { ViewToggle } from "@/components/views/ViewToggle";
 import { BracketProvider, useBracket } from "@/contexts/BracketContext";
-import { ViewProvider, useView } from "@/contexts/ViewContext";
+import { useView, ViewProvider } from "@/contexts/ViewContext";
 import { getStoredUser } from "@/lib/storage";
 import type { LiveGameInfo } from "@/types";
 
 function BracketApp() {
-  const { refreshLiveResults, bracket, getLiveResultForMatchup } = useBracket();
+  const { refreshLiveResults, bracket } = useBracket();
   const { viewMode } = useView();
   const [showWelcome, setShowWelcome] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -106,7 +106,8 @@ function BracketApp() {
                 {/* Instructions - hidden on mobile/tablet (they use the app naturally) */}
                 <div className="mt-8 hidden text-center text-sm text-gray-500 lg:block">
                   <p>
-                    Click on a team to select them as the winner of each matchup.
+                    Click on a team to select them as the winner of each
+                    matchup.
                   </p>
                   <p>Your progress is automatically saved.</p>
                 </div>

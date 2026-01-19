@@ -36,7 +36,10 @@ export function SuperBowl() {
       </div>
 
       {/* Matchup */}
-      <div className="flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4BE8C]/30 bg-gray-800/50 p-3 sm:gap-3 sm:p-4 lg:gap-2 lg:p-3">
+      <div
+        data-testid="matchup-superBowl"
+        className="flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4BE8C]/30 bg-gray-800/50 p-3 sm:gap-3 sm:p-4 lg:gap-2 lg:p-3"
+      >
         {/* AFC Champion */}
         <div className="w-48 sm:w-52 lg:w-48">
           <div className="mb-1 text-center text-[10px] font-semibold uppercase text-red-400 sm:text-xs lg:text-[10px]">

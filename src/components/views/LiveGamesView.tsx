@@ -1,8 +1,8 @@
 "use client";
 
 import { useBracket } from "@/contexts/BracketContext";
-import { LiveGameCard } from "./LiveGameCard";
 import type { LiveGameInfo } from "@/types";
+import { LiveGameCard } from "./LiveGameCard";
 
 interface LiveGamesViewProps {
   onGameTap: (game: LiveGameInfo) => void;
@@ -17,7 +17,7 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
   const liveGames = games.filter((g) => g.liveResult.isInProgress);
   const completedGames = games.filter((g) => g.liveResult.isComplete);
   const upcomingGames = games.filter(
-    (g) => !g.liveResult.isInProgress && !g.liveResult.isComplete
+    (g) => !g.liveResult.isInProgress && !g.liveResult.isComplete,
   );
 
   if (isLoadingLiveResults) {
@@ -44,7 +44,10 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
   }
 
   return (
-    <div className="w-full max-w-lg space-y-6 px-4">
+    <div
+      data-testid="live-games-view"
+      className="w-full max-w-lg space-y-6 px-4"
+    >
       {/* Live Games */}
       {liveGames.length > 0 && (
         <section>

@@ -12,10 +12,7 @@ export async function GET(
     const { eventId } = await params;
 
     if (!eventId || !/^\d+$/.test(eventId)) {
-      return NextResponse.json(
-        { error: "Invalid event ID" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid event ID" }, { status: 400 });
     }
 
     const boxscore = await fetchGameBoxscore(eventId);

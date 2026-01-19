@@ -15,6 +15,7 @@ import { hasCompletedGames, hasInProgressGames } from "@/lib/espn-api";
 
 // Fallback polling interval (only used if SSE disconnects)
 const FALLBACK_REFRESH_INTERVAL = 5 * 1000;
+
 import {
   calculateChampionshipMatchup,
   calculateDivisionalMatchups,
@@ -86,7 +87,12 @@ function applyLiveResultToMatchup(
       matchup.awayTeam?.id === liveResult.homeTeamId ||
       matchup.awayTeam?.id === liveResult.awayTeamId;
 
-    if (matchesHome && matchesAway && liveResult.isComplete && liveResult.winnerId) {
+    if (
+      matchesHome &&
+      matchesAway &&
+      liveResult.isComplete &&
+      liveResult.winnerId
+    ) {
       const winner = findTeamById(liveResult.winnerId);
       if (winner) {
         return { ...matchup, winner };
@@ -205,7 +211,11 @@ function applyAllLiveResults(state: BracketState): BracketState {
       if (result.isComplete && result.winnerId) {
         newState.afc = {
           ...newState.afc,
-          wildCard: applyLiveResultToMatchup(newState, result, newState.afc.wildCard),
+          wildCard: applyLiveResultToMatchup(
+            newState,
+            result,
+            newState.afc.wildCard,
+          ),
         };
       }
     }
@@ -213,7 +223,11 @@ function applyAllLiveResults(state: BracketState): BracketState {
       if (result.isComplete && result.winnerId) {
         newState.nfc = {
           ...newState.nfc,
-          wildCard: applyLiveResultToMatchup(newState, result, newState.nfc.wildCard),
+          wildCard: applyLiveResultToMatchup(
+            newState,
+            result,
+            newState.nfc.wildCard,
+          ),
         };
       }
     }
@@ -231,7 +245,11 @@ function applyAllLiveResults(state: BracketState): BracketState {
       if (result.isComplete && result.winnerId) {
         newState.afc = {
           ...newState.afc,
-          divisional: applyLiveResultToMatchup(newState, result, newState.afc.divisional),
+          divisional: applyLiveResultToMatchup(
+            newState,
+            result,
+            newState.afc.divisional,
+          ),
         };
       }
     }
@@ -239,7 +257,11 @@ function applyAllLiveResults(state: BracketState): BracketState {
       if (result.isComplete && result.winnerId) {
         newState.nfc = {
           ...newState.nfc,
-          divisional: applyLiveResultToMatchup(newState, result, newState.nfc.divisional),
+          divisional: applyLiveResultToMatchup(
+            newState,
+            result,
+            newState.nfc.divisional,
+          ),
         };
       }
     }
@@ -250,7 +272,10 @@ function applyAllLiveResults(state: BracketState): BracketState {
 
   // Apply conference championship results if locked
   if (lockedRounds.conference) {
-    if (liveResults.afc.championship?.isComplete && liveResults.afc.championship.winnerId) {
+    if (
+      liveResults.afc.championship?.isComplete &&
+      liveResults.afc.championship.winnerId
+    ) {
       const winner = findTeamById(liveResults.afc.championship.winnerId);
       if (winner && newState.afc.championship) {
         newState.afc = {
@@ -259,7 +284,10 @@ function applyAllLiveResults(state: BracketState): BracketState {
         };
       }
     }
-    if (liveResults.nfc.championship?.isComplete && liveResults.nfc.championship.winnerId) {
+    if (
+      liveResults.nfc.championship?.isComplete &&
+      liveResults.nfc.championship.winnerId
+    ) {
       const winner = findTeamById(liveResults.nfc.championship.winnerId);
       if (winner && newState.nfc.championship) {
         newState.nfc = {
@@ -272,7 +300,11 @@ function applyAllLiveResults(state: BracketState): BracketState {
   }
 
   // Apply Super Bowl result if locked
-  if (lockedRounds.superBowl && liveResults.superBowl?.isComplete && liveResults.superBowl.winnerId) {
+  if (
+    lockedRounds.superBowl &&
+    liveResults.superBowl?.isComplete &&
+    liveResults.superBowl.winnerId
+  ) {
     const winner = findTeamById(liveResults.superBowl.winnerId);
     if (winner && newState.superBowl) {
       newState.superBowl = { ...newState.superBowl, winner };
@@ -710,12 +742,18 @@ export function BracketProvider({ children }: { children: ReactNode }) {
 
       // Search through all matchups
       matchup = bracket.afc.wildCard.find((m) => m.id === matchupId);
-      if (!matchup) matchup = bracket.nfc.wildCard.find((m) => m.id === matchupId);
-      if (!matchup) matchup = bracket.afc.divisional.find((m) => m.id === matchupId);
-      if (!matchup) matchup = bracket.nfc.divisional.find((m) => m.id === matchupId);
-      if (!matchup && bracket.afc.championship?.id === matchupId) matchup = bracket.afc.championship;
-      if (!matchup && bracket.nfc.championship?.id === matchupId) matchup = bracket.nfc.championship;
-      if (!matchup && bracket.superBowl?.id === matchupId) matchup = bracket.superBowl;
+      if (!matchup)
+        matchup = bracket.nfc.wildCard.find((m) => m.id === matchupId);
+      if (!matchup)
+        matchup = bracket.afc.divisional.find((m) => m.id === matchupId);
+      if (!matchup)
+        matchup = bracket.nfc.divisional.find((m) => m.id === matchupId);
+      if (!matchup && bracket.afc.championship?.id === matchupId)
+        matchup = bracket.afc.championship;
+      if (!matchup && bracket.nfc.championship?.id === matchupId)
+        matchup = bracket.nfc.championship;
+      if (!matchup && bracket.superBowl?.id === matchupId)
+        matchup = bracket.superBowl;
 
       if (!matchup) return null;
 
@@ -757,7 +795,7 @@ export function BracketProvider({ children }: { children: ReactNode }) {
     // Helper to find matchup by teams
     const findMatchupByTeams = (
       matchups: typeof bracket.afc.wildCard,
-      liveResult: LiveMatchupResult
+      liveResult: LiveMatchupResult,
     ) => {
       return matchups.find(
         (m) =>
@@ -766,7 +804,7 @@ export function BracketProvider({ children }: { children: ReactNode }) {
           ((m.homeTeam.id === liveResult.homeTeamId &&
             m.awayTeam.id === liveResult.awayTeamId) ||
             (m.homeTeam.id === liveResult.awayTeamId &&
-              m.awayTeam.id === liveResult.homeTeamId))
+              m.awayTeam.id === liveResult.homeTeamId)),
       );
     };
 
@@ -774,7 +812,12 @@ export function BracketProvider({ children }: { children: ReactNode }) {
     for (const lr of liveResults.afc.wildCard) {
       const matchup = findMatchupByTeams(bracket.afc.wildCard, lr);
       if (matchup) {
-        games.push({ matchup, liveResult: lr, conference: "AFC", round: "wildCard" });
+        games.push({
+          matchup,
+          liveResult: lr,
+          conference: "AFC",
+          round: "wildCard",
+        });
       }
     }
 
@@ -782,7 +825,12 @@ export function BracketProvider({ children }: { children: ReactNode }) {
     for (const lr of liveResults.nfc.wildCard) {
       const matchup = findMatchupByTeams(bracket.nfc.wildCard, lr);
       if (matchup) {
-        games.push({ matchup, liveResult: lr, conference: "NFC", round: "wildCard" });
+        games.push({
+          matchup,
+          liveResult: lr,
+          conference: "NFC",
+          round: "wildCard",
+        });
       }
     }
 
@@ -790,7 +838,12 @@ export function BracketProvider({ children }: { children: ReactNode }) {
     for (const lr of liveResults.afc.divisional) {
       const matchup = findMatchupByTeams(bracket.afc.divisional, lr);
       if (matchup) {
-        games.push({ matchup, liveResult: lr, conference: "AFC", round: "divisional" });
+        games.push({
+          matchup,
+          liveResult: lr,
+          conference: "AFC",
+          round: "divisional",
+        });
       }
     }
 
@@ -798,7 +851,12 @@ export function BracketProvider({ children }: { children: ReactNode }) {
     for (const lr of liveResults.nfc.divisional) {
       const matchup = findMatchupByTeams(bracket.nfc.divisional, lr);
       if (matchup) {
-        games.push({ matchup, liveResult: lr, conference: "NFC", round: "divisional" });
+        games.push({
+          matchup,
+          liveResult: lr,
+          conference: "NFC",
+          round: "divisional",
+        });
       }
     }
 
@@ -814,7 +872,12 @@ export function BracketProvider({ children }: { children: ReactNode }) {
           (matchup.homeTeam.id === lr.awayTeamId &&
             matchup.awayTeam.id === lr.homeTeamId))
       ) {
-        games.push({ matchup, liveResult: lr, conference: "AFC", round: "conference" });
+        games.push({
+          matchup,
+          liveResult: lr,
+          conference: "AFC",
+          round: "conference",
+        });
       }
     }
 
@@ -830,7 +893,12 @@ export function BracketProvider({ children }: { children: ReactNode }) {
           (matchup.homeTeam.id === lr.awayTeamId &&
             matchup.awayTeam.id === lr.homeTeamId))
       ) {
-        games.push({ matchup, liveResult: lr, conference: "NFC", round: "conference" });
+        games.push({
+          matchup,
+          liveResult: lr,
+          conference: "NFC",
+          round: "conference",
+        });
       }
     }
 
@@ -846,7 +914,12 @@ export function BracketProvider({ children }: { children: ReactNode }) {
           (matchup.homeTeam.id === lr.awayTeamId &&
             matchup.awayTeam.id === lr.homeTeamId))
       ) {
-        games.push({ matchup, liveResult: lr, conference: "superBowl", round: "superBowl" });
+        games.push({
+          matchup,
+          liveResult: lr,
+          conference: "superBowl",
+          round: "superBowl",
+        });
       }
     }
 

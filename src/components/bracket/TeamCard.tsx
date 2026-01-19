@@ -196,6 +196,8 @@ export function TeamCard({
     <button
       ref={buttonRef}
       type="button"
+      data-testid={`team-card-${team.id}`}
+      data-selected={isWinner || undefined}
       onClick={handleClick}
       disabled={disabled}
       className={cn(
@@ -209,11 +211,23 @@ export function TeamCard({
         // Possession state - pulsing glow animation
         hasPossession && !isWinner && !isLoser && "animate-pulse-subtle",
         // Red zone possession
-        hasPossession && isRedZone && !isWinner && !isLoser && "border-red-500/70",
-        // Normal possession  
-        hasPossession && !isRedZone && !isWinner && !isLoser && "border-yellow-400/70",
+        hasPossession &&
+          isRedZone &&
+          !isWinner &&
+          !isLoser &&
+          "border-red-500/70",
+        // Normal possession
+        hasPossession &&
+          !isRedZone &&
+          !isWinner &&
+          !isLoser &&
+          "border-yellow-400/70",
         // Locked state (live results applied)
-        isLocked && !isWinner && !isLoser && !hasPossession && "cursor-default border-green-700/50 bg-gray-800/70",
+        isLocked &&
+          !isWinner &&
+          !isLoser &&
+          !hasPossession &&
+          "cursor-default border-green-700/50 bg-gray-800/70",
         // Neutral state (clickable)
         !isWinner &&
           !isLoser &&
@@ -228,7 +242,13 @@ export function TeamCard({
           "cursor-not-allowed border-gray-700 bg-gray-800/50 opacity-70",
       )}
       style={{
-        borderLeftColor: isWinner ? "#D4BE8C" : hasPossession && isRedZone ? "#ef4444" : hasPossession ? "#facc15" : team.primaryColor,
+        borderLeftColor: isWinner
+          ? "#D4BE8C"
+          : hasPossession && isRedZone
+            ? "#ef4444"
+            : hasPossession
+              ? "#facc15"
+              : team.primaryColor,
         borderLeftWidth: "6px",
         boxShadow: isWinner
           ? "inset 4px 0 8px -2px rgba(255, 215, 0, 0.4)"
@@ -284,10 +304,12 @@ export function TeamCard({
       {/* Score display */}
       {score !== undefined && score !== null && (
         <div className="ml-1 flex-shrink-0 rounded bg-gray-900/80 px-1.5 py-0.5 md:px-2">
-          <span className={cn(
-            "font-mono text-sm font-bold tabular-nums md:text-base",
-            scoreColorClass
-          )}>
+          <span
+            className={cn(
+              "font-mono text-sm font-bold tabular-nums md:text-base",
+              scoreColorClass,
+            )}
+          >
             {score}
           </span>
         </div>
@@ -312,21 +334,23 @@ export function TeamCard({
 
       {/* Possession indicator - football icon with glow */}
       {hasPossession && !isWinner && (
-        <div 
+        <div
           className={cn(
             "absolute -left-3 top-1/2 -translate-y-1/2 flex items-center justify-center",
-            "animate-bounce-subtle"
+            "animate-bounce-subtle",
           )}
         >
-          <div 
+          <div
             className={cn(
               "flex h-6 w-6 items-center justify-center rounded-full shadow-lg",
-              isRedZone 
-                ? "bg-red-500 shadow-red-500/50" 
-                : "bg-yellow-400 shadow-yellow-400/50"
+              isRedZone
+                ? "bg-red-500 shadow-red-500/50"
+                : "bg-yellow-400 shadow-yellow-400/50",
             )}
           >
-            <span className="text-sm" role="img" aria-label="Has possession">🏈</span>
+            <span className="text-sm" role="img" aria-label="Has possession">
+              🏈
+            </span>
           </div>
         </div>
       )}

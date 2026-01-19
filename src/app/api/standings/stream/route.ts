@@ -3,7 +3,7 @@ import type { LiveResults } from "@/types";
 
 // Global cache shared across all connections
 let globalCache: LiveResults | null = null;
-let lastFetchTime = 0;
+let _lastFetchTime = 0;
 
 // Server-side polling interval (5 seconds)
 const POLL_INTERVAL = 5 * 1000;
@@ -23,17 +23,18 @@ function startPolling() {
   const poll = async () => {
     try {
       const results = await fetchLiveResults();
-      const hasChanged = JSON.stringify(results) !== JSON.stringify(globalCache);
-      
+      const hasChanged =
+        JSON.stringify(results) !== JSON.stringify(globalCache);
+
       globalCache = results;
-      lastFetchTime = Date.now();
+      _lastFetchTime = Date.now();
 
       // Only push if data changed and we have clients
       if (hasChanged && connectedClients.size > 0) {
         const message = `data: ${JSON.stringify(results)}\n\n`;
         const encoder = new TextEncoder();
         const data = encoder.encode(message);
-        
+
         // Push to all connected clients
         for (const controller of connectedClients) {
           try {

@@ -272,47 +272,50 @@ export function Bracket({ showUserName = true }: BracketProps) {
   const { bracket } = useBracket();
 
   return (
-    <div className="flex min-w-fit flex-col items-center gap-4 rounded-2xl bg-black p-3 sm:gap-6 sm:p-4 md:gap-8 md:p-8 lg:p-6">
-        {/* Header */}
-        {showUserName && bracket.userName && (
-          <div className="text-center">
-            <h2 className="text-base font-semibold text-gray-400 sm:text-lg md:text-xl">
-              {bracket.userName}&apos;s Bracket
-            </h2>
-            {bracket.name && (
-              <h3 className="text-xs text-gray-500 sm:text-sm md:text-base">
-                {bracket.name}
-              </h3>
-            )}
-            {bracket.subtitle && (
-              <p className="mt-1 text-xs italic text-gray-500 sm:text-sm">
-                {bracket.subtitle}
-              </p>
-            )}
-          </div>
-        )}
+    <div
+      data-testid="bracket"
+      className="flex min-w-fit flex-col items-center gap-4 rounded-2xl bg-black p-3 sm:gap-6 sm:p-4 md:gap-8 md:p-8 lg:p-6"
+    >
+      {/* Header */}
+      {showUserName && bracket.userName && (
+        <div className="text-center">
+          <h2 className="text-base font-semibold text-gray-400 sm:text-lg md:text-xl">
+            {bracket.userName}&apos;s Bracket
+          </h2>
+          {bracket.name && (
+            <h3 className="text-xs text-gray-500 sm:text-sm md:text-base">
+              {bracket.name}
+            </h3>
+          )}
+          {bracket.subtitle && (
+            <p className="mt-1 text-xs italic text-gray-500 sm:text-sm">
+              {bracket.subtitle}
+            </p>
+          )}
+        </div>
+      )}
 
-        {/* Main Bracket Layout
+      {/* Main Bracket Layout
             Mobile (< md): Vertical stack (AFC, NFC, Super Bowl) - each bracket scrolls horizontally left-to-right
             Tablet/Medium Desktop (md to 2xl): Vertical stack with more spacing and larger elements
             Wide Desktop (2xl+): Horizontal (AFC | Super Bowl | NFC) - traditional bracket layout meeting in middle
         */}
-        <div className="flex w-full flex-col gap-4 sm:gap-6 md:gap-8 2xl:flex-row 2xl:items-start 2xl:justify-center 2xl:gap-8">
-          {/* AFC Bracket */}
-          <ScrollHintWrapper conference="AFC">
-            <ConferenceBracket conference="AFC" />
-          </ScrollHintWrapper>
+      <div className="flex w-full flex-col gap-4 sm:gap-6 md:gap-8 2xl:flex-row 2xl:items-start 2xl:justify-center 2xl:gap-8">
+        {/* AFC Bracket */}
+        <ScrollHintWrapper conference="AFC">
+          <ConferenceBracket conference="AFC" />
+        </ScrollHintWrapper>
 
-          {/* Super Bowl - Between conferences on desktop, after both on mobile */}
-          <div className="order-last flex justify-center 2xl:order-none 2xl:self-center">
-            <SuperBowl />
-          </div>
-
-          {/* NFC Bracket */}
-          <ScrollHintWrapper conference="NFC">
-            <ConferenceBracket conference="NFC" />
-          </ScrollHintWrapper>
+        {/* Super Bowl - Between conferences on desktop, after both on mobile */}
+        <div className="order-last flex justify-center 2xl:order-none 2xl:self-center">
+          <SuperBowl />
         </div>
+
+        {/* NFC Bracket */}
+        <ScrollHintWrapper conference="NFC">
+          <ConferenceBracket conference="NFC" />
+        </ScrollHintWrapper>
+      </div>
 
       {/* Completion status - hidden on mobile since MobileActionBar shows it prominently */}
       {bracket.isComplete && (

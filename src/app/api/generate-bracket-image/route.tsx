@@ -78,9 +78,7 @@ function collectLogos(bracket: BracketState): string[] {
 }
 
 // Pre-fetch all logos and return a map
-async function prefetchLogos(
-  logoUrls: string[],
-): Promise<Map<string, string>> {
+async function prefetchLogos(logoUrls: string[]): Promise<Map<string, string>> {
   const entries = await Promise.all(
     logoUrls.map(async (url) => {
       const dataUri = await fetchLogoAsDataUri(url);
@@ -534,90 +532,88 @@ export async function POST(request: NextRequest) {
     const height = 2160;
 
     return new ImageResponse(
-      (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: "#000000",
+          fontFamily: "system-ui, -apple-system, sans-serif",
+        }}
+      >
         <div
           style={{
-            width: "100%",
-            height: "100%",
             display: "flex",
             flexDirection: "column",
-            backgroundColor: "#000000",
-            fontFamily: "system-ui, -apple-system, sans-serif",
+            alignItems: "center",
+            justifyContent: "center",
+            height: 140,
+            background:
+              "linear-gradient(90deg, #dc2626 0%, #1f1f1f 50%, #2563eb 100%)",
           }}
         >
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              height: 140,
-              background:
-                "linear-gradient(90deg, #dc2626 0%, #1f1f1f 50%, #2563eb 100%)",
+              color: "#ffffff",
+              fontSize: 52,
+              fontWeight: 700,
             }}
           >
+            {userName}&apos;s Playoff Bracket
+          </div>
+          {bracketName && (
             <div
               style={{
                 display: "flex",
-                color: "#ffffff",
-                fontSize: 52,
-                fontWeight: 700,
+                color: "#a1a1aa",
+                fontSize: 28,
+                marginTop: 6,
               }}
             >
-              {userName}&apos;s Playoff Bracket
+              {bracketName}
             </div>
-            {bracketName && (
-              <div
-                style={{
-                  display: "flex",
-                  color: "#a1a1aa",
-                  fontSize: 28,
-                  marginTop: 6,
-                }}
-              >
-                {bracketName}
-              </div>
-            )}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "40px 80px",
-              gap: 60,
-            }}
-          >
-            <ConferenceBracketImage
-              conference="AFC"
-              bracket={bracket}
-              logoMap={logoMap}
-            />
-            <SuperBowlImage bracket={bracket} logoMap={logoMap} />
-            <ConferenceBracketImage
-              conference="NFC"
-              bracket={bracket}
-              logoMap={logoMap}
-              reversed
-            />
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              padding: "16px 40px",
-              color: "#6b7280",
-              fontSize: 26,
-              fontWeight: 600,
-            }}
-          >
-            bracket.build • NFL Playoffs 2025-26
-          </div>
+          )}
         </div>
-      ),
+
+        <div
+          style={{
+            display: "flex",
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "40px 80px",
+            gap: 60,
+          }}
+        >
+          <ConferenceBracketImage
+            conference="AFC"
+            bracket={bracket}
+            logoMap={logoMap}
+          />
+          <SuperBowlImage bracket={bracket} logoMap={logoMap} />
+          <ConferenceBracketImage
+            conference="NFC"
+            bracket={bracket}
+            logoMap={logoMap}
+            reversed
+          />
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            padding: "16px 40px",
+            color: "#6b7280",
+            fontSize: 26,
+            fontWeight: 600,
+          }}
+        >
+          bracket.build • NFL Playoffs 2025-26
+        </div>
+      </div>,
       {
         width,
         height,
@@ -625,12 +621,9 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error generating bracket image:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to generate image" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify({ error: "Failed to generate image" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }

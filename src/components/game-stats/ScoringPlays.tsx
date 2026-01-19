@@ -1,7 +1,7 @@
 "use client";
 
-import type { ScoringPlay } from "@/types";
 import { cn, getContrastSafeColor } from "@/lib/utils";
+import type { ScoringPlay } from "@/types";
 
 interface ScoringPlaysProps {
   plays: ScoringPlay[];
@@ -39,9 +39,7 @@ export function ScoringPlays({
 }: ScoringPlaysProps) {
   if (!plays || plays.length === 0) {
     return (
-      <div className="py-8 text-center text-gray-400">
-        No scoring plays yet
-      </div>
+      <div className="py-8 text-center text-gray-400">No scoring plays yet</div>
     );
   }
 
@@ -77,13 +75,12 @@ export function ScoringPlays({
           <div className="space-y-2">
             {playsByQuarter[quarter].map((play) => {
               const isHomeTeam = play.teamAbbr === homeTeamId;
-              const teamColor = getContrastSafeColor(isHomeTeam ? homeColor : awayColor);
+              const teamColor = getContrastSafeColor(
+                isHomeTeam ? homeColor : awayColor,
+              );
 
               return (
-                <div
-                  key={play.id}
-                  className="rounded-lg bg-gray-800/50 p-3"
-                >
+                <div key={play.id} className="rounded-lg bg-gray-800/50 p-3">
                   <div className="flex items-start gap-3">
                     {/* Team logo */}
                     <div

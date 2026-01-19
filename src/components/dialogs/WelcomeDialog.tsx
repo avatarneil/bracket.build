@@ -22,7 +22,11 @@ interface WelcomeDialogProps {
   onSkip?: () => void;
 }
 
-export function WelcomeDialog({ open, onComplete, onSkip }: WelcomeDialogProps) {
+export function WelcomeDialog({
+  open,
+  onComplete,
+  onSkip,
+}: WelcomeDialogProps) {
   const [name, setName] = useState("");
   const { setUserName } = useBracket();
 

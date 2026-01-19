@@ -104,7 +104,10 @@ export function RoundLockControl() {
           className="h-7 px-2 text-gray-400 hover:text-white"
         >
           <RefreshCw
-            className={cn("h-3.5 w-3.5", isLoadingLiveResults && "animate-spin")}
+            className={cn(
+              "h-3.5 w-3.5",
+              isLoadingLiveResults && "animate-spin",
+            )}
           />
           <span className="ml-1 text-xs">Refresh</span>
         </Button>
@@ -126,10 +129,22 @@ export function RoundLockControl() {
             Toggle to use actual results (locked) or make your own predictions
           </p>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-4">
-            <RoundLockToggle round="wildCard" hasGames={roundsWithGames.wildCard} />
-            <RoundLockToggle round="divisional" hasGames={roundsWithGames.divisional} />
-            <RoundLockToggle round="conference" hasGames={roundsWithGames.conference} />
-            <RoundLockToggle round="superBowl" hasGames={roundsWithGames.superBowl} />
+            <RoundLockToggle
+              round="wildCard"
+              hasGames={roundsWithGames.wildCard}
+            />
+            <RoundLockToggle
+              round="divisional"
+              hasGames={roundsWithGames.divisional}
+            />
+            <RoundLockToggle
+              round="conference"
+              hasGames={roundsWithGames.conference}
+            />
+            <RoundLockToggle
+              round="superBowl"
+              hasGames={roundsWithGames.superBowl}
+            />
           </div>
         </>
       )}
