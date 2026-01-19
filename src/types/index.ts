@@ -2,6 +2,16 @@ export type Conference = "AFC" | "NFC";
 
 export type RoundName = "wildCard" | "divisional" | "conference" | "superBowl";
 
+export type ViewMode = "bracket" | "live-games";
+
+// Flattened game info for Live Games view
+export interface LiveGameInfo {
+  matchup: Matchup;
+  liveResult: LiveMatchupResult;
+  conference: Conference | "superBowl";
+  round: RoundName;
+}
+
 export interface Team {
   id: string;
   name: string;

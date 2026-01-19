@@ -5,14 +5,22 @@ import { BracketControls } from "@/components/BracketControls";
 import { RoundLockControl } from "@/components/RoundLockControl";
 import { Bracket } from "@/components/bracket/Bracket";
 import { WelcomeDialog } from "@/components/dialogs/WelcomeDialog";
+import { GameStatsDialog } from "@/components/dialogs/GameStatsDialog";
 import { MobileActionBar } from "@/components/MobileActionBar";
+import { ViewToggle } from "@/components/views/ViewToggle";
+import { LiveGamesView } from "@/components/views/LiveGamesView";
 import { BracketProvider, useBracket } from "@/contexts/BracketContext";
+import { ViewProvider, useView } from "@/contexts/ViewContext";
 import { getStoredUser } from "@/lib/storage";
+import type { LiveGameInfo } from "@/types";
 
 function BracketApp() {
-  const { refreshLiveResults, bracket } = useBracket();
+  const { refreshLiveResults, bracket, getLiveResultForMatchup } = useBracket();
+  const { viewMode } = useView();
   const [showWelcome, setShowWelcome] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<LiveGameInfo | null>(null);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -61,7 +69,7 @@ function BracketApp() {
         <div className="flex justify-center overflow-x-hidden">
           <div className="inline-flex max-w-full flex-col items-center overflow-x-hidden">
             {/* Header - scales with viewport, larger on tablets */}
-            <header className="mb-4 text-center sm:mb-8 md:mb-10">
+            <header className="mb-4 text-center sm:mb-6 md:mb-8">
               <h1 className="font-mono bg-gradient-to-r from-red-500 via-white to-blue-500 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl md:text-5xl lg:text-5xl">
                 bracket.build
               </h1>
@@ -70,28 +78,42 @@ function BracketApp() {
               </p>
             </header>
 
-            {/* Controls */}
-            <div className="mb-4 w-full sm:mb-6 md:mb-8">
-              <BracketControls onResetName={() => setShowWelcome(true)} />
-            </div>
+            {/* View Toggle */}
+            <ViewToggle className="mb-4 sm:mb-6" />
 
-            {/* Live Results Control */}
-            <div className="mb-4 w-full max-w-2xl sm:mb-6">
-              <RoundLockControl />
-            </div>
+            {/* Controls - only show in bracket view when not guest */}
+            {viewMode === "bracket" && !isGuestMode && (
+              <div className="mb-4 w-full sm:mb-6 md:mb-8">
+                <BracketControls onResetName={() => setShowWelcome(true)} />
+              </div>
+            )}
 
-            {/* Bracket */}
-            <div className="pb-4 sm:pb-8 md:pb-10">
-              <Bracket />
-            </div>
+            {/* Live Results Control - only in bracket view */}
+            {viewMode === "bracket" && (
+              <div className="mb-4 w-full max-w-2xl sm:mb-6">
+                <RoundLockControl />
+              </div>
+            )}
 
-            {/* Instructions - hidden on mobile/tablet (they use the app naturally) */}
-            <div className="mt-8 hidden text-center text-sm text-gray-500 lg:block">
-              <p>
-                Click on a team to select them as the winner of each matchup.
-              </p>
-              <p>Your progress is automatically saved.</p>
-            </div>
+            {/* Main Content */}
+            {viewMode === "bracket" ? (
+              <>
+                {/* Bracket */}
+                <div className="pb-4 sm:pb-8 md:pb-10">
+                  <Bracket />
+                </div>
+
+                {/* Instructions - hidden on mobile/tablet (they use the app naturally) */}
+                <div className="mt-8 hidden text-center text-sm text-gray-500 lg:block">
+                  <p>
+                    Click on a team to select them as the winner of each matchup.
+                  </p>
+                  <p>Your progress is automatically saved.</p>
+                </div>
+              </>
+            ) : (
+              <LiveGamesView onGameTap={(game) => setSelectedGame(game)} />
+            )}
           </div>
         </div>
 
@@ -99,7 +121,23 @@ function BracketApp() {
         <WelcomeDialog
           open={showWelcome}
           onComplete={() => setShowWelcome(false)}
+          onSkip={() => {
+            setIsGuestMode(true);
+            setShowWelcome(false);
+          }}
         />
+
+        {/* Game Stats Dialog for Live Games view */}
+        {selectedGame && (
+          <GameStatsDialog
+            open={!!selectedGame}
+            onOpenChange={(open) => {
+              if (!open) setSelectedGame(null);
+            }}
+            matchup={selectedGame.matchup}
+            liveResult={selectedGame.liveResult}
+          />
+        )}
       </main>
 
       {/* Mobile/Tablet Action Bar - fixed to bottom on mobile and tablet */}
@@ -111,7 +149,9 @@ function BracketApp() {
 export default function Home() {
   return (
     <BracketProvider>
-      <BracketApp />
+      <ViewProvider>
+        <BracketApp />
+      </ViewProvider>
     </BracketProvider>
   );
 }

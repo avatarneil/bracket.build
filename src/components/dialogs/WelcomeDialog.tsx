@@ -19,9 +19,10 @@ import { setStoredUser } from "@/lib/storage";
 interface WelcomeDialogProps {
   open: boolean;
   onComplete: () => void;
+  onSkip?: () => void;
 }
 
-export function WelcomeDialog({ open, onComplete }: WelcomeDialogProps) {
+export function WelcomeDialog({ open, onComplete, onSkip }: WelcomeDialogProps) {
   const [name, setName] = useState("");
   const { setUserName } = useBracket();
 
@@ -68,7 +69,7 @@ export function WelcomeDialog({ open, onComplete }: WelcomeDialogProps) {
             />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button
               type="submit"
               disabled={!name.trim()}
@@ -76,6 +77,16 @@ export function WelcomeDialog({ open, onComplete }: WelcomeDialogProps) {
             >
               Start Building My Bracket
             </Button>
+            {onSkip && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onSkip}
+                className="w-full text-gray-400 hover:text-white md:h-12 md:text-base"
+              >
+                Just Viewing
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
