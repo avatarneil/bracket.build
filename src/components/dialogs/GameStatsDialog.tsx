@@ -121,6 +121,32 @@ export function GameStatsDialog({
     { id: "plays", label: "Plays" },
   ];
 
+  const handleTabKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
+    let newIndex: number | null = null;
+
+    switch (e.key) {
+      case "ArrowLeft":
+        newIndex = currentIndex > 0 ? currentIndex - 1 : tabs.length - 1;
+        break;
+      case "ArrowRight":
+        newIndex = currentIndex < tabs.length - 1 ? currentIndex + 1 : 0;
+        break;
+      case "Home":
+        newIndex = 0;
+        break;
+      case "End":
+        newIndex = tabs.length - 1;
+        break;
+    }
+
+    if (newIndex !== null) {
+      e.preventDefault();
+      setActiveTab(tabs[newIndex].id);
+      // Focus the newly selected tab
+      document.getElementById(`tab-${tabs[newIndex].id}`)?.focus();
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -226,7 +252,7 @@ export function GameStatsDialog({
 
         {/* Tab navigation */}
         <div role="tablist" className="flex gap-1 border-b border-gray-700 px-4 md:px-6">
-          {tabs.map((tab) => (
+          {tabs.map((tab, index) => (
             <button
               key={tab.id}
               id={`tab-${tab.id}`}
@@ -234,7 +260,9 @@ export function GameStatsDialog({
               role="tab"
               aria-selected={activeTab === tab.id}
               aria-controls={`tabpanel-${tab.id}`}
+              tabIndex={activeTab === tab.id ? 0 : -1}
               onClick={() => setActiveTab(tab.id)}
+              onKeyDown={(e) => handleTabKeyDown(e, index)}
               className={cn(
                 "relative px-4 py-2.5 text-sm font-medium transition-colors md:py-3 md:text-base",
                 activeTab === tab.id
