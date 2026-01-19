@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FolderOpen, Loader2, Save, Share2 } from "lucide-react";
+import { FolderOpen, Loader2, Save, Share2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useBracket } from "@/contexts/BracketContext";
@@ -68,7 +68,7 @@ export function MobileActionBar() {
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [_isSaving, setIsSaving] = useState(false);
 
   // Hide action bar in Live Games view
   if (viewMode === "live-games") {
@@ -211,7 +211,10 @@ export function MobileActionBar() {
   // Normal state: clean floating dock
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-4 md:pb-6 lg:hidden safe-area-bottom">
+      <div
+        data-testid="mobile-action-bar"
+        className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-4 md:pb-6 lg:hidden safe-area-bottom"
+      >
         {/* Dock */}
         <div className="flex items-center gap-1 rounded-2xl border border-white/10 bg-black p-1.5 shadow-2xl md:gap-2 md:rounded-3xl md:p-2">
           <ActionButton

@@ -176,9 +176,43 @@ function determineConference(
   awayTeamId: string,
 ): "AFC" | "NFC" | "superBowl" {
   // AFC teams in our current data
-  const afcTeams = ["DEN", "NE", "JAX", "PIT", "HOU", "BUF", "LAC", "KC", "BAL", "CIN", "MIA", "CLE", "LV", "TEN", "IND", "NYJ"];
+  const afcTeams = [
+    "DEN",
+    "NE",
+    "JAX",
+    "PIT",
+    "HOU",
+    "BUF",
+    "LAC",
+    "KC",
+    "BAL",
+    "CIN",
+    "MIA",
+    "CLE",
+    "LV",
+    "TEN",
+    "IND",
+    "NYJ",
+  ];
   // NFC teams in our current data
-  const nfcTeams = ["SEA", "CHI", "PHI", "CAR", "LAR", "SF", "GB", "DAL", "DET", "MIN", "TB", "NO", "ATL", "ARI", "WAS", "NYG"];
+  const nfcTeams = [
+    "SEA",
+    "CHI",
+    "PHI",
+    "CAR",
+    "LAR",
+    "SF",
+    "GB",
+    "DAL",
+    "DET",
+    "MIN",
+    "TB",
+    "NO",
+    "ATL",
+    "ARI",
+    "WAS",
+    "NYG",
+  ];
 
   const homeIsAFC = afcTeams.includes(homeTeamId);
   const awayIsAFC = afcTeams.includes(awayTeamId);
@@ -245,20 +279,23 @@ function parseESPNEvent(event: ESPNEvent): LiveMatchupResult | null {
   // Extract game clock information for in-progress games
   const quarter = isInProgress ? status.period : null;
   const timeRemaining = isInProgress ? status.displayClock : null;
-  
+
   // Check for special game states
   const description = statusType.description?.toLowerCase() || "";
   const isHalftime = description.includes("halftime");
   const isEndOfQuarter = description.includes("end of");
-  
+
   // Get possession info from lastPlay.team.id (numeric ESPN ID)
   // Only show possession during active play (down > 0)
   const numericTeamId = competition.situation?.lastPlay?.team?.id;
   const isActiveDrive = (competition.situation?.down ?? -1) > 0;
-  const possessionAbbr = numericTeamId ? ESPN_NUMERIC_ID_TO_ABBR[numericTeamId] : null;
-  const possessionTeamId = isActiveDrive && possessionAbbr 
-    ? mapTeamAbbreviation(possessionAbbr)
+  const possessionAbbr = numericTeamId
+    ? ESPN_NUMERIC_ID_TO_ABBR[numericTeamId]
     : null;
+  const possessionTeamId =
+    isActiveDrive && possessionAbbr
+      ? mapTeamAbbreviation(possessionAbbr)
+      : null;
   const isRedZone = competition.situation?.isRedZone ?? false;
 
   return {
@@ -300,7 +337,9 @@ export async function fetchPlayoffScoreboard(
   return response.json();
 }
 
-export async function fetchAllPlayoffWeeks(): Promise<ESPNScoreboardResponse[]> {
+export async function fetchAllPlayoffWeeks(): Promise<
+  ESPNScoreboardResponse[]
+> {
   // Fetch all playoff weeks (1-4)
   const weeks = [1, 2, 3, 4];
   const results = await Promise.all(
@@ -335,7 +374,10 @@ export function parsePlayoffResults(
       const round = getPlayoffRound(event.week.number);
       if (!round) continue;
 
-      const conference = determineConference(matchup.homeTeamId, matchup.awayTeamId);
+      const conference = determineConference(
+        matchup.homeTeamId,
+        matchup.awayTeamId,
+      );
 
       if (round === "wildCard") {
         if (conference === "AFC") {
@@ -428,20 +470,22 @@ export function isRoundComplete(
   if (!liveResults) return false;
 
   switch (round) {
-    case "wildCard":
+    case "wildCard": {
       // 6 wild card games total (3 per conference)
       const wcGames = [
         ...liveResults.afc.wildCard,
         ...liveResults.nfc.wildCard,
       ];
       return wcGames.length >= 6 && wcGames.every((m) => m.isComplete);
-    case "divisional":
+    }
+    case "divisional": {
       // 4 divisional games total (2 per conference)
       const divGames = [
         ...liveResults.afc.divisional,
         ...liveResults.nfc.divisional,
       ];
       return divGames.length >= 4 && divGames.every((m) => m.isComplete);
+    }
     case "conference":
       return (
         (liveResults.afc.championship?.isComplete ?? false) &&

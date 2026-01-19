@@ -136,7 +136,9 @@
   /* Ensure vertical scrolling works everywhere on Android/WebView.
      touch-action doesn't inherit, so we apply to all elements.
      Bracket scroll containers override this with their own touch-action. */
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     touch-action: pan-y pinch-zoom;
   }
 }
@@ -218,11 +220,15 @@
 @keyframes glow-pulse {
   0%,
   100% {
-    box-shadow: 0 0 15px 3px currentColor, 0 0 30px 6px currentColor;
+    box-shadow:
+      0 0 15px 3px currentColor,
+      0 0 30px 6px currentColor;
     opacity: 0.8;
   }
   50% {
-    box-shadow: 0 0 25px 5px currentColor, 0 0 50px 10px currentColor;
+    box-shadow:
+      0 0 25px 5px currentColor,
+      0 0 50px 10px currentColor;
     opacity: 1;
   }
 }

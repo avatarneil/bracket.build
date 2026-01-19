@@ -2,8 +2,8 @@
 
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
-import type { Drive } from "@/types";
 import { cn, getContrastSafeColor } from "@/lib/utils";
+import type { Drive } from "@/types";
 
 interface ExpandableDrivesProps {
   drives: Drive[];
@@ -40,14 +40,16 @@ function getResultColor(result: string): string {
   const r = result.toUpperCase();
   if (r.includes("TOUCHDOWN")) return "text-green-400";
   if (r.includes("FIELD GOAL")) return "text-green-400";
-  if (r.includes("FUMBLE") || r.includes("INTERCEPTION") || r.includes("INT")) return "text-red-400";
+  if (r.includes("FUMBLE") || r.includes("INTERCEPTION") || r.includes("INT"))
+    return "text-red-400";
   if (r.includes("SAFETY")) return "text-orange-400";
   return "text-gray-400";
 }
 
 function formatDown(down: number | null, distance: number | null): string {
   if (down === null) return "";
-  const ordinal = down === 1 ? "1st" : down === 2 ? "2nd" : down === 3 ? "3rd" : "4th";
+  const ordinal =
+    down === 1 ? "1st" : down === 2 ? "2nd" : down === 3 ? "3rd" : "4th";
   return distance ? `${ordinal} & ${distance}` : ordinal;
 }
 
@@ -113,7 +115,9 @@ export function ExpandableDrives({
             {drivesByQuarter[quarter].map((drive) => {
               const isExpanded = expandedDrives.has(drive.id);
               const isHomeTeam = drive.teamAbbr === homeTeamId;
-              const teamColor = getContrastSafeColor(isHomeTeam ? homeColor : awayColor);
+              const teamColor = getContrastSafeColor(
+                isHomeTeam ? homeColor : awayColor,
+              );
               const resultIcon = getResultIcon(drive.result);
               const resultColorClass = getResultColor(drive.result);
 
@@ -168,7 +172,9 @@ export function ExpandableDrives({
                             className={cn(
                               "rounded px-1.5 py-0.5 text-[9px] font-bold",
                               resultColorClass,
-                              drive.isScoring ? "bg-green-900/30" : "bg-gray-700/50"
+                              drive.isScoring
+                                ? "bg-green-900/30"
+                                : "bg-gray-700/50",
                             )}
                           >
                             {resultIcon}
@@ -201,7 +207,7 @@ export function ExpandableDrives({
                               "flex items-start gap-2 rounded px-2 py-1.5 text-[11px]",
                               play.isScoring
                                 ? "bg-green-900/20 border-l-2 border-green-500"
-                                : "bg-gray-800/30"
+                                : "bg-gray-800/30",
                             )}
                           >
                             {/* Play number */}
@@ -226,7 +232,7 @@ export function ExpandableDrives({
                                   "shrink-0 font-mono text-[10px]",
                                   play.yardsGained > 0
                                     ? "text-green-400"
-                                    : "text-red-400"
+                                    : "text-red-400",
                                 )}
                               >
                                 {play.yardsGained > 0 ? "+" : ""}

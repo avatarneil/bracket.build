@@ -1,7 +1,7 @@
 "use client";
 
-import type { PlayerLeaders, PlayerStatLine } from "@/types";
 import { cn, getContrastSafeColor } from "@/lib/utils";
+import type { PlayerLeaders, PlayerStatLine } from "@/types";
 
 interface PlayerLeadersCardProps {
   awayLeaders: PlayerLeaders;
@@ -39,7 +39,10 @@ function LeaderRow({
           {awayLeader ? (
             <div className="space-y-1">
               {awayLeader.headshot && (
-                <div className="mx-auto h-10 w-10 overflow-hidden rounded-full border-2" style={{ borderColor: awayColor }}>
+                <div
+                  className="mx-auto h-10 w-10 overflow-hidden rounded-full border-2"
+                  style={{ borderColor: awayColor }}
+                >
                   <img
                     src={awayLeader.headshot}
                     alt={awayLeader.name}
@@ -72,7 +75,10 @@ function LeaderRow({
           {homeLeader ? (
             <div className="space-y-1">
               {homeLeader.headshot && (
-                <div className="mx-auto h-10 w-10 overflow-hidden rounded-full border-2" style={{ borderColor: homeColor }}>
+                <div
+                  className="mx-auto h-10 w-10 overflow-hidden rounded-full border-2"
+                  style={{ borderColor: homeColor }}
+                >
                   <img
                     src={homeLeader.headshot}
                     alt={homeLeader.name}
@@ -113,8 +119,12 @@ export function PlayerLeadersCard({
     <div className="space-y-3">
       {/* Team headers */}
       <div className="flex items-center justify-between px-3 text-xs font-medium">
-        <span style={{ color: getContrastSafeColor(awayColor) }}>{awayTeamName}</span>
-        <span style={{ color: getContrastSafeColor(homeColor) }}>{homeTeamName}</span>
+        <span style={{ color: getContrastSafeColor(awayColor) }}>
+          {awayTeamName}
+        </span>
+        <span style={{ color: getContrastSafeColor(homeColor) }}>
+          {homeTeamName}
+        </span>
       </div>
 
       <LeaderRow

@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useState,
-} from "react";
+import { createContext, type ReactNode, useContext, useState } from "react";
 import type { ViewMode } from "@/types";
 
 interface ViewContextType {

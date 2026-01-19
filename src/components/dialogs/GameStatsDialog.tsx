@@ -1,22 +1,19 @@
 "use client";
 
 import { RefreshCw, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ExpandableDrives } from "@/components/game-stats/ExpandableDrives";
+import { GameStatsLoading } from "@/components/game-stats/GameStatsLoading";
+import { PlayerLeadersCard } from "@/components/game-stats/PlayerLeadersCard";
+import { ScoringPlays } from "@/components/game-stats/ScoringPlays";
+import { TeamStatsComparison } from "@/components/game-stats/TeamStatsComparison";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { getTeamById } from "@/data/teams";
 import { useGameStats } from "@/hooks/useGameStats";
 import { extractEventId } from "@/lib/espn-boxscore";
 import { cn } from "@/lib/utils";
-import { getTeamById } from "@/data/teams";
-import type { Matchup, LiveMatchupResult, Team } from "@/types";
-import { TeamStatsComparison } from "@/components/game-stats/TeamStatsComparison";
-import { PlayerLeadersCard } from "@/components/game-stats/PlayerLeadersCard";
-import { ExpandableDrives } from "@/components/game-stats/ExpandableDrives";
-import { ScoringPlays } from "@/components/game-stats/ScoringPlays";
-import { GameStatsLoading } from "@/components/game-stats/GameStatsLoading";
+import type { LiveMatchupResult, Matchup, Team } from "@/types";
 
 interface GameStatsDialogProps {
   open: boolean;
@@ -70,7 +67,9 @@ export function GameStatsDialog({
       // Block touch events on everything except the dialog content
       const handleTouchMove = (e: TouchEvent) => {
         // Find the dialog content element
-        const dialogContent = document.querySelector('[data-slot="dialog-content"]');
+        const dialogContent = document.querySelector(
+          '[data-slot="dialog-content"]',
+        );
         if (dialogContent && dialogContent.contains(e.target as Node)) {
           // Allow scrolling within the dialog
           return;
@@ -79,7 +78,9 @@ export function GameStatsDialog({
         e.preventDefault();
       };
 
-      document.addEventListener("touchmove", handleTouchMove, { passive: false });
+      document.addEventListener("touchmove", handleTouchMove, {
+        passive: false,
+      });
 
       return () => {
         html.style.overflow = originalHtmlOverflow;
@@ -94,12 +95,14 @@ export function GameStatsDialog({
   const awayTeam = matchup.awayTeam ? getTeamById(matchup.awayTeam.id) : null;
 
   // Map scores from liveResult (handles ESPN home/away vs bracket home/away)
-  const homeScore = liveResult?.homeTeamId === matchup.homeTeam?.id
-    ? liveResult?.homeScore
-    : liveResult?.awayScore;
-  const awayScore = liveResult?.awayTeamId === matchup.awayTeam?.id
-    ? liveResult?.awayScore
-    : liveResult?.homeScore;
+  const homeScore =
+    liveResult?.homeTeamId === matchup.homeTeam?.id
+      ? liveResult?.homeScore
+      : liveResult?.awayScore;
+  const awayScore =
+    liveResult?.awayTeamId === matchup.awayTeam?.id
+      ? liveResult?.awayScore
+      : liveResult?.homeScore;
 
   // Get game status text
   const getStatusText = () => {
@@ -150,6 +153,7 @@ export function GameStatsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        data-testid="game-stats-dialog"
         className="max-h-[90vh] overflow-hidden border-gray-700 bg-gray-900 p-0 text-white sm:max-w-md md:max-w-lg lg:max-w-xl"
         showCloseButton={false}
       >
@@ -159,7 +163,7 @@ export function GameStatsDialog({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            aria-label="Close dialog"
+            aria-label="Close"
             className="absolute right-3 top-3 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white active:scale-95"
           >
             <X className="h-5 w-5" />
@@ -255,7 +259,10 @@ export function GameStatsDialog({
         </div>
 
         {/* Tab navigation */}
-        <div role="tablist" className="flex gap-1 border-b border-gray-700 px-4 md:px-6">
+        <div
+          role="tablist"
+          className="flex gap-1 border-b border-gray-700 px-4 md:px-6"
+        >
           {tabs.map((tab, index) => (
             <button
               key={tab.id}
@@ -289,7 +296,9 @@ export function GameStatsDialog({
               disabled={isLoading}
               className="ml-auto flex items-center gap-1.5 px-2 py-2 text-xs text-gray-400 hover:text-white disabled:opacity-50"
             >
-              <RefreshCw className={cn("h-3.5 w-3.5", isLoading && "animate-spin")} />
+              <RefreshCw
+                className={cn("h-3.5 w-3.5", isLoading && "animate-spin")}
+              />
               <span className="hidden sm:inline">Refresh</span>
             </button>
           )}
@@ -336,8 +345,8 @@ export function GameStatsDialog({
                   homeColor={homeTeam.primaryColor}
                 />
               )}
-              {activeTab === "plays" && (
-                stats.drives && stats.drives.length > 0 ? (
+              {activeTab === "plays" &&
+                (stats.drives && stats.drives.length > 0 ? (
                   <ExpandableDrives
                     drives={stats.drives}
                     homeTeamId={stats.homeTeamId}
@@ -353,8 +362,7 @@ export function GameStatsDialog({
                     homeColor={homeTeam.primaryColor}
                     awayColor={awayTeam.primaryColor}
                   />
-                )
-              )}
+                ))}
             </>
           ) : (
             <div className="py-8 text-center text-gray-400">
@@ -369,7 +377,11 @@ export function GameStatsDialog({
             <span>Data from ESPN</span>
             {lastUpdated && (
               <span>
-                Updated {lastUpdated.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                Updated{" "}
+                {lastUpdated.toLocaleTimeString([], {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
               </span>
             )}
           </div>

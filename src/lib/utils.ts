@@ -31,7 +31,9 @@ function lightenColor(hex: string, amount: number): string {
     ?.map((x) => parseInt(x, 16));
   if (!rgb) return hex;
 
-  const lightened = rgb.map((c) => Math.min(255, Math.round(c + (255 - c) * amount)));
+  const lightened = rgb.map((c) =>
+    Math.min(255, Math.round(c + (255 - c) * amount)),
+  );
   return `#${lightened.map((c) => c.toString(16).padStart(2, "0")).join("")}`;
 }
 

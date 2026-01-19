@@ -49,14 +49,23 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
       ? liveResult.awayScore
       : liveResult.homeScore;
 
-  const { isInProgress, isComplete, quarter, timeRemaining, isHalftime, isRedZone, possession, isEndOfQuarter } =
-    liveResult;
+  const {
+    isInProgress,
+    isComplete,
+    quarter,
+    timeRemaining,
+    isHalftime,
+    isRedZone,
+    possession,
+    isEndOfQuarter,
+  } = liveResult;
 
   const getGameStatusText = () => {
     if (isComplete) return "FINAL";
     if (isHalftime) return "HALFTIME";
     if (isEndOfQuarter && quarter) return `END ${formatQuarter(quarter)}`;
-    if (quarter && timeRemaining) return `${formatQuarter(quarter)} ${timeRemaining}`;
+    if (quarter && timeRemaining)
+      return `${formatQuarter(quarter)} ${timeRemaining}`;
     if (quarter) return formatQuarter(quarter);
     if (isInProgress) return "LIVE";
     return "Upcoming";
@@ -68,17 +77,19 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
   return (
     <button
       type="button"
+      data-testid={`live-game-card-${matchup.id}`}
       onClick={onTap}
       className={cn(
         "w-full rounded-xl border-2 bg-gray-800 p-4 text-left transition-all",
         "hover:border-gray-500 hover:bg-gray-750 active:scale-[0.99]",
-        isInProgress ? "border-yellow-500/50" : "border-gray-700"
+        isInProgress ? "border-yellow-500/50" : "border-gray-700",
       )}
     >
       {/* Round label */}
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
-          {formatRound(game.round)} • {game.conference === "superBowl" ? "" : game.conference}
+          {formatRound(game.round)} •{" "}
+          {game.conference === "superBowl" ? "" : game.conference}
         </span>
         {/* Game status badge */}
         <div
@@ -90,7 +101,7 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
                 ? "bg-yellow-500 text-black"
                 : isComplete
                   ? "bg-gray-600 text-white"
-                  : "bg-gray-700 text-gray-400"
+                  : "bg-gray-700 text-gray-400",
           )}
         >
           {isInProgress && (
@@ -126,7 +137,7 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
             <span
               className={cn(
                 "truncate font-semibold",
-                winner?.id === awayTeam.id ? "text-green-400" : "text-white"
+                winner?.id === awayTeam.id ? "text-green-400" : "text-white",
               )}
             >
               {awayTeam.city} {awayTeam.name}
@@ -137,7 +148,7 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
             <div
               className={cn(
                 "flex h-6 w-6 items-center justify-center rounded-full text-sm",
-                isRedZone ? "bg-red-500" : "bg-yellow-400"
+                isRedZone ? "bg-red-500" : "bg-yellow-400",
               )}
             >
               🏈
@@ -153,7 +164,7 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
                     ? "text-yellow-400"
                     : winner?.id === awayTeam.id
                       ? "text-green-400"
-                      : "text-gray-400"
+                      : "text-gray-400",
                 )}
               >
                 {awayScore}
@@ -183,7 +194,7 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
             <span
               className={cn(
                 "truncate font-semibold",
-                winner?.id === homeTeam.id ? "text-green-400" : "text-white"
+                winner?.id === homeTeam.id ? "text-green-400" : "text-white",
               )}
             >
               {homeTeam.city} {homeTeam.name}
@@ -194,7 +205,7 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
             <div
               className={cn(
                 "flex h-6 w-6 items-center justify-center rounded-full text-sm",
-                isRedZone ? "bg-red-500" : "bg-yellow-400"
+                isRedZone ? "bg-red-500" : "bg-yellow-400",
               )}
             >
               🏈
@@ -210,7 +221,7 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
                     ? "text-yellow-400"
                     : winner?.id === homeTeam.id
                       ? "text-green-400"
-                      : "text-gray-400"
+                      : "text-gray-400",
                 )}
               >
                 {homeScore}

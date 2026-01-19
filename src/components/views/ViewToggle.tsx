@@ -1,8 +1,8 @@
 "use client";
 
 import { Trophy, Tv } from "lucide-react";
-import { useView } from "@/contexts/ViewContext";
 import { useBracket } from "@/contexts/BracketContext";
+import { useView } from "@/contexts/ViewContext";
 import { hasInProgressGames } from "@/lib/espn-api";
 import { cn } from "@/lib/utils";
 import type { ViewMode } from "@/types";
@@ -23,7 +23,10 @@ export function ViewToggle({ className }: ViewToggleProps) {
   ];
 
   return (
-    <div className={cn("flex justify-center", className)}>
+    <div
+      data-testid="view-toggle"
+      className={cn("flex justify-center", className)}
+    >
       <div className="inline-flex rounded-full bg-gray-800 p-1">
         {options.map(({ mode, label, icon: Icon }) => {
           const isActive = viewMode === mode;
@@ -38,7 +41,7 @@ export function ViewToggle({ className }: ViewToggleProps) {
                 "relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
                 isActive
                   ? "bg-gradient-to-r from-red-600 to-blue-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white"
+                  : "text-gray-400 hover:text-white",
               )}
             >
               <Icon className="h-4 w-4" />

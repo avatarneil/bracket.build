@@ -1,11 +1,11 @@
 import type {
+  Drive,
   GameBoxscore,
-  TeamGameStats,
+  Play,
   PlayerLeaders,
   PlayerStatLine,
   ScoringPlay,
-  Drive,
-  Play,
+  TeamGameStats,
 } from "@/types";
 
 // ESPN Summary API endpoint
@@ -296,14 +296,22 @@ function parseTeamStats(team: ESPNBoxscoreTeam): TeamGameStats {
   return {
     teamId: mapTeamAbbreviation(team.team.abbreviation),
     totalYards: Number.parseInt(getStat("totalYards"), 10) || 0,
-    passingYards: parseYards(getStat("netPassingYards") || getStat("passingYards")),
+    passingYards: parseYards(
+      getStat("netPassingYards") || getStat("passingYards"),
+    ),
     rushingYards: parseYards(getStat("rushingYards")),
     turnovers: Number.parseInt(getStat("turnovers"), 10) || 0,
     timeOfPossession,
     firstDowns: Number.parseInt(getStat("firstDowns"), 10) || 0,
     thirdDownEfficiency: thirdDowns,
-    penalties: Number.parseInt(getStat("totalPenaltiesYards")?.split("-")[0] || "0", 10),
-    penaltyYards: Number.parseInt(getStat("totalPenaltiesYards")?.split("-")[1] || "0", 10),
+    penalties: Number.parseInt(
+      getStat("totalPenaltiesYards")?.split("-")[0] || "0",
+      10,
+    ),
+    penaltyYards: Number.parseInt(
+      getStat("totalPenaltiesYards")?.split("-")[1] || "0",
+      10,
+    ),
     sacks: Number.parseInt(getStat("sacks")?.split("-")[0] || "0", 10),
     interceptions: Number.parseInt(getStat("interceptions"), 10) || 0,
     fumbles: Number.parseInt(getStat("fumblesLost"), 10) || 0,
@@ -326,7 +334,9 @@ function parsePlayerLeaders(
 
   // Find the team's leaders object
   const teamLeaders = leaders.find(
-    (tl) => tl.team?.abbreviation && mapTeamAbbreviation(tl.team.abbreviation) === mappedTeamId,
+    (tl) =>
+      tl.team?.abbreviation &&
+      mapTeamAbbreviation(tl.team.abbreviation) === mappedTeamId,
   );
 
   if (!teamLeaders || !teamLeaders.leaders) return result;
@@ -339,7 +349,10 @@ function parsePlayerLeaders(
     if (!topLeader || !topLeader.athlete) continue;
 
     const statLine: PlayerStatLine = {
-      name: topLeader.athlete.shortName || topLeader.athlete.displayName || "Unknown",
+      name:
+        topLeader.athlete.shortName ||
+        topLeader.athlete.displayName ||
+        "Unknown",
       position: topLeader.athlete.position?.abbreviation || "",
       headshot: topLeader.athlete.headshot?.href,
       stats: topLeader.displayValue || "",
@@ -347,9 +360,15 @@ function parsePlayerLeaders(
 
     if (category.name === "passingYards" || category.name === "passingLeader") {
       result.passer = statLine;
-    } else if (category.name === "rushingYards" || category.name === "rushingLeader") {
+    } else if (
+      category.name === "rushingYards" ||
+      category.name === "rushingLeader"
+    ) {
       result.rusher = statLine;
-    } else if (category.name === "receivingYards" || category.name === "receivingLeader") {
+    } else if (
+      category.name === "receivingYards" ||
+      category.name === "receivingLeader"
+    ) {
       result.receiver = statLine;
     }
   }
@@ -357,7 +376,9 @@ function parsePlayerLeaders(
   return result;
 }
 
-function parseScoringPlays(plays: ESPNScoringPlay[] | undefined): ScoringPlay[] {
+function parseScoringPlays(
+  plays: ESPNScoringPlay[] | undefined,
+): ScoringPlay[] {
   if (!plays || !Array.isArray(plays)) return [];
 
   return plays.map((play) => ({
@@ -368,7 +389,9 @@ function parseScoringPlays(plays: ESPNScoringPlay[] | undefined): ScoringPlay[] 
     quarter: play.period?.number || 0,
     clock: play.clock?.displayValue || "",
     teamId: play.team?.id || "",
-    teamAbbr: play.team?.abbreviation ? mapTeamAbbreviation(play.team.abbreviation) : "",
+    teamAbbr: play.team?.abbreviation
+      ? mapTeamAbbreviation(play.team.abbreviation)
+      : "",
     teamLogo: play.team?.logo || "",
     type: play.type?.abbreviation || play.type?.text || "",
   }));
@@ -380,7 +403,9 @@ function parseDrives(drives: ESPNDrive[] | undefined): Drive[] {
   return drives.map((drive) => ({
     id: drive.id || "",
     teamId: drive.team?.id || "",
-    teamAbbr: drive.team?.abbreviation ? mapTeamAbbreviation(drive.team.abbreviation) : "",
+    teamAbbr: drive.team?.abbreviation
+      ? mapTeamAbbreviation(drive.team.abbreviation)
+      : "",
     teamLogo: drive.team?.logo || "",
     result: drive.displayResult || drive.result || "",
     description: drive.description || "",
@@ -414,7 +439,9 @@ function parsePlays(plays: ESPNPlay[] | undefined): Play[] {
   }));
 }
 
-export async function fetchGameBoxscore(eventId: string): Promise<GameBoxscore> {
+export async function fetchGameBoxscore(
+  eventId: string,
+): Promise<GameBoxscore> {
   const response = await fetch(`${ESPN_SUMMARY_URL}?event=${eventId}`);
 
   if (!response.ok) {
@@ -429,8 +456,12 @@ export async function fetchGameBoxscore(eventId: string): Promise<GameBoxscore> 
     throw new Error("No competition data found");
   }
 
-  const homeCompetitor = competition.competitors.find((c) => c.homeAway === "home");
-  const awayCompetitor = competition.competitors.find((c) => c.homeAway === "away");
+  const homeCompetitor = competition.competitors.find(
+    (c) => c.homeAway === "home",
+  );
+  const awayCompetitor = competition.competitors.find(
+    (c) => c.homeAway === "away",
+  );
 
   if (!homeCompetitor || !awayCompetitor) {
     throw new Error("Missing competitor data");
@@ -472,8 +503,12 @@ export async function fetchGameBoxscore(eventId: string): Promise<GameBoxscore> 
     quarter: competition.status.period || null,
     timeRemaining: competition.status.displayClock || null,
     teamStats: {
-      home: homeBoxscore ? parseTeamStats(homeBoxscore) : { ...emptyStats, teamId: homeTeamId },
-      away: awayBoxscore ? parseTeamStats(awayBoxscore) : { ...emptyStats, teamId: awayTeamId },
+      home: homeBoxscore
+        ? parseTeamStats(homeBoxscore)
+        : { ...emptyStats, teamId: homeTeamId },
+      away: awayBoxscore
+        ? parseTeamStats(awayBoxscore)
+        : { ...emptyStats, teamId: awayTeamId },
     },
     playerLeaders: {
       home: parsePlayerLeaders(data.leaders, homeCompetitor.team.abbreviation),
