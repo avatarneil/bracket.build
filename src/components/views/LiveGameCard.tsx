@@ -1,12 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { MomentumIndicator } from "@/components/game-stats/MomentumIndicator";
 import { cn } from "@/lib/utils";
-import type { LiveGameInfo } from "@/types";
+import type { LiveGameInfo, MomentumData } from "@/types";
 
 interface LiveGameCardProps {
   game: LiveGameInfo;
   onTap: () => void;
+  momentum?: MomentumData | null;
 }
 
 function formatQuarter(quarter: number): string {
@@ -33,7 +35,7 @@ function formatRound(round: string): string {
   }
 }
 
-export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
+export function LiveGameCard({ game, onTap, momentum }: LiveGameCardProps) {
   const { matchup, liveResult } = game;
   const { homeTeam, awayTeam, winner } = matchup;
 
@@ -224,6 +226,18 @@ export function LiveGameCard({ game, onTap }: LiveGameCardProps) {
           )}
         </div>
       </div>
+
+      {/* Compact Momentum Indicator - only for in-progress games with momentum data */}
+      {isInProgress && momentum && (
+        <div className="mt-3">
+          <MomentumIndicator
+            homeWinPct={momentum.currentHomeWinPct}
+            awayColor={awayTeam.primaryColor}
+            homeColor={homeTeam.primaryColor}
+            compact
+          />
+        </div>
+      )}
 
       {/* Tap hint */}
       <div className="mt-3 text-center text-xs text-gray-500">Tap for detailed stats</div>

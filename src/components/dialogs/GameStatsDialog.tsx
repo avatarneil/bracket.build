@@ -4,6 +4,7 @@ import { RefreshCw, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ExpandableDrives } from "@/components/game-stats/ExpandableDrives";
 import { GameStatsLoading } from "@/components/game-stats/GameStatsLoading";
+import { MomentumTab } from "@/components/game-stats/MomentumTab";
 import { PlayerLeadersCard } from "@/components/game-stats/PlayerLeadersCard";
 import { ScoringPlays } from "@/components/game-stats/ScoringPlays";
 import { TeamStatsComparison } from "@/components/game-stats/TeamStatsComparison";
@@ -22,7 +23,7 @@ interface GameStatsDialogProps {
   liveResult: LiveMatchupResult | null;
 }
 
-type TabId = "stats" | "leaders" | "plays";
+type TabId = "stats" | "leaders" | "plays" | "momentum";
 
 function formatQuarter(quarter: number): string {
   if (quarter === 1) return "1st";
@@ -106,6 +107,7 @@ export function GameStatsDialog({ open, onOpenChange, matchup, liveResult }: Gam
     { id: "stats", label: "Stats" },
     { id: "leaders", label: "Leaders" },
     { id: "plays", label: "Plays" },
+    { id: "momentum", label: "Momentum" },
   ];
 
   const handleTabKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
@@ -340,6 +342,15 @@ export function GameStatsDialog({ open, onOpenChange, matchup, liveResult }: Gam
                     awayColor={awayTeam.primaryColor}
                   />
                 ))}
+              {activeTab === "momentum" && (
+                <MomentumTab
+                  momentum={stats.momentum}
+                  homeColor={homeTeam.primaryColor}
+                  awayColor={awayTeam.primaryColor}
+                  homeTeamName={homeTeam.name}
+                  awayTeamName={awayTeam.name}
+                />
+              )}
             </>
           ) : (
             <div className="py-8 text-center text-gray-400">No stats available</div>

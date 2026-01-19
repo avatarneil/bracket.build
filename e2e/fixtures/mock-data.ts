@@ -298,6 +298,7 @@ export const mockGameBoxscore: GameBoxscore = {
   ],
   lastPlay: null,
   fetchedAt: Date.now(),
+  momentum: null,
 };
 
 // Storage keys used in the app

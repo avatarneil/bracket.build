@@ -147,6 +147,7 @@ export interface GameBoxscore {
   drives: Drive[];
   lastPlay: string | null;
   fetchedAt: number;
+  momentum: MomentumData | null;
 }
 
 export interface TeamGameStats {
@@ -224,4 +225,31 @@ export interface Play {
     away: number;
     home: number;
   } | null;
+}
+
+// Momentum tracking types for win probability visualization
+export interface WinProbabilityPoint {
+  playId: string;
+  homeWinPercentage: number;
+  quarter: number;
+  clock: string;
+  playText: string;
+  secondsElapsed: number; // For chart positioning
+}
+
+export interface KeyMoment {
+  playId: string;
+  playText: string;
+  winProbBefore: number;
+  winProbAfter: number;
+  swing: number; // Absolute value of change
+  benefitingTeamId: "home" | "away";
+  quarter: number;
+  clock: string;
+}
+
+export interface MomentumData {
+  winProbability: WinProbabilityPoint[];
+  currentHomeWinPct: number;
+  keyMoments: KeyMoment[];
 }
