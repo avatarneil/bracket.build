@@ -196,9 +196,13 @@ export function Matchup({
           onClick={() => setShowStatsDialog(true)}
           className={cn(
             "absolute -bottom-6 left-1/2 -translate-x-1/2",
-            "flex items-center gap-1.5 rounded-full px-3 py-2",
-            "text-[10px] font-semibold transition-colors active:scale-95",
-            liveResult?.isInProgress ? "animate-color-shimmer" : "text-gray-400 hover:text-white",
+            "flex items-center gap-1.5 rounded-full px-3 py-1.5",
+            "text-[10px] font-semibold uppercase tracking-wide",
+            "transition-all duration-200 active:scale-95",
+            "shadow-sm",
+            liveResult?.isInProgress
+              ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 hover:bg-yellow-500/30 hover:border-yellow-500/60"
+              : "bg-gray-700/80 text-gray-300 border border-gray-600/50 hover:bg-gray-600/90 hover:text-white hover:border-gray-500/70",
           )}
         >
           <BarChart3 className="h-3 w-3" />
