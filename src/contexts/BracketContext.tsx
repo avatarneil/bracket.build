@@ -690,6 +690,18 @@ export function BracketProvider({ children }: { children: ReactNode }) {
       const { liveResults } = bracket;
       if (!liveResults) return null;
 
+      // For Super Bowl and championship games, return the live result directly
+      // even if bracket teams haven't been filled in or don't match
+      if (matchupId === "super-bowl") {
+        return liveResults.superBowl ?? null;
+      }
+      if (matchupId === "AFC-champ") {
+        return liveResults.afc.championship ?? null;
+      }
+      if (matchupId === "NFC-champ") {
+        return liveResults.nfc.championship ?? null;
+      }
+
       // Find the matchup in bracket to get teams
       let matchup = null;
 
@@ -807,60 +819,101 @@ export function BracketProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // AFC Championship
+    // AFC Championship - show even if bracket teams don't match
     if (liveResults.afc.championship && bracket.afc.championship) {
       const lr = liveResults.afc.championship;
       const matchup = bracket.afc.championship;
-      if (
+      const teamsMatch =
         matchup.homeTeam &&
         matchup.awayTeam &&
         ((matchup.homeTeam.id === lr.homeTeamId && matchup.awayTeam.id === lr.awayTeamId) ||
-          (matchup.homeTeam.id === lr.awayTeamId && matchup.awayTeam.id === lr.homeTeamId))
-      ) {
+          (matchup.homeTeam.id === lr.awayTeamId && matchup.awayTeam.id === lr.homeTeamId));
+
+      if (teamsMatch) {
         games.push({
           matchup,
           liveResult: lr,
           conference: "AFC",
           round: "conference",
         });
+      } else {
+        const homeTeam = findTeamById(lr.homeTeamId);
+        const awayTeam = findTeamById(lr.awayTeamId);
+        if (homeTeam && awayTeam) {
+          games.push({
+            matchup: { ...matchup, homeTeam, awayTeam },
+            liveResult: lr,
+            conference: "AFC",
+            round: "conference",
+          });
+        }
       }
     }
 
-    // NFC Championship
+    // NFC Championship - show even if bracket teams don't match
     if (liveResults.nfc.championship && bracket.nfc.championship) {
       const lr = liveResults.nfc.championship;
       const matchup = bracket.nfc.championship;
-      if (
+      const teamsMatch =
         matchup.homeTeam &&
         matchup.awayTeam &&
         ((matchup.homeTeam.id === lr.homeTeamId && matchup.awayTeam.id === lr.awayTeamId) ||
-          (matchup.homeTeam.id === lr.awayTeamId && matchup.awayTeam.id === lr.homeTeamId))
-      ) {
+          (matchup.homeTeam.id === lr.awayTeamId && matchup.awayTeam.id === lr.homeTeamId));
+
+      if (teamsMatch) {
         games.push({
           matchup,
           liveResult: lr,
           conference: "NFC",
           round: "conference",
         });
+      } else {
+        const homeTeam = findTeamById(lr.homeTeamId);
+        const awayTeam = findTeamById(lr.awayTeamId);
+        if (homeTeam && awayTeam) {
+          games.push({
+            matchup: { ...matchup, homeTeam, awayTeam },
+            liveResult: lr,
+            conference: "NFC",
+            round: "conference",
+          });
+        }
       }
     }
 
-    // Super Bowl
+    // Super Bowl - always show if live data exists, even if bracket teams don't match
     if (liveResults.superBowl && bracket.superBowl) {
       const lr = liveResults.superBowl;
       const matchup = bracket.superBowl;
-      if (
+      const teamsMatch =
         matchup.homeTeam &&
         matchup.awayTeam &&
         ((matchup.homeTeam.id === lr.homeTeamId && matchup.awayTeam.id === lr.awayTeamId) ||
-          (matchup.homeTeam.id === lr.awayTeamId && matchup.awayTeam.id === lr.homeTeamId))
-      ) {
+          (matchup.homeTeam.id === lr.awayTeamId && matchup.awayTeam.id === lr.homeTeamId));
+
+      if (teamsMatch) {
         games.push({
           matchup,
           liveResult: lr,
           conference: "superBowl",
           round: "superBowl",
         });
+      } else {
+        // Bracket teams don't match or are null - populate from live data
+        const homeTeam = findTeamById(lr.homeTeamId);
+        const awayTeam = findTeamById(lr.awayTeamId);
+        if (homeTeam && awayTeam) {
+          games.push({
+            matchup: {
+              ...matchup,
+              homeTeam,
+              awayTeam,
+            },
+            liveResult: lr,
+            conference: "superBowl",
+            round: "superBowl",
+          });
+        }
       }
     }
 
