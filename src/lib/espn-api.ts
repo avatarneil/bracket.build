@@ -324,8 +324,9 @@ export async function fetchPlayoffScoreboard(week?: number): Promise<ESPNScorebo
 }
 
 export async function fetchAllPlayoffWeeks(): Promise<ESPNScoreboardResponse[]> {
-  // Fetch all playoff weeks (1-4)
-  const weeks = [1, 2, 3, 4];
+  // Fetch all playoff weeks (1-5)
+  // Super Bowl can be week 4 or 5 depending on the season
+  const weeks = [1, 2, 3, 4, 5];
   const results = await Promise.all(
     weeks.map((week) => fetchPlayoffScoreboard(week).catch(() => null)),
   );
