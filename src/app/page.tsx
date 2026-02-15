@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { BracketControls } from "@/components/BracketControls";
 import { Bracket } from "@/components/bracket/Bracket";
 import { GameStatsDialog } from "@/components/dialogs/GameStatsDialog";
@@ -10,17 +10,17 @@ import { RoundLockControl } from "@/components/RoundLockControl";
 import { LiveGamesView } from "@/components/views/LiveGamesView";
 import { ViewToggle } from "@/components/views/ViewToggle";
 import { BracketProvider, useBracket } from "@/contexts/BracketContext";
+import { GameDialogProvider, useGameDialog } from "@/contexts/GameDialogContext";
 import { useView, ViewProvider } from "@/contexts/ViewContext";
 import { getStoredUser } from "@/lib/storage";
-import type { LiveGameInfo } from "@/types";
 
 function BracketApp() {
   const { refreshLiveResults, bracket } = useBracket();
   const { viewMode } = useView();
+  const { selectedGame, activeTab, closeGameDialog, setActiveTab } = useGameDialog();
   const [showWelcome, setShowWelcome] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
-  const [selectedGame, setSelectedGame] = useState<LiveGameInfo | null>(null);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -110,7 +110,7 @@ function BracketApp() {
                 </div>
               </>
             ) : (
-              <LiveGamesView onGameTap={(game) => setSelectedGame(game)} />
+              <LiveGamesView />
             )}
           </div>
         </div>
@@ -125,15 +125,17 @@ function BracketApp() {
           }}
         />
 
-        {/* Game Stats Dialog for Live Games view */}
+        {/* Game Stats Dialog - centralized at page level */}
         {selectedGame && (
           <GameStatsDialog
             open={!!selectedGame}
             onOpenChange={(open) => {
-              if (!open) setSelectedGame(null);
+              if (!open) closeGameDialog();
             }}
             matchup={selectedGame.matchup}
             liveResult={selectedGame.liveResult}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
           />
         )}
       </main>
@@ -144,12 +146,28 @@ function BracketApp() {
   );
 }
 
-export default function Home() {
+function BracketAppWithProviders() {
   return (
     <BracketProvider>
       <ViewProvider>
-        <BracketApp />
+        <GameDialogProvider>
+          <BracketApp />
+        </GameDialogProvider>
       </ViewProvider>
     </BracketProvider>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-black">
+          <div className="text-white">Loading...</div>
+        </div>
+      }
+    >
+      <BracketAppWithProviders />
+    </Suspense>
   );
 }

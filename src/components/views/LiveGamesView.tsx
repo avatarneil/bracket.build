@@ -1,15 +1,13 @@
 "use client";
 
 import { useBracket } from "@/contexts/BracketContext";
+import { useGameDialog } from "@/contexts/GameDialogContext";
 import type { LiveGameInfo } from "@/types";
 import { LiveGameCard } from "./LiveGameCard";
 
-interface LiveGamesViewProps {
-  onGameTap: (game: LiveGameInfo) => void;
-}
-
-export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
+export function LiveGamesView() {
   const { getAllLiveGames, isLoadingLiveResults } = useBracket();
+  const { openGameDialog } = useGameDialog();
 
   const games = getAllLiveGames();
 
@@ -17,6 +15,10 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
   const liveGames = games.filter((g) => g.liveResult.isInProgress);
   const completedGames = games.filter((g) => g.liveResult.isComplete);
   const upcomingGames = games.filter((g) => !g.liveResult.isInProgress && !g.liveResult.isComplete);
+
+  const handleGameTap = (game: LiveGameInfo) => {
+    openGameDialog(game);
+  };
 
   if (isLoadingLiveResults) {
     return (
@@ -52,7 +54,7 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
           </h2>
           <div className="space-y-3">
             {liveGames.map((game) => (
-              <LiveGameCard key={game.matchup.id} game={game} onTap={() => onGameTap(game)} />
+              <LiveGameCard key={game.matchup.id} game={game} onTap={() => handleGameTap(game)} />
             ))}
           </div>
         </section>
@@ -66,7 +68,7 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
           </h2>
           <div className="space-y-3">
             {upcomingGames.map((game) => (
-              <LiveGameCard key={game.matchup.id} game={game} onTap={() => onGameTap(game)} />
+              <LiveGameCard key={game.matchup.id} game={game} onTap={() => handleGameTap(game)} />
             ))}
           </div>
         </section>
@@ -80,7 +82,7 @@ export function LiveGamesView({ onGameTap }: LiveGamesViewProps) {
           </h2>
           <div className="space-y-3">
             {completedGames.map((game) => (
-              <LiveGameCard key={game.matchup.id} game={game} onTap={() => onGameTap(game)} />
+              <LiveGameCard key={game.matchup.id} game={game} onTap={() => handleGameTap(game)} />
             ))}
           </div>
         </section>
