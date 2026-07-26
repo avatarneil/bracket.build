@@ -14,16 +14,21 @@ import { getTeamById } from "@/data/teams";
 import { useGameStats } from "@/hooks/useGameStats";
 import { extractEventId } from "@/lib/espn-boxscore";
 import { cn } from "@/lib/utils";
-import type { LiveMatchupResult, Matchup, Team } from "@/types";
+import type { TabId } from "@/hooks/useDeepLink";
+import type { LiveMatchupResult, Matchup } from "@/types";
+
+export type { TabId };
 
 interface GameStatsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   matchup: Matchup;
   liveResult: LiveMatchupResult | null;
+  /** Controlled active tab (optional - if not provided, uses internal state) */
+  activeTab?: TabId;
+  /** Callback when tab changes (optional - only needed in controlled mode) */
+  onTabChange?: (tab: TabId) => void;
 }
-
-type TabId = "stats" | "leaders" | "plays" | "momentum";
 
 function formatQuarter(quarter: number): string {
   if (quarter === 1) return "1st";
@@ -34,8 +39,18 @@ function formatQuarter(quarter: number): string {
   return `Q${quarter}`;
 }
 
-export function GameStatsDialog({ open, onOpenChange, matchup, liveResult }: GameStatsDialogProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("stats");
+export function GameStatsDialog({
+  open,
+  onOpenChange,
+  matchup,
+  liveResult,
+  activeTab: controlledActiveTab,
+  onTabChange,
+}: GameStatsDialogProps) {
+  // Support both controlled and uncontrolled modes
+  const [internalActiveTab, setInternalActiveTab] = useState<TabId>("stats");
+  const activeTab = controlledActiveTab ?? internalActiveTab;
+  const setActiveTab = onTabChange ?? setInternalActiveTab;
 
   // Extract ESPN event ID from the matchup ID
   const eventId = liveResult?.matchupId ? extractEventId(liveResult.matchupId) : null;
