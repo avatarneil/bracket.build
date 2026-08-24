@@ -4,6 +4,59 @@ export type RoundName = "wildCard" | "divisional" | "conference" | "superBowl";
 
 export type ViewMode = "bracket" | "live-games";
 
+export type SeasonPhase = "preseason" | "regular" | "postseason";
+
+export interface ScheduleWeek {
+  number: number;
+  label: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface ScheduleTeam {
+  id: string;
+  abbreviation: string;
+  location: string;
+  name: string;
+  displayName: string;
+  logoUrl: string;
+  color: string;
+  record: string | null;
+}
+
+export interface ScheduleGame {
+  id: string;
+  date: string;
+  venue: string | null;
+  broadcasts: string[];
+  homeTeam: ScheduleTeam;
+  awayTeam: ScheduleTeam;
+  homeScore: number | null;
+  awayScore: number | null;
+  winnerId: string | null;
+  isComplete: boolean;
+  isInProgress: boolean;
+  statusText: string;
+  quarter: number | null;
+  timeRemaining: string | null;
+  possession: string | null;
+  isRedZone: boolean;
+}
+
+export interface SeasonSchedule {
+  phase: SeasonPhase;
+  currentPhase: SeasonPhase;
+  currentSeasonYear: number;
+  seasonYear: number;
+  availableSeasons: number[];
+  phaseAvailability: Record<SeasonPhase, boolean>;
+  week: number;
+  weekLabel: string;
+  weeks: ScheduleWeek[];
+  games: ScheduleGame[];
+  fetchedAt: number;
+}
+
 // Flattened game info for Live Games view
 export interface LiveGameInfo {
   matchup: Matchup;
