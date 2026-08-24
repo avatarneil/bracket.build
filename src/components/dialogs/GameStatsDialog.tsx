@@ -117,6 +117,12 @@ export function GameStatsDialog({
     : awayScore;
   const isLive = stats?.isInProgress ?? liveResult?.isInProgress ?? false;
   const isComplete = stats?.isComplete ?? liveResult?.isComplete ?? false;
+  const showFieldPosition = Boolean(
+    homeTeam &&
+    awayTeam &&
+    (variant === "panel" || liveResult?.isInProgress || stats?.isInProgress),
+  );
+  const fieldStatus = isLoading && !stats ? "loading" : error ? "unavailable" : "ready";
   const winnerId =
     isComplete && latestHomeScore != null && latestAwayScore != null
       ? latestHomeScore > latestAwayScore
@@ -176,7 +182,7 @@ export function GameStatsDialog({
   };
 
   const content = (
-    <>
+    <div className={cn("flex min-h-0 flex-col", variant === "dialog" && "h-full")}>
       {/* Custom header with team info */}
       <div className="border-b border-gray-700 px-4 py-4 md:px-6">
         {/* Close button */}
@@ -278,12 +284,14 @@ export function GameStatsDialog({
         </div>
       </div>
 
-      {variant === "panel" && stats && homeTeam && awayTeam && (
+      {showFieldPosition && homeTeam && awayTeam && (
         <LiveFieldPosition
-          fieldPosition={stats.fieldPosition}
+          fieldPosition={stats?.fieldPosition ?? null}
           homeTeam={homeTeam}
           awayTeam={awayTeam}
-          lastPlay={stats.lastPlay}
+          lastPlay={stats?.lastPlay ?? null}
+          layout={variant === "dialog" ? "mobile" : "panel"}
+          status={fieldStatus}
         />
       )}
 
@@ -331,7 +339,10 @@ export function GameStatsDialog({
         role="tabpanel"
         id={`tabpanel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
-        className="max-h-[calc(90vh-180px)] overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-5"
+        className={cn(
+          "overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-5",
+          variant === "dialog" ? "min-h-0 flex-1" : "max-h-[calc(90vh-180px)]",
+        )}
       >
         {isLoading && !stats ? (
           <GameStatsLoading />
@@ -415,7 +426,7 @@ export function GameStatsDialog({
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 
   if (variant === "panel") {
@@ -434,7 +445,7 @@ export function GameStatsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="game-stats-dialog"
-        className="max-h-[90vh] overflow-hidden border-gray-700 bg-gray-900 p-0 text-white sm:max-w-md md:max-w-lg lg:max-w-xl"
+        className="flex h-[90dvh] max-h-[90dvh] overflow-hidden border-gray-700 bg-gray-900 p-0 text-white sm:max-w-md md:max-w-lg lg:max-w-xl"
         showCloseButton={false}
       >
         {content}
