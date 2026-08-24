@@ -199,8 +199,16 @@ export interface GameBoxscore {
   scoringPlays: ScoringPlay[];
   drives: Drive[];
   lastPlay: string | null;
+  fieldPosition: FieldPosition | null;
   fetchedAt: number;
   momentum: MomentumData | null;
+}
+
+export interface FieldPosition {
+  possessionTeamId: string;
+  down: number;
+  distance: number;
+  yardsToEndzone: number;
 }
 
 export interface TeamGameStats {

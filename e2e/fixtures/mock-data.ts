@@ -436,6 +436,12 @@ export const mockGameBoxscore: GameBoxscore = {
     },
   ],
   lastPlay: null,
+  fieldPosition: {
+    possessionTeamId: "PIT",
+    down: 2,
+    distance: 7,
+    yardsToEndzone: 38,
+  },
   fetchedAt: Date.now(),
   momentum: {
     winProbability: [

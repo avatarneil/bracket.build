@@ -10,6 +10,7 @@ import { RoundLockControl } from "@/components/RoundLockControl";
 import { SeasonNavigation } from "@/components/SeasonNavigation";
 import { SeasonSelector } from "@/components/SeasonSelector";
 import { LiveGamesView } from "@/components/views/LiveGamesView";
+import { LiveGamesDashboard } from "@/components/views/LiveGamesDashboard";
 import { SeasonScheduleView } from "@/components/views/SeasonScheduleView";
 import { ViewToggle } from "@/components/views/ViewToggle";
 import { BracketProvider, useBracket } from "@/contexts/BracketContext";
@@ -130,7 +131,7 @@ function BracketApp() {
           className={cn(
             "flex w-full justify-center overflow-x-hidden",
             !isPostseason &&
-              "xl:mx-auto xl:grid xl:max-w-[1380px] xl:grid-cols-[minmax(460px,620px)_minmax(520px,680px)] xl:items-start xl:gap-8 xl:overflow-visible",
+              "xl:grid xl:grid-cols-[minmax(420px,500px)_minmax(0,1fr)] xl:items-start xl:gap-6 xl:overflow-visible",
           )}
         >
           <div
@@ -139,7 +140,7 @@ function BracketApp() {
               "max-w-full flex-col items-center overflow-x-hidden",
               showBracket ? "inline-flex" : "flex w-full",
               !isPostseason &&
-                "xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] xl:overflow-hidden xl:rounded-2xl xl:border xl:border-gray-800 xl:bg-gray-950 xl:px-5 xl:pb-5",
+                "xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] xl:overflow-hidden xl:rounded-2xl xl:border xl:border-gray-800 xl:bg-gray-950 xl:px-5 xl:pb-5 xl:pt-4",
             )}
           >
             {/* Header - scales with viewport, larger on tablets */}
@@ -244,33 +245,10 @@ function BracketApp() {
           {!isPostseason && (
             <aside
               data-testid="live-details-column"
-              aria-label="Live game details"
-              className="hidden xl:sticky xl:top-6 xl:block"
+              aria-label="Live games dashboard"
+              className="hidden xl:block"
             >
-              {selectedGame ? (
-                <GameStatsDialog
-                  open
-                  variant="panel"
-                  onOpenChange={(open) => {
-                    if (!open) closeGameDialog();
-                  }}
-                  matchup={selectedGame.matchup}
-                  liveResult={selectedGame.liveResult}
-                  activeTab={activeTab}
-                  onTabChange={setActiveTab}
-                />
-              ) : (
-                <div className="flex min-h-[calc(100vh-3rem)] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-800 bg-gray-950/60 px-8 text-center">
-                  <div className="text-5xl" aria-hidden="true">
-                    🏈
-                  </div>
-                  <h2 className="mt-5 text-xl font-semibold text-white">Live game details</h2>
-                  <p className="mt-2 max-w-sm text-sm leading-6 text-gray-400">
-                    Select a live game from the schedule to follow its score, stats, leaders, plays,
-                    and momentum here.
-                  </p>
-                </div>
-              )}
+              <LiveGamesDashboard schedule={visibleSchedule} />
             </aside>
           )}
         </div>

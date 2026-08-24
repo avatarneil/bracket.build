@@ -3,43 +3,12 @@
 import Image from "next/image";
 import { Radio } from "lucide-react";
 import { useGameDialog } from "@/contexts/GameDialogContext";
+import { scheduleGameToLiveInfo } from "@/lib/schedule-game";
 import { cn } from "@/lib/utils";
-import type { LiveGameInfo, ScheduleGame, SeededTeam } from "@/types";
+import type { ScheduleGame } from "@/types";
 
 interface ScheduleGameRowProps {
   game: ScheduleGame;
-}
-
-const AFC_TEAMS = new Set([
-  "BAL",
-  "BUF",
-  "CIN",
-  "CLE",
-  "DEN",
-  "HOU",
-  "IND",
-  "JAX",
-  "KC",
-  "LAC",
-  "LV",
-  "MIA",
-  "NE",
-  "NYJ",
-  "PIT",
-  "TEN",
-]);
-
-function toSeededTeam(team: ScheduleGame["homeTeam"]): SeededTeam {
-  return {
-    id: team.id,
-    name: team.name,
-    city: team.location,
-    conference: AFC_TEAMS.has(team.id) ? "AFC" : "NFC",
-    primaryColor: team.color,
-    secondaryColor: team.color,
-    logoUrl: team.logoUrl,
-    seed: 0,
-  };
 }
 
 function formatKickoff(date: string): string {
@@ -104,40 +73,7 @@ export function ScheduleGameRow({ game }: ScheduleGameRowProps) {
   const broadcast = game.broadcasts.join(", ");
 
   const openLiveGame = () => {
-    const homeTeam = toSeededTeam(game.homeTeam);
-    const awayTeam = toSeededTeam(game.awayTeam);
-    const liveGame: LiveGameInfo = {
-      matchup: {
-        id: `schedule-${game.id}`,
-        round: "wildCard",
-        conference: homeTeam.conference,
-        homeTeam,
-        awayTeam,
-        winner: null,
-        gameNumber: 0,
-      },
-      liveResult: {
-        matchupId: `schedule-${game.id}`,
-        homeTeamId: game.homeTeam.id,
-        awayTeamId: game.awayTeam.id,
-        homeScore: game.homeScore,
-        awayScore: game.awayScore,
-        winnerId: game.winnerId,
-        isComplete: game.isComplete,
-        isInProgress: game.isInProgress,
-        gameDate: game.date,
-        quarter: game.quarter,
-        timeRemaining: game.timeRemaining,
-        possession: game.possession,
-        isRedZone: game.isRedZone,
-        isHalftime: game.statusText.toLowerCase().includes("halftime"),
-        isEndOfQuarter: game.statusText.toLowerCase().includes("end"),
-      },
-      conference: homeTeam.conference,
-      round: "wildCard",
-    };
-
-    openGameDialog(liveGame);
+    openGameDialog(scheduleGameToLiveInfo(game));
   };
 
   const content = (
