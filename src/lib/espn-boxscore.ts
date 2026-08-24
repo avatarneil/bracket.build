@@ -66,9 +66,7 @@ interface ESPNSummaryResponse {
     competitions?: ESPNCompetitionHeader[];
   };
   drives?: {
-    current?: {
-      description?: string;
-    };
+    current?: ESPNDrive;
     previous?: ESPNDrive[];
   };
   leaders?: ESPNTeamLeaders[];
@@ -412,6 +410,45 @@ function parseDrives(drives: ESPNDrive[] | undefined): Drive[] {
   }));
 }
 
+function parseFieldPosition(currentDrive: ESPNDrive | undefined): GameBoxscore["fieldPosition"] {
+  if (!currentDrive?.plays?.length || !currentDrive.team?.abbreviation) return null;
+
+  for (let index = currentDrive.plays.length - 1; index >= 0; index -= 1) {
+    const play = currentDrive.plays[index];
+    const situation = play.end ?? play.start;
+    const down = situation?.down;
+    const distance = situation?.distance;
+    const yardsToEndzone = situation?.yardsToEndzone;
+
+    // Administrative plays such as timeouts use down = -1. Walk backward
+    // until ESPN provides the most recent real line-of-scrimmage state.
+    if (
+      !Number.isFinite(down) ||
+      !Number.isFinite(distance) ||
+      !Number.isFinite(yardsToEndzone) ||
+      down < 1 ||
+      down > 4 ||
+      distance < 0 ||
+      yardsToEndzone < 0 ||
+      yardsToEndzone > 100
+    ) {
+      // Do not carry a pre-score line of scrimmage across a field goal or
+      // touchdown while the feed waits for the ensuing kickoff.
+      if (play.scoringPlay) return null;
+      continue;
+    }
+
+    return {
+      possessionTeamId: mapTeamAbbreviation(currentDrive.team.abbreviation),
+      down,
+      distance,
+      yardsToEndzone,
+    };
+  }
+
+  return null;
+}
+
 function parsePlays(plays: ESPNPlay[] | undefined): Play[] {
   if (!plays || !Array.isArray(plays)) return [];
 
@@ -661,7 +698,11 @@ export async function fetchGameBoxscore(eventId: string): Promise<GameBoxscore> 
     },
     scoringPlays: parseScoringPlays(data.scoringPlays),
     drives: parseDrives(data.drives?.previous),
-    lastPlay: data.drives?.current?.description || null,
+    lastPlay:
+      data.drives?.current?.plays?.[data.drives.current.plays.length - 1]?.text ||
+      data.drives?.current?.description ||
+      null,
+    fieldPosition: parseFieldPosition(data.drives?.current),
     fetchedAt: Date.now(),
     momentum: parseMomentumData(data.winprobability, data.drives?.previous),
   };

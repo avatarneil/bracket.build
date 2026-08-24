@@ -4,6 +4,7 @@ import { RefreshCw, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ExpandableDrives } from "@/components/game-stats/ExpandableDrives";
 import { GameStatsLoading } from "@/components/game-stats/GameStatsLoading";
+import { LiveFieldPosition } from "@/components/game-stats/LiveFieldPosition";
 import { MomentumTab } from "@/components/game-stats/MomentumTab";
 import { PlayerLeadersCard } from "@/components/game-stats/PlayerLeadersCard";
 import { ScoringPlays } from "@/components/game-stats/ScoringPlays";
@@ -276,6 +277,15 @@ export function GameStatsDialog({
           </div>
         </div>
       </div>
+
+      {variant === "panel" && stats && homeTeam && awayTeam && (
+        <LiveFieldPosition
+          fieldPosition={stats.fieldPosition}
+          homeTeam={homeTeam}
+          awayTeam={awayTeam}
+          lastPlay={stats.lastPlay}
+        />
+      )}
 
       {/* Tab navigation */}
       <div role="tablist" className="flex gap-1 border-b border-gray-700 px-4 md:px-6">

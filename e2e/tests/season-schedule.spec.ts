@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "../fixtures/test-fixtures";
 import {
+  mockGameBoxscore,
   mockPostseasonSchedule,
   mockPreseasonSchedule,
   mockRegularSchedule,
@@ -119,27 +120,77 @@ test.describe("Season schedules", () => {
     await expect(page.getByRole("tab", { name: "Stats" })).toBeVisible();
   });
 
-  test("uses a schedule sidebar with inline live details on wide screens", async ({ page }) => {
+  test("uses a left schedule rail with a multi-game dashboard on wide screens", async ({
+    page,
+  }) => {
+    await page.unroute("**/api/schedule**");
+    await page.route("**/api/schedule**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ...mockPreseasonSchedule,
+          games: [
+            mockPreseasonSchedule.games[0],
+            {
+              ...mockPreseasonSchedule.games[0],
+              id: "401873298",
+              homeScore: 10,
+              awayScore: 10,
+              statusText: "2:14 - 3rd",
+              quarter: 3,
+              timeRemaining: "2:14",
+              possession: "SEA",
+              isRedZone: false,
+            },
+          ],
+        }),
+      });
+    });
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
 
     const sidebar = page.getByTestId("schedule-sidebar");
     const details = page.getByTestId("live-details-column");
+    const dashboard = page.getByTestId("live-games-dashboard");
     await expect(sidebar).toBeVisible();
     await expect(details).toBeVisible();
+    await expect(dashboard.getByTestId("live-game-count")).toHaveText("2");
+    await expect(dashboard).toContainText("live games");
+    await expect(page.getByTestId("live-dashboard-game-401873297")).toBeVisible();
+    await expect(page.getByTestId("live-dashboard-game-401873298")).toBeVisible();
 
     const sidebarBox = await sidebar.boundingBox();
     const detailsBox = await details.boundingBox();
     expect(sidebarBox).not.toBeNull();
     expect(detailsBox).not.toBeNull();
     expect(detailsBox!.x).toBeGreaterThan(sidebarBox!.x + sidebarBox!.width);
+    expect(sidebarBox!.x).toBeLessThan(50);
 
-    await page
-      .getByRole("button", { name: "View live updates for Seattle Seahawks at Tennessee Titans" })
-      .click();
+    await page.getByTestId("live-dashboard-game-401873297").click();
     await expect(page.getByTestId("game-stats-panel")).toBeVisible();
+    await expect(page.getByTestId("live-field-position")).toBeVisible();
     await expect(page.getByTestId("game-stats-dialog")).not.toBeVisible();
     await expect(page.getByRole("tab", { name: "Stats" })).toBeVisible();
+  });
+
+  test("keeps the field visible between drives on wide screens", async ({ page }) => {
+    await page.unroute("**/api/game-stats/**");
+    await page.route("**/api/game-stats/**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...mockGameBoxscore, fieldPosition: null }),
+      });
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+
+    await page.getByTestId("live-dashboard-game-401873297").click();
+
+    await expect(page.getByTestId("live-field-position")).toBeVisible();
+    await expect(page.getByText(/between drives/i)).toBeVisible();
+    await expect(page.getByText(/field position will update on the next drive/i)).toBeVisible();
   });
 
   test("does not show bracket actions outside the postseason", async ({ page }) => {
