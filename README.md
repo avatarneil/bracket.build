@@ -1,11 +1,15 @@
 # bracket.build
 
-An interactive playoff bracket builder for the NFL postseason. Create your predictions, share them with friends, and track your picks through the playoffs.
+A season-aware NFL schedule and playoff bracket builder. Follow preseason and regular-season games, then create predictions, share them with friends, and track picks through the playoffs.
 
 **Disclaimer:** This project is not affiliated with, endorsed by, or connected to the National Football League (NFL) or any of its member teams. All team names, logos, and related marks are trademarks of their respective owners.
 
 ## Features
 
+- 🗓️ Current and prior-season schedules with week dates, live details, and final scores
+- 🖥️ Wide-screen schedule sidebar with inline, auto-refreshing live game details
+- 🔒 Postseason picks unlock only after that season's playoff schedule is posted
+- ⏭️ Phase and week navigation for upcoming games
 - 🏈 Full playoff bracket with Wild Card, Divisional, Championship, and Super Bowl rounds
 - 💾 Automatic progress saving with localStorage
 - 📱 Mobile-first responsive design

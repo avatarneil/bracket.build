@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { type TabId, useDeepLink } from "@/hooks/useDeepLink";
 import type { LiveGameInfo, Matchup } from "@/types";
 import { useBracket } from "./BracketContext";
@@ -147,6 +155,12 @@ export function GameDialogProvider({ children }: { children: ReactNode }) {
     // Skip if already initialized or not hydrated
     if (isInitialized || !isHydrated) return;
 
+    if (!urlState.gameId) {
+      prevUrlGameIdRef.current = null;
+      setIsInitialized(true);
+      return;
+    }
+
     // Wait for live results to load before trying to open from URL
     if (!hasLiveResults || isLoadingLiveResults) return;
 
@@ -166,7 +180,16 @@ export function GameDialogProvider({ children }: { children: ReactNode }) {
     }
 
     setIsInitialized(true);
-  }, [isHydrated, isInitialized, hasLiveResults, isLoadingLiveResults, urlState.gameId, urlState.tab, findGameByMatchupId, closeGame]);
+  }, [
+    isHydrated,
+    isInitialized,
+    hasLiveResults,
+    isLoadingLiveResults,
+    urlState.gameId,
+    urlState.tab,
+    findGameByMatchupId,
+    closeGame,
+  ]);
 
   // Handle browser back/forward navigation by watching for URL game ID changes
   useEffect(() => {
@@ -232,6 +255,7 @@ export function GameDialogProvider({ children }: { children: ReactNode }) {
    * Close the game dialog
    */
   const closeGameDialog = useCallback(() => {
+    prevUrlGameIdRef.current = null;
     setSelectedGame(null);
     setActiveTabState("stats");
     closeGame();

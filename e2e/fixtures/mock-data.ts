@@ -4,8 +4,146 @@ import type {
   LiveResults,
   MomentumData,
   PlayerLeaders,
+  SeasonSchedule,
   TeamGameStats,
 } from "../../src/types";
+
+const scheduleTeams = {
+  SEA: {
+    id: "SEA",
+    abbreviation: "SEA",
+    location: "Seattle",
+    name: "Seahawks",
+    displayName: "Seattle Seahawks",
+    logoUrl: "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/sea.png",
+    color: "#002a5c",
+    record: "1-1",
+  },
+  TEN: {
+    id: "TEN",
+    abbreviation: "TEN",
+    location: "Tennessee",
+    name: "Titans",
+    displayName: "Tennessee Titans",
+    logoUrl: "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/ten.png",
+    color: "#4495d2",
+    record: "1-1",
+  },
+};
+
+export const mockPreseasonSchedule: SeasonSchedule = {
+  phase: "preseason",
+  currentPhase: "preseason",
+  currentSeasonYear: 2026,
+  seasonYear: 2026,
+  availableSeasons: [2026, 2025],
+  phaseAvailability: {
+    preseason: true,
+    regular: true,
+    postseason: false,
+  },
+  week: 3,
+  weekLabel: "Preseason Week 2",
+  weeks: [
+    {
+      number: 2,
+      label: "Preseason Week 1",
+      startDate: "2026-08-13T07:00:00Z",
+      endDate: "2026-08-20T06:59:00Z",
+    },
+    {
+      number: 3,
+      label: "Preseason Week 2",
+      startDate: "2026-08-20T07:00:00Z",
+      endDate: "2026-08-27T06:59:00Z",
+    },
+    {
+      number: 4,
+      label: "Preseason Week 3",
+      startDate: "2026-08-27T07:00:00Z",
+      endDate: "2026-09-06T06:59:00Z",
+    },
+  ],
+  games: [
+    {
+      id: "401873297",
+      date: "2026-08-24T00:00:00Z",
+      venue: "Nissan Stadium",
+      broadcasts: ["FOX"],
+      homeTeam: scheduleTeams.TEN,
+      awayTeam: scheduleTeams.SEA,
+      homeScore: 3,
+      awayScore: 7,
+      winnerId: null,
+      isComplete: false,
+      isInProgress: true,
+      statusText: "8:02 - 1st",
+      quarter: 1,
+      timeRemaining: "8:02",
+      possession: "TEN",
+      isRedZone: true,
+    },
+  ],
+  fetchedAt: Date.now(),
+};
+
+export const mockRegularSchedule: SeasonSchedule = {
+  ...mockPreseasonSchedule,
+  phase: "regular",
+  week: 1,
+  weekLabel: "Week 1",
+  weeks: [
+    {
+      number: 1,
+      label: "Week 1",
+      startDate: "2026-09-06T07:00:00Z",
+      endDate: "2026-09-16T06:59:00Z",
+    },
+    {
+      number: 2,
+      label: "Week 2",
+      startDate: "2026-09-16T07:00:00Z",
+      endDate: "2026-09-23T06:59:00Z",
+    },
+  ],
+  games: [
+    {
+      ...mockPreseasonSchedule.games[0],
+      id: "401900001",
+      date: "2026-09-10T00:20:00Z",
+      homeScore: null,
+      awayScore: null,
+      isInProgress: false,
+      statusText: "Thu, 8:20 PM",
+      possession: null,
+      isRedZone: false,
+    },
+  ],
+};
+
+export const mockPostseasonSchedule: SeasonSchedule = {
+  ...mockRegularSchedule,
+  phase: "postseason",
+  currentPhase: "postseason",
+  currentSeasonYear: 2025,
+  seasonYear: 2025,
+  availableSeasons: [2025, 2024],
+  phaseAvailability: {
+    preseason: true,
+    regular: true,
+    postseason: true,
+  },
+  weekLabel: "Wild Card",
+  weeks: [
+    {
+      number: 1,
+      label: "Wild Card",
+      startDate: "2027-01-13T08:00:00Z",
+      endDate: "2027-01-20T07:59:00Z",
+    },
+  ],
+  games: [],
+};
 
 // Mock Wild Card results - all games complete
 export const mockWildCardResults: LiveResults = {

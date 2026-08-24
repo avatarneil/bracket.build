@@ -24,24 +24,23 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bracket.build"),
-  title: "bracket.build | NFL Playoff Predictions 2025-26",
+  title: "bracket.build | NFL Schedule & Playoff Predictions",
   description:
-    "Build your NFL playoff bracket and share your Super Bowl predictions with friends and family. An unofficial bracket builder for the NFL postseason.",
+    "Follow preseason and regular-season games, then build and share your NFL playoff predictions.",
   applicationName: "bracket.build",
   authors: [{ name: "bracket.build" }],
   keywords: ["NFL", "playoffs", "bracket", "Super Bowl", "predictions", "football", "2025", "2026"],
   openGraph: {
-    title: "bracket.build | NFL Playoff Predictions 2025-26",
-    description:
-      "Build your NFL playoff bracket and share your Super Bowl predictions with friends and family!",
+    title: "bracket.build | NFL Schedule & Playoff Predictions",
+    description: "Follow the NFL schedule, live scores, and playoff bracket in one place.",
     type: "website",
     siteName: "bracket.build",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "bracket.build | NFL Playoff Predictions 2025-26",
-    description: "Build your NFL playoff bracket and share your Super Bowl predictions!",
+    title: "bracket.build | NFL Schedule & Playoff Predictions",
+    description: "Follow the NFL schedule, live scores, and playoff bracket in one place.",
   },
   appleWebApp: {
     capable: true,

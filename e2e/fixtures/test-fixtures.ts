@@ -1,5 +1,10 @@
 import { test as base, expect } from "@playwright/test";
-import { mockGameBoxscore, mockWildCardResults, STORAGE_KEYS } from "./mock-data";
+import {
+  mockGameBoxscore,
+  mockPostseasonSchedule,
+  mockWildCardResults,
+  STORAGE_KEYS,
+} from "./mock-data";
 
 interface TestFixtures {
   // biome-ignore lint/suspicious/noConfusingVoidType: Playwright fixture pattern requires void for non-yielding fixtures
@@ -19,6 +24,14 @@ export const test = base.extend<TestFixtures>({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify(mockWildCardResults),
+      });
+    });
+
+    await page.route("**/api/schedule**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(mockPostseasonSchedule),
       });
     });
 

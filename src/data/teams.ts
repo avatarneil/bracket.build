@@ -3,6 +3,8 @@ import type { SeededTeam, Team } from "@/types";
 // ESPN CDN base URL for team logos
 const LOGO_BASE = "https://a.espncdn.com/i/teamlogos/nfl/500";
 
+export const PLAYOFF_SEASON_YEAR = 2025;
+
 export const NFL_TEAMS: Record<string, Team> = {
   // AFC Teams
   DEN: {

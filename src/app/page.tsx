@@ -1,34 +1,82 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { BracketControls } from "@/components/BracketControls";
 import { Bracket } from "@/components/bracket/Bracket";
 import { GameStatsDialog } from "@/components/dialogs/GameStatsDialog";
 import { WelcomeDialog } from "@/components/dialogs/WelcomeDialog";
 import { MobileActionBar } from "@/components/MobileActionBar";
 import { RoundLockControl } from "@/components/RoundLockControl";
+import { SeasonNavigation } from "@/components/SeasonNavigation";
+import { SeasonSelector } from "@/components/SeasonSelector";
 import { LiveGamesView } from "@/components/views/LiveGamesView";
+import { SeasonScheduleView } from "@/components/views/SeasonScheduleView";
 import { ViewToggle } from "@/components/views/ViewToggle";
 import { BracketProvider, useBracket } from "@/contexts/BracketContext";
 import { GameDialogProvider, useGameDialog } from "@/contexts/GameDialogContext";
 import { useView, ViewProvider } from "@/contexts/ViewContext";
+import { PLAYOFF_SEASON_YEAR } from "@/data/teams";
+import { useSeasonSchedule } from "@/hooks/useSeasonSchedule";
 import { getStoredUser } from "@/lib/storage";
+import { cn } from "@/lib/utils";
 
 function BracketApp() {
   const { refreshLiveResults, bracket } = useBracket();
   const { viewMode } = useView();
   const { selectedGame, activeTab, closeGameDialog, setActiveTab } = useGameDialog();
+  const {
+    schedule,
+    selectedPhase,
+    isLoading: isLoadingSchedule,
+    error: scheduleError,
+    retry: retrySchedule,
+    selectPhase,
+    selectSeason,
+    selectWeek,
+  } = useSeasonSchedule();
   const [showWelcome, setShowWelcome] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isWideScheduleLayout, setIsWideScheduleLayout] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
+  const welcomeCheckedRef = useRef(false);
+  const isPostseason = selectedPhase === "postseason";
+  const visibleSchedule = schedule?.phase === selectedPhase ? schedule : null;
+  const seasonLabel = visibleSchedule
+    ? `${visibleSchedule.seasonYear}–${String(visibleSchedule.seasonYear + 1).slice(-2)}`
+    : "Selected season";
+  const postseasonAvailable = visibleSchedule?.phaseAvailability.postseason ?? false;
+  const showBracket =
+    isPostseason && postseasonAvailable && visibleSchedule?.seasonYear === PLAYOFF_SEASON_YEAR;
 
   useEffect(() => {
     setIsHydrated(true);
-    const user = getStoredUser();
-    if (!user || !user.name) {
-      setShowWelcome(true);
-    }
   }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1280px)");
+    const updateLayout = () => setIsWideScheduleLayout(mediaQuery.matches);
+    updateLayout();
+    mediaQuery.addEventListener("change", updateLayout);
+    return () => mediaQuery.removeEventListener("change", updateLayout);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated || !showBracket || welcomeCheckedRef.current) return;
+    welcomeCheckedRef.current = true;
+    const user = getStoredUser();
+    if (!user?.name) setShowWelcome(true);
+  }, [isHydrated, showBracket]);
+
+  useEffect(() => {
+    if (!visibleSchedule) return;
+    const phaseLabel =
+      visibleSchedule.phase === "preseason"
+        ? "NFL Preseason"
+        : visibleSchedule.phase === "regular"
+          ? "NFL Regular Season"
+          : "NFL Playoffs";
+    document.title = `${phaseLabel} ${visibleSchedule.seasonYear} | bracket.build`;
+  }, [visibleSchedule]);
 
   // Global wheel handler to ensure vertical scrolling works in WebViews
   // Some WebViews (like ChatGPT Atlas) capture wheel events incorrectly
@@ -48,55 +96,124 @@ function BracketApp() {
 
   // Auto-fetch live results on initial load
   useEffect(() => {
-    if (isHydrated && !bracket.liveResults) {
+    if (isHydrated && showBracket && !bracket.liveResults) {
       refreshLiveResults();
     }
-  }, [isHydrated, bracket.liveResults, refreshLiveResults]);
+  }, [isHydrated, showBracket, bracket.liveResults, refreshLiveResults]);
 
   if (!isHydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
-        <div className="text-white">Loading...</div>
+        <div className="text-white">Loading…</div>
       </div>
     );
   }
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only z-[70] rounded-md bg-white px-4 py-2 font-semibold text-black focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+      >
+        Skip to content
+      </a>
       {/* Main content with bottom padding for mobile/tablet action bar */}
-      <main className="min-h-screen overflow-x-hidden bg-black px-3 pb-28 pt-4 sm:px-4 sm:py-8 md:px-6 md:pb-32 md:pt-6 lg:pb-8">
+      <main
+        id="main-content"
+        className={cn(
+          "min-h-screen overflow-x-hidden bg-black px-3 pt-4 sm:px-4 sm:py-8 md:px-6 md:pt-6 lg:pb-8",
+          showBracket && viewMode === "bracket" ? "pb-28 md:pb-32" : "pb-10 md:pb-12",
+        )}
+      >
         {/* Use inline-flex wrapper to let content determine its own width and center it */}
-        <div className="flex justify-center overflow-x-hidden">
-          <div className="inline-flex max-w-full flex-col items-center overflow-x-hidden">
+        <div
+          className={cn(
+            "flex w-full justify-center overflow-x-hidden",
+            !isPostseason &&
+              "xl:mx-auto xl:grid xl:max-w-[1380px] xl:grid-cols-[minmax(460px,620px)_minmax(520px,680px)] xl:items-start xl:gap-8 xl:overflow-visible",
+          )}
+        >
+          <div
+            data-testid={!isPostseason ? "schedule-sidebar" : undefined}
+            className={cn(
+              "max-w-full flex-col items-center overflow-x-hidden",
+              showBracket ? "inline-flex" : "flex w-full",
+              !isPostseason &&
+                "xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] xl:overflow-hidden xl:rounded-2xl xl:border xl:border-gray-800 xl:bg-gray-950 xl:px-5 xl:pb-5",
+            )}
+          >
             {/* Header - scales with viewport, larger on tablets */}
             <header className="mb-4 text-center sm:mb-6 md:mb-8">
-              <h1 className="font-mono bg-gradient-to-r from-red-500 via-white to-blue-500 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl md:text-5xl lg:text-5xl">
-                bracket.build
+              <h1 className="font-mono text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
+                bracket<span className="text-gray-500">.build</span>
               </h1>
               <p className="mt-1 text-sm text-gray-400 sm:mt-2 sm:text-lg md:text-xl">
-                NFL Playoff Predictions • 2025-26
+                {visibleSchedule
+                  ? `NFL ${visibleSchedule.seasonYear} · ${visibleSchedule.phase === "preseason" ? "Preseason" : visibleSchedule.phase === "regular" ? "Regular Season" : "Playoffs"}`
+                  : "NFL schedules and playoff predictions"}
               </p>
             </header>
 
-            {/* View Toggle */}
-            <ViewToggle className="mb-4 sm:mb-6" />
+            {visibleSchedule && (
+              <SeasonSelector
+                seasonYear={visibleSchedule.seasonYear}
+                availableSeasons={visibleSchedule.availableSeasons}
+                onSelect={selectSeason}
+              />
+            )}
+
+            {selectedPhase && visibleSchedule && (
+              <SeasonNavigation
+                selectedPhase={selectedPhase}
+                currentPhase={visibleSchedule.currentPhase}
+                phaseAvailability={visibleSchedule.phaseAvailability}
+                seasonLabel={seasonLabel}
+                onSelect={selectPhase}
+              />
+            )}
+
+            {showBracket && (
+              <p className="mt-4 text-sm font-medium text-gray-300">
+                {seasonLabel} playoff seedings are shown beside each team.
+              </p>
+            )}
+
+            {showBracket && <ViewToggle className="mb-4 mt-4 sm:mb-6" />}
 
             {/* Controls - only show in bracket view when not guest */}
-            {viewMode === "bracket" && !isGuestMode && (
+            {showBracket && viewMode === "bracket" && !isGuestMode && (
               <div className="mb-4 w-full sm:mb-6 md:mb-8">
                 <BracketControls onResetName={() => setShowWelcome(true)} />
               </div>
             )}
 
             {/* Live Results Control - only in bracket view */}
-            {viewMode === "bracket" && (
+            {showBracket && viewMode === "bracket" && (
               <div className="mb-4 w-full max-w-2xl sm:mb-6">
                 <RoundLockControl />
               </div>
             )}
 
             {/* Main Content */}
-            {viewMode === "bracket" ? (
+            {!isPostseason ? (
+              <div className="mt-5 flex w-full justify-center sm:mt-6 xl:min-h-0 xl:flex-1 xl:items-stretch">
+                <SeasonScheduleView
+                  schedule={visibleSchedule}
+                  isLoading={isLoadingSchedule}
+                  error={scheduleError}
+                  onRetry={retrySchedule}
+                  onSelectWeek={selectWeek}
+                />
+              </div>
+            ) : !postseasonAvailable ? (
+              <div className="mt-6 flex min-h-64 w-full max-w-2xl flex-col items-center justify-center rounded-xl border border-gray-800 px-6 text-center">
+                <h2 className="text-lg font-semibold text-white">Postseason schedule not posted</h2>
+                <p className="mt-2 max-w-md text-sm text-gray-400">
+                  {seasonLabel} playoff picks will become available after the NFL announces the
+                  postseason matchups.
+                </p>
+              </div>
+            ) : showBracket && viewMode === "bracket" ? (
               <>
                 {/* Bracket */}
                 <div className="pb-4 sm:pb-8 md:pb-10">
@@ -109,10 +226,53 @@ function BracketApp() {
                   <p>Your progress is automatically saved.</p>
                 </div>
               </>
-            ) : (
+            ) : showBracket ? (
               <LiveGamesView />
+            ) : (
+              <div className="mt-6 flex w-full justify-center">
+                <SeasonScheduleView
+                  schedule={visibleSchedule}
+                  isLoading={isLoadingSchedule}
+                  error={scheduleError}
+                  onRetry={retrySchedule}
+                  onSelectWeek={selectWeek}
+                />
+              </div>
             )}
           </div>
+
+          {!isPostseason && (
+            <aside
+              data-testid="live-details-column"
+              aria-label="Live game details"
+              className="hidden xl:sticky xl:top-6 xl:block"
+            >
+              {selectedGame ? (
+                <GameStatsDialog
+                  open
+                  variant="panel"
+                  onOpenChange={(open) => {
+                    if (!open) closeGameDialog();
+                  }}
+                  matchup={selectedGame.matchup}
+                  liveResult={selectedGame.liveResult}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                />
+              ) : (
+                <div className="flex min-h-[calc(100vh-3rem)] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-800 bg-gray-950/60 px-8 text-center">
+                  <div className="text-5xl" aria-hidden="true">
+                    🏈
+                  </div>
+                  <h2 className="mt-5 text-xl font-semibold text-white">Live game details</h2>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-gray-400">
+                    Select a live game from the schedule to follow its score, stats, leaders, plays,
+                    and momentum here.
+                  </p>
+                </div>
+              )}
+            </aside>
+          )}
         </div>
 
         {/* Welcome Dialog */}
@@ -126,7 +286,7 @@ function BracketApp() {
         />
 
         {/* Game Stats Dialog - centralized at page level */}
-        {selectedGame && (
+        {selectedGame && (isPostseason || !isWideScheduleLayout) && (
           <GameStatsDialog
             open={!!selectedGame}
             onOpenChange={(open) => {
@@ -141,7 +301,7 @@ function BracketApp() {
       </main>
 
       {/* Mobile/Tablet Action Bar - fixed to bottom on mobile and tablet */}
-      <MobileActionBar />
+      {showBracket && <MobileActionBar />}
     </>
   );
 }
@@ -163,7 +323,7 @@ export default function Home() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-black">
-          <div className="text-white">Loading...</div>
+          <div className="text-white">Loading…</div>
         </div>
       }
     >
