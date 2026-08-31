@@ -115,9 +115,19 @@ test.describe("Season schedules", () => {
     await page
       .getByRole("button", { name: "View live updates for Seattle Seahawks at Tennessee Titans" })
       .click();
-    await expect(page.getByTestId("game-stats-dialog")).toBeVisible();
+    const dialog = page.getByTestId("game-stats-dialog");
+    const field = dialog.getByTestId("live-field-position");
+    await expect(dialog).toBeVisible();
+    await expect(field).toBeVisible();
     await expect(page).toHaveURL(/game=schedule-401873297/);
     await expect(page.getByRole("tab", { name: "Stats" })).toBeVisible();
+
+    const dialogBox = await dialog.boundingBox();
+    const fieldBox = await field.boundingBox();
+    expect(dialogBox).not.toBeNull();
+    expect(fieldBox).not.toBeNull();
+    expect(fieldBox!.height).toBeGreaterThan(dialogBox!.height * 0.28);
+    expect(fieldBox!.height).toBeLessThan(dialogBox!.height * 0.4);
   });
 
   test("uses a left schedule rail with a multi-game dashboard on wide screens", async ({
