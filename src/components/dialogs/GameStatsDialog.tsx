@@ -100,21 +100,28 @@ export function GameStatsDialog({
   const homeTeam = matchup.homeTeam;
   const awayTeam = matchup.awayTeam;
 
-  // Map scores from liveResult (handles ESPN home/away vs bracket home/away)
-  const homeScore =
-    liveResult?.homeTeamId === matchup.homeTeam?.id ? liveResult?.homeScore : liveResult?.awayScore;
-  const awayScore =
-    liveResult?.awayTeamId === matchup.awayTeam?.id ? liveResult?.awayScore : liveResult?.homeScore;
-  const latestHomeScore = stats
-    ? stats.homeTeamId === matchup.homeTeam?.id
-      ? stats.homeScore
-      : stats.awayScore
-    : homeScore;
-  const latestAwayScore = stats
-    ? stats.awayTeamId === matchup.awayTeam?.id
-      ? stats.awayScore
-      : stats.homeScore
-    : awayScore;
+  // Only use a score when its team ID matches; an unknown ID is not the opponent.
+  const scoreForTeam = (
+    source: {
+      homeTeamId: string;
+      awayTeamId: string;
+      homeScore: number | null;
+      awayScore: number | null;
+    } | null,
+    teamId: string | undefined,
+  ) => {
+    if (!source || !teamId) return undefined;
+    if (source.homeTeamId === teamId) return source.homeScore;
+    if (source.awayTeamId === teamId) return source.awayScore;
+    return undefined;
+  };
+  const latestHomeScore =
+    scoreForTeam(stats, homeTeam?.id) ?? scoreForTeam(liveResult, homeTeam?.id);
+  const latestAwayScore =
+    scoreForTeam(stats, awayTeam?.id) ?? scoreForTeam(liveResult, awayTeam?.id);
+  const statsAreReversed = stats?.homeTeamId === awayTeam?.id && stats?.awayTeamId === homeTeam?.id;
+  const espnHomeTeam = statsAreReversed ? awayTeam : homeTeam;
+  const espnAwayTeam = statsAreReversed ? homeTeam : awayTeam;
   const isLive = stats?.isInProgress ?? liveResult?.isInProgress ?? false;
   const isComplete = stats?.isComplete ?? liveResult?.isComplete ?? false;
   const showFieldPosition = Boolean(
@@ -362,16 +369,16 @@ export function GameStatsDialog({
           <>
             {activeTab === "stats" && (
               <TeamStatsComparison
-                awayStats={stats.teamStats.away}
-                homeStats={stats.teamStats.home}
+                awayStats={statsAreReversed ? stats.teamStats.home : stats.teamStats.away}
+                homeStats={statsAreReversed ? stats.teamStats.away : stats.teamStats.home}
                 awayColor={awayTeam.primaryColor}
                 homeColor={homeTeam.primaryColor}
               />
             )}
             {activeTab === "leaders" && (
               <PlayerLeadersCard
-                awayLeaders={stats.playerLeaders.away}
-                homeLeaders={stats.playerLeaders.home}
+                awayLeaders={statsAreReversed ? stats.playerLeaders.home : stats.playerLeaders.away}
+                homeLeaders={statsAreReversed ? stats.playerLeaders.away : stats.playerLeaders.home}
                 awayTeamName={awayTeam.name}
                 homeTeamName={homeTeam.name}
                 awayColor={awayTeam.primaryColor}
@@ -384,25 +391,25 @@ export function GameStatsDialog({
                   drives={stats.drives}
                   homeTeamId={stats.homeTeamId}
                   awayTeamId={stats.awayTeamId}
-                  homeColor={homeTeam.primaryColor}
-                  awayColor={awayTeam.primaryColor}
+                  homeColor={espnHomeTeam!.primaryColor}
+                  awayColor={espnAwayTeam!.primaryColor}
                 />
               ) : (
                 <ScoringPlays
                   plays={stats.scoringPlays}
                   homeTeamId={stats.homeTeamId}
                   awayTeamId={stats.awayTeamId}
-                  homeColor={homeTeam.primaryColor}
-                  awayColor={awayTeam.primaryColor}
+                  homeColor={espnHomeTeam!.primaryColor}
+                  awayColor={espnAwayTeam!.primaryColor}
                 />
               ))}
             {activeTab === "momentum" && (
               <MomentumTab
                 momentum={stats.momentum}
-                homeColor={homeTeam.primaryColor}
-                awayColor={awayTeam.primaryColor}
-                homeTeamName={homeTeam.name}
-                awayTeamName={awayTeam.name}
+                homeColor={espnHomeTeam!.primaryColor}
+                awayColor={espnAwayTeam!.primaryColor}
+                homeTeamName={espnHomeTeam!.name}
+                awayTeamName={espnAwayTeam!.name}
               />
             )}
           </>
