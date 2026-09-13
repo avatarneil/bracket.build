@@ -184,6 +184,22 @@ test.describe("Season schedules", () => {
     await expect(page.getByRole("tab", { name: "Stats" })).toBeVisible();
   });
 
+  test("scrolls the page over expanded desktop momentum stats", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    await page.getByTestId("live-dashboard-game-401873297").click();
+    const panel = page.getByTestId("game-stats-panel");
+    await panel.getByRole("tab", { name: "Momentum" }).click();
+    const content = panel.getByRole("tabpanel");
+    await expect(content.getByText("Win Probability Over Time")).toBeVisible();
+    await content.hover();
+    const before = await page.evaluate(() => window.scrollY);
+    await page.mouse.wheel(0, 500);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before);
+    await page.mouse.wheel(0, -500);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(before);
+  });
+
   test("keeps the field visible between drives on wide screens", async ({ page }) => {
     await page.unroute("**/api/game-stats/**");
     await page.route("**/api/game-stats/**", async (route) => {
