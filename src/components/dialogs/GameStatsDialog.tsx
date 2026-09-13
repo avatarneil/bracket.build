@@ -192,15 +192,17 @@ export function GameStatsDialog({
     <div className={cn("flex min-h-0 flex-col", variant === "dialog" && "h-full")}>
       {/* Custom header with team info */}
       <div className="border-b border-gray-700 px-4 py-4 md:px-6">
-        {/* Close button */}
-        <button
-          type="button"
-          onClick={() => onOpenChange(false)}
-          aria-label="Close"
-          className="absolute right-3 top-3 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white active:scale-95"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        {/* Reserve a row so the close target never covers either team. */}
+        <div className="mb-2 flex justify-end">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            aria-label="Close"
+            className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
 
         {/* Team matchup header */}
         <div className="flex items-center justify-between gap-2">
