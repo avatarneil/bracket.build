@@ -45,6 +45,9 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -67,17 +70,24 @@ jobs:
       - name: Build application
         run: bun run build
 
+      # Turbopack can emit filenames containing colons, which artifact uploads reject.
+      - name: Package build artifacts
+        run: tar --exclude='.next/cache' -czf build-output.tar.gz .next
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-output
-          path: .next
-          include-hidden-files: true
+          path: build-output.tar.gz
+          compression-level: 0
           retention-days: 1
 
   e2e:
     name: E2E Tests (${{ matrix.browser }}, shard ${{ matrix.shard }})
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
     needs: build
     strategy:
       fail-fast: false
@@ -98,7 +108,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-output
-          path: .next
+
+      - name: Extract build artifacts
+        run: tar -xzf build-output.tar.gz
 
       - name: Install Playwright browsers
         run: bunx playwright install --with-deps ${{ matrix.browser }}

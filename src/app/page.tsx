@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
+import { AccountControls } from "@/components/AccountControls";
 import { BracketControls } from "@/components/BracketControls";
 import { Bracket } from "@/components/bracket/Bracket";
 import { GameStatsDialog } from "@/components/dialogs/GameStatsDialog";
@@ -138,6 +139,7 @@ function BracketApp() {
                   ? `NFL ${visibleSchedule.seasonYear} · ${visibleSchedule.phase === "preseason" ? "Preseason" : visibleSchedule.phase === "regular" ? "Regular Season" : "Playoffs"}`
                   : "NFL schedules and playoff predictions"}
               </p>
+              <AccountControls />
             </header>
 
             {visibleSchedule && (

@@ -15,6 +15,7 @@ A season-aware NFL schedule and playoff bracket builder. Follow preseason and re
 - 📱 Mobile-first responsive design
 - 🖼️ Export bracket as shareable image
 - 🎨 Dark mode with team colors
+- 👤 Clerk sign-in, sign-up, and profile controls
 
 ## Getting Started
 
@@ -24,6 +25,18 @@ First, install dependencies:
 bun install
 ```
 
+Link the Clerk development application and pull its local configuration:
+
+```bash
+clerk auth login
+clerk init --app app_3JIG7yUoXrPnpfQD5YLkhamcC00
+clerk doctor
+```
+
+Select the personal Clerk workspace containing `bracket.build` when authorizing the CLI.
+Clerk writes development keys to the ignored `.env.local` file. Never commit secret keys.
+For an already configured checkout, use `clerk env pull` after linking instead of repeating initialization.
+
 Then run the development server:
 
 ```bash
@@ -31,6 +44,14 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+Sign in and sign up from the header, or continue browsing as a guest. Accounts currently
+provide identity only; brackets still save to this browser's localStorage and do not sync
+between devices or become private to a signed-in account.
+
+For CI and deployment, configure `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
+`CLERK_SECRET_KEY` in the environment. Use development keys for local testing and configure
+a Clerk production instance and its production keys before deploying authentication publicly.
 
 ## Tech Stack
 

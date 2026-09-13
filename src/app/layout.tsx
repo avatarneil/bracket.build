@@ -1,3 +1,5 @@
+import { ClerkProvider } from "@clerk/nextjs";
+import { shadcn } from "@clerk/ui/themes";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
@@ -60,11 +62,30 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
-        {/* Position toaster at top on mobile to avoid fixed bottom bar, bottom-right on desktop */}
-        <Toaster richColors position="top-center" />
-        <Analytics />
-        <SpeedInsights />
+        <ClerkProvider
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+          signInFallbackRedirectUrl="/"
+          signUpFallbackRedirectUrl="/"
+          appearance={{
+            theme: shadcn,
+            elements: {
+              formFieldInput: { minHeight: "44px", fontSize: "16px" },
+              formButtonPrimary: { minHeight: "44px", touchAction: "manipulation" },
+              socialButtonsIconButton: {
+                minHeight: "44px",
+                minWidth: "44px",
+                touchAction: "manipulation",
+              },
+            },
+          }}
+        >
+          {children}
+          {/* Position toaster at top on mobile to avoid fixed bottom bar, bottom-right on desktop */}
+          <Toaster richColors position="top-center" />
+          <Analytics />
+          <SpeedInsights />
+        </ClerkProvider>
       </body>
     </html>
   );
