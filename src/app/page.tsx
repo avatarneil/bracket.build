@@ -106,7 +106,7 @@ function BracketApp() {
       <main
         id="main-content"
         className={cn(
-          "min-h-screen overflow-x-hidden bg-black px-3 pt-4 sm:px-4 sm:py-8 md:px-6 md:pt-6 lg:pb-8",
+          "min-h-screen overflow-x-clip bg-black px-3 pt-4 sm:px-4 sm:py-8 md:px-6 md:pt-6 lg:pb-8",
           showBracket && viewMode === "bracket" ? "pb-28 md:pb-32" : "pb-10 md:pb-12",
           !isPostseason && "xl:py-6",
         )}

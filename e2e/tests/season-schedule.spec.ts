@@ -192,10 +192,12 @@ test.describe("Season schedules", () => {
     await panel.getByRole("tab", { name: "Momentum" }).click();
     const content = panel.getByRole("tabpanel");
     await expect(content.getByText("Win Probability Over Time")).toBeVisible();
+    const sidebar = page.getByTestId("schedule-sidebar");
     await content.hover();
     const before = await page.evaluate(() => window.scrollY);
     await page.mouse.wheel(0, 500);
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before);
+    await expect.poll(async () => (await sidebar.boundingBox())!.y).toBeGreaterThanOrEqual(23);
     await page.mouse.wheel(0, -500);
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(before);
   });
