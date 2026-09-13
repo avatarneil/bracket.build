@@ -1,47 +1,8 @@
+import { mapTeamAbbreviation } from "@/lib/espn-team-id";
 import type { LiveMatchupResult, LiveResults, RoundName } from "@/types";
 
 // ESPN API endpoint for NFL playoff scoreboard
 const ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
-
-// Map ESPN team abbreviations to our team IDs
-// ESPN uses mostly the same abbreviations, but some differ
-const ESPN_TO_TEAM_ID: Record<string, string> = {
-  DEN: "DEN",
-  NE: "NE",
-  JAX: "JAX",
-  PIT: "PIT",
-  HOU: "HOU",
-  BUF: "BUF",
-  LAC: "LAC",
-  SEA: "SEA",
-  CHI: "CHI",
-  PHI: "PHI",
-  CAR: "CAR",
-  LA: "LAR", // ESPN uses "LA" for Rams
-  LAR: "LAR",
-  SF: "SF",
-  GB: "GB",
-  // Additional NFL teams that might appear
-  KC: "KC",
-  BAL: "BAL",
-  CIN: "CIN",
-  MIA: "MIA",
-  CLE: "CLE",
-  LV: "LV",
-  TEN: "TEN",
-  IND: "IND",
-  NYJ: "NYJ",
-  DAL: "DAL",
-  DET: "DET",
-  MIN: "MIN",
-  TB: "TB",
-  NO: "NO",
-  ATL: "ATL",
-  ARI: "ARI",
-  WAS: "WAS",
-  WSH: "WAS", // ESPN uses WSH for Washington
-  NYG: "NYG",
-};
 
 // Map ESPN numeric team IDs to abbreviations
 // ESPN's situation.lastPlay.team.id uses numeric IDs
@@ -164,10 +125,6 @@ interface ESPNScoreboardResponse {
   week?: {
     number: number;
   };
-}
-
-function mapTeamAbbreviation(espnAbbr: string): string {
-  return ESPN_TO_TEAM_ID[espnAbbr.toUpperCase()] || espnAbbr.toUpperCase();
 }
 
 function determineConference(homeTeamId: string, awayTeamId: string): "AFC" | "NFC" | "superBowl" {

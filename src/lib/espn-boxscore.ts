@@ -1,3 +1,4 @@
+import { mapTeamAbbreviation } from "@/lib/espn-team-id";
 import type {
   Drive,
   GameBoxscore,
@@ -13,48 +14,6 @@ import type {
 
 // ESPN Summary API endpoint
 const ESPN_SUMMARY_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary";
-
-// Map ESPN team abbreviations to our team IDs
-const ESPN_TO_TEAM_ID: Record<string, string> = {
-  DEN: "DEN",
-  NE: "NE",
-  JAX: "JAX",
-  PIT: "PIT",
-  HOU: "HOU",
-  BUF: "BUF",
-  LAC: "LAC",
-  SEA: "SEA",
-  CHI: "CHI",
-  PHI: "PHI",
-  CAR: "CAR",
-  LA: "LAR",
-  LAR: "LAR",
-  SF: "SF",
-  GB: "GB",
-  KC: "KC",
-  BAL: "BAL",
-  CIN: "CIN",
-  MIA: "MIA",
-  CLE: "CLE",
-  LV: "LV",
-  TEN: "TEN",
-  IND: "IND",
-  NYJ: "NYJ",
-  DAL: "DAL",
-  DET: "DET",
-  MIN: "MIN",
-  TB: "TB",
-  NO: "NO",
-  ATL: "ATL",
-  ARI: "ARI",
-  WAS: "WAS",
-  WSH: "WAS",
-  NYG: "NYG",
-};
-
-function mapTeamAbbreviation(espnAbbr: string): string {
-  return ESPN_TO_TEAM_ID[espnAbbr.toUpperCase()] || espnAbbr.toUpperCase();
-}
 
 // ESPN API response types for summary endpoint
 interface ESPNSummaryResponse {
@@ -582,7 +541,10 @@ function parseWinProbability(
     .sort((a, b) => a.secondsElapsed - b.secondsElapsed);
 }
 
-function identifyKeyMoments(winProbPoints: WinProbabilityPoint[], swingThreshold = 10): KeyMoment[] {
+function identifyKeyMoments(
+  winProbPoints: WinProbabilityPoint[],
+  swingThreshold = 10,
+): KeyMoment[] {
   if (winProbPoints.length < 2) return [];
 
   const keyMoments: KeyMoment[] = [];
