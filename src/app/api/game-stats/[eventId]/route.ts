@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { fetchGameBoxscore } from "@/lib/espn-boxscore";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 30; // Cache for 30 seconds
+export const revalidate = 5;
 
 export async function GET(_request: Request, { params }: { params: Promise<{ eventId: string }> }) {
   try {
@@ -16,7 +16,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ eve
 
     return NextResponse.json(boxscore, {
       headers: {
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+        "Cache-Control": "public, max-age=0, s-maxage=5, must-revalidate",
       },
     });
   } catch (error) {

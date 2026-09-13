@@ -68,11 +68,20 @@ export function useGameStats(
     };
   }, [fetchStats]);
 
+  const isComplete = stats?.isComplete ?? false;
+  const isLive = stats?.isInProgress ?? true;
   useEffect(() => {
-    if (!eventId || !isOpen || !autoRefresh || (stats && !stats.isInProgress)) return;
-    const interval = setInterval(fetchStats, 30000);
-    return () => clearInterval(interval);
-  }, [eventId, isOpen, autoRefresh, stats, fetchStats]);
+    if (!eventId || !isOpen || !autoRefresh || isComplete) return;
+    const refreshIfVisible = () => {
+      if (document.visibilityState === "visible") void fetchStats();
+    };
+    const interval = setInterval(refreshIfVisible, isLive ? 10_000 : 60_000);
+    document.addEventListener("visibilitychange", refreshIfVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", refreshIfVisible);
+    };
+  }, [eventId, isOpen, autoRefresh, isComplete, isLive, fetchStats]);
 
   useEffect(() => {
     if (!isOpen) {

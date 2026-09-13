@@ -594,7 +594,7 @@ function parseMomentumData(
 }
 
 export async function fetchGameBoxscore(eventId: string): Promise<GameBoxscore> {
-  const response = await fetch(`${ESPN_SUMMARY_URL}?event=${eventId}`);
+  const response = await fetch(`${ESPN_SUMMARY_URL}?event=${eventId}`, { cache: "no-store" });
 
   if (!response.ok) {
     throw new Error(`ESPN API error: ${response.status}`);

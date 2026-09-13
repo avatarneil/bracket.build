@@ -59,11 +59,18 @@ export function useSeasonSchedule() {
     };
   }, [loadSchedule]);
 
+  const hasLiveGames = schedule?.games.some((game) => game.isInProgress) ?? false;
   useEffect(() => {
-    if (!schedule?.games.some((game) => game.isInProgress)) return;
-    const interval = window.setInterval(loadSchedule, 30_000);
-    return () => window.clearInterval(interval);
-  }, [loadSchedule, schedule]);
+    const refreshIfVisible = () => {
+      if (document.visibilityState === "visible") void loadSchedule();
+    };
+    const interval = window.setInterval(refreshIfVisible, hasLiveGames ? 10_000 : 60_000);
+    document.addEventListener("visibilitychange", refreshIfVisible);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", refreshIfVisible);
+    };
+  }, [loadSchedule, hasLiveGames]);
 
   const updateSelection = useCallback(
     (phase: SeasonPhase, seasonYear: number, week?: number) => {
