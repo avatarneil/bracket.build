@@ -1,6 +1,8 @@
 # Gitops
 
-- MUST: Use graphite/gt, and prefer stacks for changes. Structure all plans & code changes around this.
+- MUST: Use GitHub native stacked pull requests with the official `gh stack` extension. Use ordinary `git` commits; do not use Graphite or `gt`.
+- SHOULD: Split dependent changes into small layers using `gh stack init`, `gh stack add`, and `gh stack submit`. Use `gh stack rebase` / `gh stack sync` to keep layers current and `gh stack merge` for authorized merges.
+- MUST: Validate each layer and inspect the complete stack before merging. Keep stack guidance aligned with [GitHub's documentation](https://docs.github.com/en/pull-requests/how-tos/stacked-pull-requests).
 
 # Concise rules for building accessible, fast, delightful UIs. Use MUST/SHOULD/NEVER to guide decisions.
 

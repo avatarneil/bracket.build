@@ -61,6 +61,27 @@ a Clerk production instance and its production keys before deploying authenticat
 - [Radix UI](https://www.radix-ui.com/) primitives
 - [html-to-image](https://github.com/bubkoo/html-to-image) for bracket export
 
+## Account storage
+
+Account brackets use Postgres, Drizzle migrations, and Clerk user IDs. Set `DATABASE_URL`
+to a pooled connection for the app and `DATABASE_URL_UNPOOLED` to a direct connection
+for migrations. Keep both in your environment manager; never commit connection strings.
+
+```bash
+bun run db:migrate
+bun run test:unit
+```
+
+Test schema changes on an isolated Neon development branch before applying them to production.
+CI runs migrations and ownership/conflict/sharing tests against an ephemeral Postgres service.
+Local storage integration tests run when `TEST_DATABASE_URL` points to a migrated test database.
+
+## Contributing
+
+Use GitHub native stacks via the official `gh stack` extension and ordinary Git commits.
+Start with `gh stack init`, add dependent layers with `gh stack add`, and publish with
+`gh stack submit`. See [GitHub's stacked PR guide](https://docs.github.com/en/pull-requests/how-tos/stacked-pull-requests).
+
 ## License
 
 Licensed under the Apache License 2.0. See [LICENSE](./LICENSE) for details.
