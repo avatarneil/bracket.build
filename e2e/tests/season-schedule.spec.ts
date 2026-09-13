@@ -203,6 +203,37 @@ test.describe("Season schedules", () => {
     await expect(page.getByText(/field position will update on the next drive/i)).toBeVisible();
   });
 
+  test("scrolls the desktop game list with the wheel without moving the page", async ({ page }) => {
+    await page.route("**/api/schedule**", (route) =>
+      route.fulfill({
+        json: {
+          ...mockPreseasonSchedule,
+          games: Array.from({ length: 16 }, (_, index) => ({
+            ...mockPreseasonSchedule.games[0],
+            id: String(401873297 + index),
+            isInProgress: index === 0,
+          })),
+        },
+      }),
+    );
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    const list = page.getByTestId("season-schedule").getByRole("list");
+    await expect(list).toBeVisible();
+    await expect
+      .poll(() => list.evaluate((element) => element.scrollHeight > element.clientHeight))
+      .toBe(true);
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.scrollHeight))
+      .toBeLessThanOrEqual(900);
+    await list.hover();
+    await page.mouse.wheel(0, 450);
+    await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    await page.mouse.wheel(0, -450);
+    await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBe(0);
+  });
+
   test("does not show bracket actions outside the postseason", async ({ page }) => {
     await page.goto("/");
 
