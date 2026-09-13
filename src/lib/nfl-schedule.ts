@@ -163,7 +163,7 @@ function parseGame(event: ESPNEvent): ScheduleGame | null {
 
 async function fetchScoreboard(params?: URLSearchParams): Promise<ESPNScoreboardResponse> {
   const url = params?.size ? `${ESPN_SCOREBOARD_URL}?${params.toString()}` : ESPN_SCOREBOARD_URL;
-  const response = await fetch(url, { next: { revalidate: 30 } });
+  const response = await fetch(url, { cache: "no-store" });
 
   if (!response.ok) {
     throw new Error(`ESPN API error: ${response.status}`);
