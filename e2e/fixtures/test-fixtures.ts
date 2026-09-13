@@ -49,7 +49,10 @@ export const test = base.extend<TestFixtures>({
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(mockGameBoxscore),
+        body: JSON.stringify({
+          ...mockGameBoxscore,
+          eventId: route.request().url().split("/").pop(),
+        }),
       });
     });
 

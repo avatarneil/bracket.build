@@ -190,7 +190,7 @@ test.describe("Season schedules", () => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ ...mockGameBoxscore, fieldPosition: null }),
+        body: JSON.stringify({ ...mockGameBoxscore, eventId: "401873297", fieldPosition: null }),
       });
     });
     await page.setViewportSize({ width: 1440, height: 900 });
