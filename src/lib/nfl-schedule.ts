@@ -1,3 +1,4 @@
+import { mapTeamAbbreviation } from "@/lib/espn-team-id";
 import type {
   ScheduleGame,
   ScheduleTeam,
@@ -100,7 +101,7 @@ function parseTeam(competitor: ESPNCompetitor): ScheduleTeam {
   const overallRecord = competitor.records?.find((record) => record.name === "overall");
 
   return {
-    id: team.abbreviation.toUpperCase(),
+    id: mapTeamAbbreviation(team.abbreviation),
     abbreviation: team.abbreviation.toUpperCase(),
     location: team.location,
     name: team.name,
@@ -140,7 +141,11 @@ function parseGame(event: ESPNEvent): ScheduleGame | null {
     awayTeam: parseTeam(away),
     homeScore: parseScore(home.score),
     awayScore: parseScore(away.score),
-    winnerId: home.winner ? home.team.abbreviation : away.winner ? away.team.abbreviation : null,
+    winnerId: home.winner
+      ? mapTeamAbbreviation(home.team.abbreviation)
+      : away.winner
+        ? mapTeamAbbreviation(away.team.abbreviation)
+        : null,
     isComplete,
     isInProgress,
     statusText:
@@ -149,7 +154,9 @@ function parseGame(event: ESPNEvent): ScheduleGame | null {
       (isComplete ? "Final" : isInProgress ? "Live" : "Scheduled"),
     quarter: isInProgress ? competition.status.period : null,
     timeRemaining: isInProgress ? competition.status.displayClock : null,
-    possession: possessionCompetitor?.team.abbreviation.toUpperCase() ?? null,
+    possession: possessionCompetitor
+      ? mapTeamAbbreviation(possessionCompetitor.team.abbreviation)
+      : null,
     isRedZone: competition.situation?.isRedZone ?? false,
   };
 }
