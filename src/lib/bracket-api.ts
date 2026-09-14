@@ -11,6 +11,9 @@ export async function withAccount(request: Request, action: (ownerId: string) =>
   try {
     const { userId } = await auth();
     if (!userId) return json({ error: "Sign in to access your saved brackets." }, 401);
+    const expectedOwner = request.headers.get("x-bracket-owner");
+    if (expectedOwner && expectedOwner !== userId)
+      return json({ error: "Your account changed. Reload before continuing." }, 401);
     if (request.method !== "GET") {
       const origin = request.headers.get("origin");
       if (origin && origin !== new URL(request.url).origin)

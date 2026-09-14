@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
+
 import {
   createContext,
   type ReactNode,
@@ -61,9 +63,27 @@ function getMatchupRound(matchupId: string): RoundName | null {
   return null;
 }
 
-export function BracketProvider({ children }: { children: ReactNode }) {
-  const storedUser = getStoredUser();
-  const storedBracket = getCurrentBracket();
+type ProviderProps = { children: ReactNode; initialBracket?: BracketState; persist?: boolean };
+export function BracketProvider(props: ProviderProps) {
+  const { userId, isLoaded } = useAuth();
+  return (
+    <BracketProviderState
+      key={isLoaded ? (userId ?? "guest") : "loading"}
+      {...props}
+      persist={isLoaded && props.persist !== false}
+      ownerId={userId ?? undefined}
+    />
+  );
+}
+
+function BracketProviderState({
+  children,
+  initialBracket,
+  persist,
+  ownerId,
+}: ProviderProps & { ownerId?: string }) {
+  const storedUser = ownerId ? null : getStoredUser();
+  const storedBracket = initialBracket ?? (persist ? getCurrentBracket(ownerId) : null);
 
   // Migrate old brackets that don't have lockedRounds
   const migratedBracket = storedBracket
@@ -86,10 +106,10 @@ export function BracketProvider({ children }: { children: ReactNode }) {
 
   // Auto-save to localStorage on changes
   useEffect(() => {
-    if (bracket.userName) {
-      saveCurrentBracket(bracket);
+    if (persist && bracket.userName) {
+      saveCurrentBracket(bracket, ownerId);
     }
-  }, [bracket]);
+  }, [bracket, persist, ownerId]);
 
   // Track if we have live games for SSE subscription
   const hasLiveGames = hasInProgressGames(bracket.liveResults);

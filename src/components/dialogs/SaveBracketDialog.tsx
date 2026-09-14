@@ -1,6 +1,9 @@
 "use client";
 
-import { Save } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
+import { accountRequest } from "@/lib/account-client";
+import { PLAYOFF_SEASON_YEAR } from "@/data/teams";
+import { Loader2, Save } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -24,12 +27,13 @@ interface SaveBracketDialogProps {
 }
 
 export function SaveBracketDialog({ open, onOpenChange }: SaveBracketDialogProps) {
+  const { userId } = useAuth();
   const { bracket, setBracketName, setSubtitle } = useBracket();
   const [name, setName] = useState(bracket.name);
   const [subtitle, setSubtitleValue] = useState(bracket.subtitle || "");
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
     try {
       const trimmedName = name.trim();
@@ -46,7 +50,17 @@ export function SaveBracketDialog({ open, onOpenChange }: SaveBracketDialogProps
 
       setBracketName(trimmedName);
       setSubtitle(trimmedSubtitle);
-      saveBracket(bracketToSave);
+      if (userId) {
+        await accountRequest(
+          "/api/brackets",
+          "POST",
+          { seasonYear: PLAYOFF_SEASON_YEAR, state: bracketToSave },
+          undefined,
+          userId,
+        );
+      } else {
+        saveBracket(bracketToSave);
+      }
       toast.success("Bracket saved!", {
         description: trimmedName
           ? `"${trimmedName}" has been saved.`
@@ -54,7 +68,7 @@ export function SaveBracketDialog({ open, onOpenChange }: SaveBracketDialogProps
       });
       onOpenChange(false);
     } catch (error) {
-      toast.error("Failed to save bracket");
+      toast.error(error instanceof Error ? error.message : "Failed to save bracket");
     } finally {
       setIsSaving(false);
     }
@@ -69,8 +83,9 @@ export function SaveBracketDialog({ open, onOpenChange }: SaveBracketDialogProps
             Save Bracket
           </DialogTitle>
           <DialogDescription className="text-gray-400 md:text-base">
-            Save your current bracket to access it later. You can save multiple versions with
-            different names.
+            {userId
+              ? "Save a private copy to your account and access it on any device."
+              : "Save a copy in this browser. Sign in to save brackets across devices."}
           </DialogDescription>
         </DialogHeader>
 
@@ -131,7 +146,13 @@ export function SaveBracketDialog({ open, onOpenChange }: SaveBracketDialogProps
             disabled={isSaving}
             className="bg-gradient-to-r from-red-600 to-blue-600 hover:from-red-700 hover:to-blue-700 md:h-11 md:px-6 md:text-base"
           >
-            {isSaving ? "Saving..." : "Save Bracket"}
+            {isSaving && (
+              <Loader2
+                aria-hidden="true"
+                className="size-4 animate-spin motion-reduce:animate-none"
+              />
+            )}
+            Save Bracket
           </Button>
         </DialogFooter>
       </DialogContent>

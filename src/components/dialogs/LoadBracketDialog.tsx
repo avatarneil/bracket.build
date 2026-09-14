@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
+import Link from "next/link";
 import { Calendar, FolderOpen, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -21,14 +23,15 @@ interface LoadBracketDialogProps {
 }
 
 export function LoadBracketDialog({ open, onOpenChange }: LoadBracketDialogProps) {
+  const { userId } = useAuth();
   const { loadBracket, bracket: activeBracket } = useBracket();
   const [brackets, setBrackets] = useState<SavedBracket[]>([]);
   const [currentBracketId, setCurrentBracketId] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
-      const savedBrackets = getSavedBrackets();
-      const currentBracket = getCurrentBracket();
+      const savedBrackets = getSavedBrackets(userId ?? undefined);
+      const currentBracket = getCurrentBracket(userId ?? undefined);
 
       // Include the current (autosaved) bracket if it exists and isn't already in the saved list
       if (currentBracket && !savedBrackets.some((b) => b.id === currentBracket.id)) {
@@ -48,7 +51,7 @@ export function LoadBracketDialog({ open, onOpenChange }: LoadBracketDialogProps
         setBrackets(savedBrackets);
       }
     }
-  }, [open]);
+  }, [open, userId]);
 
   const handleLoad = (saved: SavedBracket) => {
     loadBracket(saved.state);
@@ -59,7 +62,8 @@ export function LoadBracketDialog({ open, onOpenChange }: LoadBracketDialogProps
   };
 
   const handleDelete = (id: string, name: string) => {
-    deleteBracket(id);
+    if (!window.confirm("Delete this saved bracket? This cannot be undone.")) return;
+    deleteBracket(id, userId ?? undefined);
     setBrackets(brackets.filter((b) => b.id !== id));
     toast.success("Bracket deleted", {
       description: `"${name}" has been deleted.`,
@@ -89,6 +93,11 @@ export function LoadBracketDialog({ open, onOpenChange }: LoadBracketDialogProps
           </DialogDescription>
         </DialogHeader>
 
+        {userId && (
+          <Button asChild className="min-h-11">
+            <Link href="/brackets">Open my account brackets</Link>
+          </Button>
+        )}
         <div className="max-h-80 space-y-2 overflow-y-auto md:max-h-96 md:space-y-3">
           {brackets.length === 0 ? (
             <div className="py-8 text-center text-gray-500 md:py-12">

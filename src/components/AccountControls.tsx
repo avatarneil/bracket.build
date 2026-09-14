@@ -1,6 +1,7 @@
 "use client";
 
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function AccountControls() {
@@ -17,6 +18,9 @@ export function AccountControls() {
         </SignUpButton>
       </Show>
       <Show when="signed-in">
+        <Button asChild variant="ghost" className="min-h-11 touch-manipulation transition-colors">
+          <Link href="/brackets">My brackets</Link>
+        </Button>
         <UserButton
           showName
           appearance={{

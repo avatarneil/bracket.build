@@ -5,6 +5,10 @@ const USER_KEY = `${STORAGE_PREFIX}user`;
 const BRACKETS_KEY = `${STORAGE_PREFIX}brackets`;
 const CURRENT_KEY = `${STORAGE_PREFIX}current`;
 
+function storageKey(key: string, ownerId?: string): string {
+  return ownerId ? `${key}:account:${ownerId}` : key;
+}
+
 function isClient(): boolean {
   return typeof window !== "undefined";
 }
@@ -31,20 +35,20 @@ export function clearStoredUser(): void {
 }
 
 // Saved brackets storage
-export function getSavedBrackets(): SavedBracket[] {
+export function getSavedBrackets(ownerId?: string): SavedBracket[] {
   if (!isClient()) return [];
   try {
-    const data = localStorage.getItem(BRACKETS_KEY);
+    const data = localStorage.getItem(storageKey(BRACKETS_KEY, ownerId));
     return data ? JSON.parse(data) : [];
   } catch {
     return [];
   }
 }
 
-export function saveBracket(bracket: BracketState): string {
+export function saveBracket(bracket: BracketState, ownerId?: string): string {
   if (!isClient()) return bracket.id;
 
-  const brackets = getSavedBrackets();
+  const brackets = getSavedBrackets(ownerId);
   const existingIndex = brackets.findIndex((b) => b.id === bracket.id);
 
   const savedBracket: SavedBracket = {
@@ -62,40 +66,43 @@ export function saveBracket(bracket: BracketState): string {
     brackets.push(savedBracket);
   }
 
-  localStorage.setItem(BRACKETS_KEY, JSON.stringify(brackets));
+  localStorage.setItem(storageKey(BRACKETS_KEY, ownerId), JSON.stringify(brackets));
   return bracket.id;
 }
 
-export function loadBracket(id: string): BracketState | null {
-  const brackets = getSavedBrackets();
+export function loadBracket(id: string, ownerId?: string): BracketState | null {
+  const brackets = getSavedBrackets(ownerId);
   const saved = brackets.find((b) => b.id === id);
   return saved?.state || null;
 }
 
-export function deleteBracket(id: string): void {
+export function deleteBracket(id: string, ownerId?: string): void {
   if (!isClient()) return;
-  const brackets = getSavedBrackets();
+  const brackets = getSavedBrackets(ownerId);
   const filtered = brackets.filter((b) => b.id !== id);
-  localStorage.setItem(BRACKETS_KEY, JSON.stringify(filtered));
+  localStorage.setItem(storageKey(BRACKETS_KEY, ownerId), JSON.stringify(filtered));
 }
 
 // Current session storage (auto-save)
-export function getCurrentBracket(): BracketState | null {
+export function getCurrentBracket(ownerId?: string): BracketState | null {
   if (!isClient()) return null;
   try {
-    const data = localStorage.getItem(CURRENT_KEY);
+    const data = localStorage.getItem(storageKey(CURRENT_KEY, ownerId));
     return data ? JSON.parse(data) : null;
   } catch {
     return null;
   }
 }
 
-export function saveCurrentBracket(bracket: BracketState): void {
+export function saveCurrentBracket(bracket: BracketState, ownerId?: string): void {
   if (!isClient()) return;
-  localStorage.setItem(CURRENT_KEY, JSON.stringify({ ...bracket, updatedAt: Date.now() }));
+  localStorage.setItem(
+    storageKey(CURRENT_KEY, ownerId),
+    JSON.stringify({ ...bracket, updatedAt: Date.now() }),
+  );
 }
 
-export function clearCurrentBracket(): void {
+export function clearCurrentBracket(ownerId?: string): void {
   if (!isClient()) return;
-  localStorage.removeItem(CURRENT_KEY);
+  localStorage.removeItem(storageKey(CURRENT_KEY, ownerId));
 }
