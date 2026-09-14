@@ -11,7 +11,7 @@ export default defineConfig({
     : [["html", { open: "on-failure" }]],
 
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "on-first-retry",
@@ -45,7 +45,7 @@ export default defineConfig({
 
   webServer: {
     command: process.env.CI ? "bun run start" : "bun run build && bun run start",
-    url: "http://localhost:3000",
+    url: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

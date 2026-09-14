@@ -20,7 +20,7 @@ function Library() {
   const { userId } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
-  const page = Math.max(0, Math.min(10000, Number(params.get("page")) || 0));
+  const page = Math.max(0, Math.min(10000, Math.floor(Number(params.get("page"))) || 0));
   const [data, setData] = useState<{ brackets: AccountBracket[]; hasMore: boolean } | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");

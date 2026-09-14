@@ -9,6 +9,7 @@ import { nanoid } from "nanoid";
 import { GameDialogProvider } from "@/contexts/GameDialogContext";
 import { BracketProvider, useBracket } from "@/contexts/BracketContext";
 import { Bracket } from "@/components/bracket/Bracket";
+import { ShareBracket } from "./ShareBracket";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,6 +77,7 @@ function Editor({ initial }: { initial: AccountBracket | null }) {
   const [saved, setSaved] = useState(initial);
   const [savedFingerprint, setSavedFingerprint] = useState(() => pickFingerprint(bracket));
   const [busy, setBusy] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [error, setError] = useState("");
   const [conflict, setConflict] = useState(false);
   const [notice, setNotice] = useState("");
@@ -110,6 +112,7 @@ function Editor({ initial }: { initial: AccountBracket | null }) {
   }, [error]);
 
   async function save(copy = false) {
+    if (busy || sharing) return;
     setBusy(true);
     setError("");
     setNotice("");
@@ -167,6 +170,7 @@ function Editor({ initial }: { initial: AccountBracket | null }) {
           <Input
             id="account-bracket-name"
             name="bracketName"
+            disabled={busy || sharing}
             maxLength={100}
             value={bracket.name}
             onChange={(event) => setBracketName(event.target.value)}
@@ -180,6 +184,7 @@ function Editor({ initial }: { initial: AccountBracket | null }) {
             id="account-display-name"
             name="displayName"
             autoComplete="nickname"
+            disabled={busy || sharing}
             maxLength={80}
             value={bracket.userName}
             onChange={(event) => setUserName(event.target.value)}
@@ -192,6 +197,7 @@ function Editor({ initial }: { initial: AccountBracket | null }) {
           <Input
             id="account-subtitle"
             name="subtitle"
+            disabled={busy || sharing}
             maxLength={200}
             value={bracket.subtitle ?? ""}
             onChange={(event) => setSubtitle(event.target.value || null)}
@@ -200,7 +206,7 @@ function Editor({ initial }: { initial: AccountBracket | null }) {
           />
         </div>
         <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
-          <Button type="submit" disabled={busy} className="min-h-11">
+          <Button type="submit" disabled={busy || sharing} className="min-h-11">
             {busy && (
               <Loader2
                 className="size-4 animate-spin motion-reduce:animate-none"
@@ -223,7 +229,7 @@ function Editor({ initial }: { initial: AccountBracket | null }) {
                 <Button
                   type="button"
                   className="min-h-11"
-                  disabled={busy}
+                  disabled={busy || sharing}
                   onClick={() => save(true)}
                 >
                   Save as a copy
@@ -244,7 +250,16 @@ function Editor({ initial }: { initial: AccountBracket | null }) {
           </div>
         )}
       </form>
-      <div className="max-w-full overflow-x-auto pb-8">
+      {saved && (
+        <ShareBracket
+          saved={saved}
+          dirty={dirty}
+          saving={busy}
+          onChange={setSaved}
+          onBusyChange={setSharing}
+        />
+      )}
+      <div inert={busy || sharing} className="max-w-full overflow-x-auto pb-8">
         <Bracket />
       </div>
     </div>
