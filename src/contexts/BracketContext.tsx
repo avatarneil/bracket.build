@@ -66,9 +66,17 @@ function getMatchupRound(matchupId: string): RoundName | null {
 type ProviderProps = { children: ReactNode; initialBracket?: BracketState; persist?: boolean };
 export function BracketProvider(props: ProviderProps) {
   const { userId, isLoaded } = useAuth();
+  // Mount editable state only after account identity is known. Remounting a
+  // temporary guest tree when Clerk loads can otherwise discard typed input.
+  if (!isLoaded)
+    return (
+      <p role="status" className="p-6 text-gray-400">
+        Loading bracket…
+      </p>
+    );
   return (
     <BracketProviderState
-      key={isLoaded ? (userId ?? "guest") : "loading"}
+      key={userId ?? "guest"}
       {...props}
       persist={isLoaded && props.persist !== false}
       ownerId={userId ?? undefined}
