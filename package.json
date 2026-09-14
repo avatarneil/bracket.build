@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/migrate-on-deploy.mjs && next build",
     "start": "next start",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
@@ -14,7 +14,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test:unit": "bun --conditions=react-server test src/lib",
+    "test:unit": "node --test scripts/*.test.mjs && bun --conditions=react-server test src/lib",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },

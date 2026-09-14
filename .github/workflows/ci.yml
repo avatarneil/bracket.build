@@ -34,7 +34,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
-      - run: bun run db:migrate
+      # Deployment-runner tests migrate the fresh service before storage tests.
       - run: bun run test:unit
 
   lint:
