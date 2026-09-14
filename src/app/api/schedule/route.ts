@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       Number.isFinite(season) ? season : undefined,
     );
     return NextResponse.json(schedule, {
-      headers: { "Cache-Control": "public, max-age=0, s-maxage=5, must-revalidate" },
+      headers: { "Cache-Control": "public, max-age=0, s-maxage=2, must-revalidate" },
     });
   } catch (error) {
     console.error("Failed to fetch NFL schedule:", error);
