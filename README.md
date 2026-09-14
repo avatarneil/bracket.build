@@ -45,9 +45,15 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Sign in and sign up from the header, or continue browsing as a guest. Accounts currently
-provide identity only; brackets still save to this browser's localStorage and do not sync
-between devices or become private to a signed-in account.
+Sign in from the header and open **My brackets** to create, save, and reopen private
+brackets across devices. Guest brackets remain in browser storage. Use **Import browser
+brackets** to copy those saves into your account; the originals remain on this device.
+
+Saved brackets can publish a read-only snapshot with **Create share link**. Links expose
+the bracket name, display name, subtitle, and picks to anyone holding the link. Further
+edits stay private until published again. Stop sharing to permanently revoke that link.
+Friends can compare their account brackets on the shared page. Correct-pick counts are
+informal because predictions remain editable. Account saves currently support the 2025 postseason.
 
 For CI and deployment, configure `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
 `CLERK_SECRET_KEY` in the environment. Use development keys for local testing and configure
