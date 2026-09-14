@@ -73,11 +73,13 @@ Account brackets use Postgres, Drizzle migrations, and Clerk user IDs. Set `DATA
 to a pooled connection for the app and `DATABASE_URL_UNPOOLED` to a direct connection
 for migrations. Keep both in your environment manager; never commit connection strings.
 
-Vercel Production builds automatically apply committed migrations before building the app.
+Vercel Production and Preview builds automatically apply committed migrations before building the app.
 Configure both variables in Vercel's **Production** environment using the Neon `main` branch.
+For **Preview**, let the Neon integration supply both URLs for that preview's branch.
+The migration and runtime URLs must target the same database branch.
 Missing migration credentials or a failed migration stops deployment. A direct-connection
 advisory lock serializes concurrent builds; Drizzle records applied migrations for safe retries.
-Preview and local builds skip this step and use an independently migrated development branch.
+Local builds skip this step; run `bun run db:migrate` to update your local development database.
 
 Migrations run before traffic switches, so schema changes must remain compatible with the
 currently deployed app. Use additive changes first; remove old columns in a later release.

@@ -5,21 +5,30 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 class MigrationConfigurationError extends Error {}
 
-async function migrateProduction() {
-  if (process.env.VERCEL_ENV !== "production") {
-    console.log("Skipping production migrations outside a Vercel production build.");
+async function migrateDeployment() {
+  const environment = process.env.VERCEL_ENV;
+  if (!["production", "preview"].includes(environment)) {
+    console.log("Skipping deployment migrations outside Vercel production and preview builds.");
     return;
   }
   const connectionString = process.env.DATABASE_URL_UNPOOLED;
-  if (!connectionString) {
+  if (!connectionString || !process.env.DATABASE_URL) {
     throw new MigrationConfigurationError(
-      "Set DATABASE_URL_UNPOOLED in Vercel Production before deploying.",
+      `Set DATABASE_URL and DATABASE_URL_UNPOOLED in Vercel ${environment} before deploying.`,
     );
   }
   const connection = new URL(connectionString);
   if (connection.hostname.includes("-pooler.")) {
     throw new MigrationConfigurationError(
-      "Production migrations require a direct, unpooled connection.",
+      "Deployment migrations require a direct, unpooled connection.",
+    );
+  }
+  const runtime = new URL(process.env.DATABASE_URL);
+  const databaseTarget = (url) =>
+    `${url.hostname.replace(/-pooler(?=\.)/, "")}:${url.port || "5432"}${url.pathname}`;
+  if (databaseTarget(connection) !== databaseTarget(runtime)) {
+    throw new MigrationConfigurationError(
+      "DATABASE_URL and DATABASE_URL_UNPOOLED must target the same database branch.",
     );
   }
   const client = new pg.Client({ connectionString, connectionTimeoutMillis: 10000 });
@@ -32,13 +41,13 @@ async function migrateProduction() {
     await migrate(drizzle(client), {
       migrationsFolder: fileURLToPath(new URL("../drizzle", import.meta.url)),
     });
-    console.log("Production schema is up to date.");
+    console.log(`${environment} schema is up to date.`);
   } finally {
     await client.end();
   }
 }
 
-migrateProduction().catch((error) => {
+migrateDeployment().catch((error) => {
   // Driver errors can contain connection details; do not print credentials to
   // public build logs. Configuration errors above contain only our own text.
   const message =
