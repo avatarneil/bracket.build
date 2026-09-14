@@ -122,14 +122,14 @@
     @apply border-border outline-ring/50;
   }
   html {
-    /* Prevent horizontal scroll and overscroll bounce on mobile */
-    overflow-x: hidden;
+    /* Clip horizontal overflow without creating a scroll container that breaks sticky layout. */
+    overflow-x: clip;
     overscroll-behavior-x: none;
   }
   body {
     @apply bg-background text-foreground;
-    /* Prevent horizontal scroll and overscroll bounce on mobile */
-    overflow-x: hidden;
+    /* Clip horizontal overflow without creating a scroll container that breaks sticky layout. */
+    overflow-x: clip;
     overscroll-behavior-x: none;
     /* Prevent pull-to-refresh and overscroll effects */
     overscroll-behavior-y: contain;

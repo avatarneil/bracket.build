@@ -349,8 +349,8 @@ export function GameStatsDialog({
         id={`tabpanel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
         className={cn(
-          "overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-5",
-          variant === "dialog" ? "min-h-0 flex-1" : "max-h-[calc(90vh-180px)]",
+          "px-4 py-4 md:px-6 md:py-5",
+          variant === "dialog" && "min-h-0 flex-1 overflow-y-auto overscroll-contain",
         )}
       >
         {isLoading && !stats ? (
