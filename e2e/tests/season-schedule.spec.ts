@@ -193,7 +193,13 @@ test.describe("Season schedules", () => {
     const content = panel.getByRole("tabpanel");
     await expect(content.getByText("Win Probability Over Time")).toBeVisible();
     const sidebar = page.getByTestId("schedule-sidebar");
-    await content.hover();
+    // Hovering the whole tall panel can scroll Firefox to the document bottom.
+    // Position its top within the viewport, leaving room to wheel downward.
+    await content.evaluate((element) => {
+      window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY - 600);
+    });
+    const contentBox = await content.boundingBox();
+    await page.mouse.move(contentBox!.x + 20, contentBox!.y + 20);
     const before = await page.evaluate(() => window.scrollY);
     await page.mouse.wheel(0, 500);
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before);
