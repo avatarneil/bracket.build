@@ -189,7 +189,7 @@ export function GameStatsDialog({
   };
 
   const content = (
-    <div className={cn("flex min-h-0 flex-col", variant === "dialog" && "h-full")}>
+    <div className={cn("flex min-h-0 w-full min-w-0 flex-col", variant === "dialog" && "h-full")}>
       {/* Custom header with team info */}
       <div className="border-b border-gray-700 px-4 py-4 md:px-6">
         {/* Reserve a row so the close target never covers either team. */}
