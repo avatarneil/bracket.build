@@ -9,7 +9,7 @@ test.beforeEach(async ({ page, seedUser: _seedUser, mockEspnApi: _mockEspnApi })
         games: Array.from({ length: 16 }, (_, index) => ({
           ...mockPreseasonSchedule.games[0],
           id: String(401873297 + index),
-          isInProgress: index < 2,
+          isInProgress: index === 0 || index === 14,
         })),
       },
     }),
@@ -52,6 +52,7 @@ for (const width of [1152, 1194, 1210]) {
     await page.getByTestId("live-dashboard-game-401873297").click();
     const panel = page.getByTestId("game-stats-panel");
     await expect(panel).toBeVisible();
+    await expect(page.getByTestId("live-games-overview")).not.toBeVisible();
     await expect(page.getByTestId("game-stats-dialog")).not.toBeVisible();
     await expect(panel.getByText("Total Yards", { exact: true })).toBeVisible();
 
@@ -68,6 +69,7 @@ for (const width of [1152, 1194, 1210]) {
     }
     await expect(panel.getByText("Win Probability Over Time")).toBeVisible();
     await expect(panel.getByRole("button", { name: "Refresh" })).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 300));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
     await expect.poll(async () => (await sidebar.boundingBox())!.y).toBe(24);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
@@ -119,3 +121,55 @@ test("preserves the selected game and tab when rotating between portrait and lan
   await expect(dialog).not.toBeVisible();
   await expect(page).not.toHaveURL(/game=/);
 });
+
+for (const width of [1194, 1440]) {
+  test(`collapses the overview and reveals the selected sidebar game at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 834 });
+    await page.goto("/");
+    const sidebar = page.getByTestId("schedule-sidebar");
+    const list = sidebar.getByRole("list");
+    const selectedRow = page.getByTestId("schedule-game-401873311");
+    const selectedButton = selectedRow.getByRole("button");
+    const overview = page.getByTestId("live-games-overview");
+    const card = page.getByTestId("live-dashboard-game-401873311");
+
+    await expect(card).toBeVisible();
+    expect(await list.evaluate((element) => element.scrollTop)).toBe(0);
+    await card.focus();
+    await page.keyboard.press("Enter");
+    const panel = page.getByTestId("game-stats-panel");
+    await expect(overview).not.toBeVisible();
+    await expect(panel).toBeVisible();
+    await expect(selectedRow).toHaveAttribute("aria-current", "true");
+    await expect(selectedRow.getByText("Viewing details")).toBeVisible();
+    await expect(selectedButton).toBeFocused();
+    await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    const listBox = (await list.boundingBox())!;
+    const rowBox = (await selectedRow.boundingBox())!;
+    expect(rowBox.y).toBeGreaterThanOrEqual(listBox.y);
+    expect(rowBox.y + rowBox.height).toBeLessThanOrEqual(listBox.y + listBox.height);
+    expect((await panel.boundingBox())!.y).toBeLessThan(60);
+
+    // Polling must not keep pulling the schedule back after the user scrolls away.
+    await list.evaluate((element) => element.scrollTo(0, 0));
+    await Promise.all([
+      page.waitForResponse("**/api/schedule**"),
+      page.evaluate(() => document.dispatchEvent(new Event("visibilitychange"))),
+    ]);
+    await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBe(0);
+    const firstRow = page.getByTestId("schedule-game-401873297");
+    await firstRow.getByRole("button").click();
+    await expect(firstRow).toHaveAttribute("aria-current", "true");
+    await expect(selectedRow).not.toHaveAttribute("aria-current", "true");
+    await expect(page).toHaveURL(/game=schedule-401873297/);
+    await expect(overview).not.toBeVisible();
+
+    await panel.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(overview).toBeVisible();
+    await expect(panel).not.toBeVisible();
+    await expect(firstRow).not.toHaveAttribute("aria-current", "true");
+    await expect(firstRow.getByRole("button")).toBeFocused();
+  });
+}

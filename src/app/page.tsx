@@ -187,6 +187,7 @@ function BracketApp() {
             {!isPostseason ? (
               <div className="mt-5 flex w-full justify-center sm:mt-6 dashboard:min-h-0 dashboard:flex-1 dashboard:items-stretch">
                 <SeasonScheduleView
+                  isSidebar={isWideScheduleLayout}
                   schedule={visibleSchedule}
                   isLoading={isLoadingSchedule}
                   error={scheduleError}

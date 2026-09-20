@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useGameDialog } from "@/contexts/GameDialogContext";
 import type { SeasonSchedule } from "@/types";
 import { ScheduleGameRow } from "./ScheduleGameRow";
 
@@ -11,6 +13,7 @@ interface SeasonScheduleViewProps {
   error: string | null;
   onRetry: () => void;
   onSelectWeek: (week: number) => void;
+  isSidebar?: boolean;
 }
 
 function formatWeekDate(date: string) {
@@ -44,7 +47,41 @@ export function SeasonScheduleView({
   error,
   onRetry,
   onSelectWeek,
+  isSidebar = false,
 }: SeasonScheduleViewProps) {
+  const { selectedGame } = useGameDialog();
+  const listRef = useRef<HTMLUListElement>(null);
+  const previousSelectedRowRef = useRef<Element | null>(null);
+  const selectedGameId = selectedGame?.matchup.id;
+  const selectedIndex =
+    schedule?.games.findIndex((game) => `schedule-${game.id}` === selectedGameId) ?? -1;
+
+  useEffect(() => {
+    if (!isSidebar) return;
+    const list = listRef.current;
+    const row = list?.children.item(selectedIndex) ?? null;
+    const previousRow = previousSelectedRowRef.current;
+    previousSelectedRowRef.current = row;
+    const activeElement = document.activeElement;
+    const needsFocus =
+      activeElement === document.body || activeElement?.getClientRects().length === 0;
+
+    if (list && row) {
+      const listBox = list.getBoundingClientRect();
+      const rowBox = row.getBoundingClientRect();
+      // Scroll only the schedule, without moving the page or the game details.
+      list.scrollTo({
+        top: list.scrollTop + rowBox.top - listBox.top - (list.clientHeight - rowBox.height) / 2,
+        behavior: "instant",
+      });
+    }
+
+    // Keep keyboard focus usable when the active card hides or the details panel closes.
+    if (needsFocus) {
+      (row ?? previousRow)?.querySelector("button")?.focus({ preventScroll: true });
+    }
+  }, [isSidebar, selectedGameId, selectedIndex]);
+
   if (isLoading && !schedule) return <ScheduleSkeleton />;
 
   if (error && !schedule) {
@@ -144,6 +181,7 @@ export function SeasonScheduleView({
         </div>
       ) : (
         <ul
+          ref={listRef}
           className="divide-y divide-gray-800 overflow-hidden rounded-xl bg-gray-900 dashboard:min-h-0 dashboard:flex-1 dashboard:overflow-y-auto dashboard:overscroll-contain"
           aria-live="polite"
         >
