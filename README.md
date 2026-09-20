@@ -94,6 +94,58 @@ Test schema changes on an isolated Neon development branch before applying them 
 CI runs migrations and ownership/conflict/sharing tests against an ephemeral Postgres service.
 Local storage integration tests run when `TEST_DATABASE_URL` points to a migrated test database.
 
+## Ridiculous game stats
+
+Open a game's **Stats** tab and choose **Generate ridiculous stat**. The feature
+searches 20 team metrics across opponent nickname categories, month, weekday, and
+home/away/neutral location. It produces records, ties, first-since comparisons,
+and pregame history without an LLM. **Show the receipts** lists every earlier
+comparison game, with pagination, metric values, dates, and ESPN links.
+
+Historical data comes from [nflverse team stats](https://nflreadr.nflverse.com/reference/load_team_stats.html)
+and [nflverse schedules](https://nflreadr.nflverse.com/reference/load_schedules.html).
+The two small CSV test fixtures are excerpts of those sources for the 2025
+Arizona–New Orleans game. The archive covers regular-season and postseason games
+from 1999; preseason is not included. Source data remain subject to their owners'
+[terms](https://nflverse.nflverse.com/#terms-of-use).
+
+Apply the migration and load the archive into your **development or preview**
+database before testing. The importer uses `DATABASE_URL`; Bun reads `.env.local`.
+
+```bash
+bun run db:migrate
+bun run stats:import --dry-run
+bun run stats:import
+# Refresh a specific range, including historical corrections:
+bun run stats:import --from 2003 --to 2025
+```
+
+Without a range, the importer backfills missing seasons and refreshes the latest
+two seasons. Each season is validated and replaced atomically; reruns are safe.
+Missing box scores and measurements stay null. Unsupported comparisons, gaps in
+imported seasons, and cohorts smaller than ten games never produce a record.
+Regular-season and playoff comparisons are separate. Historical games never
+use later games as evidence. Team history follows franchise relocations, while
+nickname classifications and display names use the season's identity. "Animal"
+means the team nickname, not the costumed mascot; Buffalo's Bills are not included.
+
+ESPN supplies live context. Its missing values stay null in the comparison engine,
+and live claims say "so far" and compare against completed games. Fields absent
+from ESPN can still produce historical facts. After import, completed games use
+the same corrected nflverse metrics as their historical comparison games. Games
+on the current Eastern date stay provisional until a later import. Archive
+updates also pick up nflverse's subsequent stat corrections.
+
+For production, set a random **`CRON_SECRET`** of at least 32 characters in Vercel.
+The daily 10:00 UTC cron authenticates with that secret, backfills the archive on
+its first run, and subsequently refreshes the latest two seasons. Vercel cron jobs
+run only on production deployments. Preview databases must be seeded with the
+CLI; an unseeded preview displays an archive-unavailable message. To populate a
+new production database immediately after deployment, run `bun run stats:import`
+with that environment's database connection. An interrupted import resumes at
+the remaining seasons on the next run. Upstream or database failures preserve
+previously committed season snapshots and leave ordinary game stats usable.
+
 ## Contributing
 
 Use GitHub native stacks via the official `gh stack` extension and ordinary Git commits.

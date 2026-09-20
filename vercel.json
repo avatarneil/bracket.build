@@ -1,3 +1,4 @@
 {
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "crons": [{ "path": "/api/cron/nfl-history", "schedule": "0 10 * * *" }]
 }

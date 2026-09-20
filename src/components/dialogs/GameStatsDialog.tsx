@@ -9,6 +9,7 @@ import { MomentumTab } from "@/components/game-stats/MomentumTab";
 import { PlayerLeadersCard } from "@/components/game-stats/PlayerLeadersCard";
 import { ScoringPlays } from "@/components/game-stats/ScoringPlays";
 import { TeamStatsComparison } from "@/components/game-stats/TeamStatsComparison";
+import { RidiculousStats } from "@/components/game-stats/RidiculousStats";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGameStats } from "@/hooks/useGameStats";
@@ -370,12 +371,17 @@ export function GameStatsDialog({
         ) : stats && homeTeam && awayTeam ? (
           <>
             {activeTab === "stats" && (
-              <TeamStatsComparison
-                awayStats={statsAreReversed ? stats.teamStats.home : stats.teamStats.away}
-                homeStats={statsAreReversed ? stats.teamStats.away : stats.teamStats.home}
-                awayColor={awayTeam.primaryColor}
-                homeColor={homeTeam.primaryColor}
-              />
+              <>
+                <TeamStatsComparison
+                  awayStats={statsAreReversed ? stats.teamStats.home : stats.teamStats.away}
+                  homeStats={statsAreReversed ? stats.teamStats.away : stats.teamStats.home}
+                  awayColor={awayTeam.primaryColor}
+                  homeColor={homeTeam.primaryColor}
+                />
+                {eventId && (
+                  <RidiculousStats key={eventId} eventId={eventId} updatedAt={stats.fetchedAt} />
+                )}
+              </>
             )}
             {activeTab === "leaders" && (
               <PlayerLeadersCard

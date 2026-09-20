@@ -7,8 +7,10 @@ import {
   timestamp,
   uniqueIndex,
   index,
+  date,
 } from "drizzle-orm/pg-core";
 import type { BracketDocument } from "@/lib/bracket-document";
+import type { Measurements, Phase, Location } from "@/lib/ridiculous-stats/types";
 
 export const accountBrackets = pgTable(
   "account_brackets",
@@ -29,3 +31,33 @@ export const accountBrackets = pgTable(
     index("account_brackets_owner_updated_idx").on(table.ownerId, table.updatedAt, table.id),
   ],
 );
+
+// One row per franchise per game, including scheduled games and missing box
+// scores. Retaining gaps prevents a partial archive from asserting a record.
+export const historicalTeamGames = pgTable(
+  "historical_team_games",
+  {
+    gameId: text("game_id").notNull(),
+    eventId: text("event_id"),
+    season: integer("season").notNull(),
+    date: date("game_date", { mode: "string" }).notNull(),
+    phase: text("phase").$type<Phase>().notNull(),
+    team: text("team").notNull(),
+    opponent: text("opponent").notNull(),
+    location: text("location").$type<Location>().notNull(),
+    metrics: jsonb("metrics").$type<Measurements>().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.gameId, table.team] }),
+    index("historical_team_games_team_date_idx").on(table.team, table.date),
+    index("historical_team_games_event_idx").on(table.eventId),
+    index("historical_team_games_season_idx").on(table.season),
+  ],
+);
+
+export const historicalImports = pgTable("historical_imports", {
+  season: integer("season").primaryKey(),
+  importedAt: timestamp("imported_at", { withTimezone: true }).notNull(),
+  rowCount: integer("row_count").notNull(),
+  sourceHash: text("source_hash").notNull(),
+});

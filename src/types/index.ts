@@ -179,6 +179,7 @@ export interface RoundLockState {
 
 // Game boxscore types for detailed stats popup
 export interface GameBoxscore {
+  historicalContext?: import("@/lib/ridiculous-stats/types").GameContext | null;
   eventId: string;
   homeTeamId: string;
   awayTeamId: string;
