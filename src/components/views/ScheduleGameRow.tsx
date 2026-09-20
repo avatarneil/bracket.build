@@ -68,7 +68,8 @@ function TeamLine({
 }
 
 export function ScheduleGameRow({ game }: ScheduleGameRowProps) {
-  const { openGameDialog } = useGameDialog();
+  const { openGameDialog, selectedGame } = useGameDialog();
+  const isSelected = selectedGame?.matchup.id === `schedule-${game.id}`;
   const showScore = game.isInProgress || game.isComplete;
   const broadcast = game.broadcasts.join(", ");
 
@@ -128,8 +129,15 @@ export function ScheduleGameRow({ game }: ScheduleGameRowProps) {
   return (
     <li
       data-testid={`schedule-game-${game.id}`}
-      className={cn("relative px-4 py-4 sm:px-5", game.isInProgress && "bg-yellow-400/[0.06]")}
+      aria-current={isSelected ? "true" : undefined}
+      className={cn(
+        "relative px-4 py-4 sm:px-5",
+        isSelected
+          ? "bg-yellow-400/10 ring-2 ring-inset ring-yellow-300/70"
+          : game.isInProgress && "bg-yellow-400/[0.06]",
+      )}
     >
+      {isSelected && <p className="mb-2 text-xs font-semibold text-yellow-300">Viewing details</p>}
       {game.isInProgress ? (
         <button
           type="button"

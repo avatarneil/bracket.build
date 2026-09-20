@@ -6,7 +6,7 @@ test("keeps the game stats dialog the same size across Stats and Momentum", asyn
   seedUser: _seedUser,
   mockEspnApi: _mockEspnApi,
 }) => {
-  await page.setViewportSize({ width: 1194, height: 834 });
+  await page.setViewportSize({ width: 834, height: 1194 });
   await page.route("**/api/schedule**", (route) => route.fulfill({ json: mockPreseasonSchedule }));
   await page.goto("/");
   await page
@@ -16,6 +16,10 @@ test("keeps the game stats dialog the same size across Stats and Momentum", asyn
   const dialog = page.getByTestId("game-stats-dialog");
   const statsPanel = dialog.getByRole("tabpanel", { name: "Stats" });
   await expect(statsPanel.getByText("Total Yards", { exact: true })).toBeVisible();
+  // Measure the settled dialog, after its entrance scale animation.
+  await dialog.evaluate((element) =>
+    Promise.all(element.getAnimations().map((animation) => animation.finished)),
+  );
   const statsDialogBox = await dialog.boundingBox();
   const statsPanelBox = await statsPanel.boundingBox();
 

@@ -57,7 +57,7 @@ for (const delayedFirst of [false, true]) {
     await expect.poll(() => firstRequested).toBe(true);
     if (!delayedFirst)
       await expect(panel.locator("span").filter({ hasText: /^31$/ })).toBeVisible();
-    await page.getByTestId(`live-dashboard-game-${second.id}`).click();
+    await page.getByTestId(`schedule-game-${second.id}`).getByRole("button").click();
     await expect(panel.locator("span").filter({ hasText: /^14$/ })).toBeVisible();
     await expect(panel.locator("span").filter({ hasText: /^31$/ })).toHaveCount(0);
     releaseSecond();
