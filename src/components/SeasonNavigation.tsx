@@ -8,7 +8,6 @@ interface SeasonNavigationProps {
   selectedPhase: SeasonPhase;
   currentPhase: SeasonPhase | null;
   phaseAvailability: Record<SeasonPhase, boolean>;
-  seasonLabel: string;
   onSelect: (phase: SeasonPhase) => void;
 }
 
@@ -27,13 +26,10 @@ export function SeasonNavigation({
   selectedPhase,
   currentPhase,
   phaseAvailability,
-  seasonLabel,
   onSelect,
 }: SeasonNavigationProps) {
-  const postseasonAvailable = phaseAvailability.postseason;
-
   return (
-    <nav aria-label="NFL season" className="w-full max-w-2xl">
+    <nav aria-label="NFL season" className="@container min-w-52 flex-1">
       <div className="grid grid-cols-3 rounded-xl bg-gray-900 p-1" data-testid="season-navigation">
         {PHASES.map(({ id, label, shortLabel, icon: Icon }) => {
           const isSelected = selectedPhase === id;
@@ -52,15 +48,15 @@ export function SeasonNavigation({
               aria-label={`${label}${isCurrent ? ", current season phase" : ""}${!isAvailable ? ", unavailable" : ""}`}
               aria-current={isSelected ? "page" : undefined}
               className={cn(
-                "relative flex min-h-11 items-center justify-center gap-2 rounded-lg px-2 py-2 text-sm font-semibold transition-[background-color,color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+                "relative flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-lg px-2 py-2 text-sm font-semibold transition-[background-color,color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black",
                 isSelected
                   ? "bg-white text-black"
                   : "text-gray-400 hover:bg-gray-800 hover:text-white disabled:cursor-not-allowed disabled:text-gray-600 disabled:hover:bg-transparent",
               )}
             >
-              <Icon className="hidden h-4 w-4 sm:block" aria-hidden="true" />
-              <span className="sm:hidden">{shortLabel}</span>
-              <span className="hidden sm:inline">{label}</span>
+              <Icon className="hidden h-4 w-4 @min-md:block" aria-hidden="true" />
+              <span className="@min-md:hidden">{shortLabel}</span>
+              <span className="hidden @min-md:inline">{label}</span>
               {isCurrent && !isSelected && (
                 <span
                   className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-green-400"
@@ -71,11 +67,6 @@ export function SeasonNavigation({
           );
         })}
       </div>
-      {!postseasonAvailable && (
-        <p id="postseason-status" className="mt-2 text-center text-sm text-gray-400">
-          {seasonLabel} postseason unlocks when the playoff schedule is posted.
-        </p>
-      )}
     </nav>
   );
 }

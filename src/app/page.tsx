@@ -130,35 +130,36 @@ function BracketApp() {
                 "dashboard:sticky dashboard:top-6 dashboard:h-[calc(100vh-3rem)] dashboard:overflow-hidden dashboard:rounded-2xl dashboard:border dashboard:border-gray-800 dashboard:bg-gray-950 dashboard:px-5 dashboard:pb-5 dashboard:pt-4",
             )}
           >
-            {/* Header - scales with viewport, larger on tablets */}
-            <header className="mb-4 text-center sm:mb-6 md:mb-8">
-              <h1 className="font-mono text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
-                bracket<span className="text-gray-500">.build</span>
+            <header className="mb-3 flex w-full max-w-2xl flex-wrap items-center justify-between gap-x-2 gap-y-1">
+              <h1 className="shrink-0 font-mono text-lg font-bold tracking-tight text-white sm:text-xl">
+                bracket<span className="text-gray-400">.build</span>
               </h1>
-              <p className="mt-1 text-sm text-gray-400 sm:mt-2 sm:text-lg md:text-xl">
-                {visibleSchedule
-                  ? `NFL ${visibleSchedule.seasonYear} · ${visibleSchedule.phase === "preseason" ? "Preseason" : visibleSchedule.phase === "regular" ? "Regular Season" : "Playoffs"}`
-                  : "NFL schedules and playoff predictions"}
-              </p>
-              <AccountControls />
+              <AccountControls compact />
             </header>
 
             {visibleSchedule && (
-              <SeasonSelector
-                seasonYear={visibleSchedule.seasonYear}
-                availableSeasons={visibleSchedule.availableSeasons}
-                onSelect={selectSeason}
-              />
-            )}
-
-            {selectedPhase && visibleSchedule && (
-              <SeasonNavigation
-                selectedPhase={selectedPhase}
-                currentPhase={visibleSchedule.currentPhase}
-                phaseAvailability={visibleSchedule.phaseAvailability}
-                seasonLabel={seasonLabel}
-                onSelect={selectPhase}
-              />
+              <div className="w-full max-w-2xl">
+                <div className="flex flex-wrap items-center gap-2">
+                  <SeasonSelector
+                    seasonYear={visibleSchedule.seasonYear}
+                    availableSeasons={visibleSchedule.availableSeasons}
+                    onSelect={selectSeason}
+                  />
+                  {selectedPhase && (
+                    <SeasonNavigation
+                      selectedPhase={selectedPhase}
+                      currentPhase={visibleSchedule.currentPhase}
+                      phaseAvailability={visibleSchedule.phaseAvailability}
+                      onSelect={selectPhase}
+                    />
+                  )}
+                </div>
+                {!postseasonAvailable && (
+                  <p id="postseason-status" className="mt-2 text-center text-xs text-gray-400">
+                    {seasonLabel} postseason unlocks when the playoff schedule is posted.
+                  </p>
+                )}
+              </div>
             )}
 
             {showBracket && (
@@ -185,7 +186,7 @@ function BracketApp() {
 
             {/* Main Content */}
             {!isPostseason ? (
-              <div className="mt-5 flex w-full justify-center sm:mt-6 dashboard:min-h-0 dashboard:flex-1 dashboard:items-stretch">
+              <div className="mt-3 flex w-full justify-center dashboard:min-h-0 dashboard:flex-1 dashboard:items-stretch">
                 <SeasonScheduleView
                   isSidebar={isWideScheduleLayout}
                   schedule={visibleSchedule}
@@ -219,7 +220,7 @@ function BracketApp() {
             ) : showBracket ? (
               <LiveGamesView />
             ) : (
-              <div className="mt-6 flex w-full justify-center">
+              <div className="mt-3 flex w-full justify-center">
                 <SeasonScheduleView
                   schedule={visibleSchedule}
                   isLoading={isLoadingSchedule}
