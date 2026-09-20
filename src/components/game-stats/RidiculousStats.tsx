@@ -13,7 +13,7 @@ function readIndex(value: string | null, eventId: string): number | null {
   return match?.[1] === eventId ? Number(match[2]) : null;
 }
 
-export function RidiculousStats({ eventId, updatedAt }: { eventId: string; updatedAt: number }) {
+export function RidiculousStats({ eventId }: { eventId: string }) {
   const params = useSearchParams();
   const index = readIndex(params.get("ridiculous"), eventId);
   const receiptPage = readIndex(params.get("receipts"), eventId);
@@ -27,17 +27,19 @@ export function RidiculousStats({ eventId, updatedAt }: { eventId: string; updat
     error: string | null;
   }>({ eventId, index: null, data: null, loading: false, error: null });
   const current = state.eventId === eventId && state.index === index ? state : null;
-  const data = current?.data;
+  // Keep the current game's snapshot visible while an explicit request loads.
+  const data = state.eventId === eventId && index != null ? state.data : null;
   const fact = data?.fact;
   const loading = index != null && (!current || current.loading);
 
+  // Live box-score polling must not replace an insight while it is being read.
   useEffect(() => {
     if (index == null) return;
     const controller = new AbortController();
     setState((previous) => ({
       eventId,
       index,
-      data: previous.eventId === eventId && previous.index === index ? previous.data : null,
+      data: previous.eventId === eventId ? previous.data : null,
       loading: true,
       error: null,
     }));
@@ -58,20 +60,20 @@ export function RidiculousStats({ eventId, updatedAt }: { eventId: string; updat
       } catch (error) {
         if (!controller.signal.aborted) setActionLabel("Try again");
         if (!controller.signal.aborted)
-          setState({
+          setState((previous) => ({
             eventId,
             index,
-            data: null,
+            data: previous.eventId === eventId ? previous.data : null,
             loading: false,
             error:
               error instanceof Error
                 ? error.message
                 : "Unable to load historical stats. Try again.",
-          });
+          }));
       }
     })();
     return () => controller.abort();
-  }, [eventId, index, updatedAt, retry]);
+  }, [eventId, index, retry]);
 
   function updateQuery(updates: Record<string, string | null>) {
     const url = new URL(window.location.href);
@@ -84,11 +86,15 @@ export function RidiculousStats({ eventId, updatedAt }: { eventId: string; updat
 
   function generate() {
     if (current?.error || (data && !fact)) setRetry((value) => value + 1);
-    else
+    else {
+      const nextIndex = fact ? (data!.index + 1) % data!.count : 0;
       updateQuery({
-        ridiculous: `${eventId}:${fact ? (data!.index + 1) % data!.count : 0}`,
+        ridiculous: `${eventId}:${nextIndex}`,
         receipts: null,
       });
+      // A single-result game still needs a fresh snapshot on an explicit click.
+      if (nextIndex === index) setRetry((value) => value + 1);
+    }
   }
 
   const page = Math.min(receiptPage ?? 0, Math.max(0, Math.ceil((fact?.sampleSize ?? 0) / 10) - 1));
@@ -114,7 +120,9 @@ export function RidiculousStats({ eventId, updatedAt }: { eventId: string; updat
         </p>
       )}
       <div aria-live="polite" aria-atomic="true" aria-busy={loading}>
-        {loading && <p className="mb-4 text-sm text-gray-300">Checking the history books…</p>}
+        {loading && !data && (
+          <p className="mb-4 text-sm text-gray-300">Checking the history books…</p>
+        )}
         {current?.error && <p className="mb-4 text-sm text-amber-200">{current.error}</p>}
         {data && !fact && <p className="mb-4 text-sm text-gray-300">{data.message}</p>}
         {fact && (
@@ -132,7 +140,7 @@ export function RidiculousStats({ eventId, updatedAt }: { eventId: string; updat
                     minute: "2-digit",
                     second: "2-digit",
                   }).format(new Date(data.asOf))}
-                  . Compared with completed games; may change.
+                  . Compared with completed games. Generate another for an updated snapshot.
                 </>
               )}
             </p>

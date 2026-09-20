@@ -232,6 +232,67 @@ test("records span kicking, punting, penalties, scoring and passing", () => {
     assert.ok(metrics.has(metric));
 });
 
+test("equivalent cohorts prefer football context over letter-count labels", () => {
+  const facts = generateFacts(context(), history(), [2024, 2025]);
+  assert.ok(facts.length);
+  assert.ok(facts.every((f) => !f.id.includes("-names")));
+});
+
+test("letter counts share one trailing slot, even when team variety or first-since would favor them", () => {
+  const target = context("live");
+  const rows = target.teams.flatMap((team) =>
+    Array.from({ length: 32 }, (_, i) =>
+      game({
+        gameId: `${team.team}-${i}`,
+        team: team.team,
+        season: 2024,
+        date: new Date(Date.UTC(2024, 9, i + 1)).toISOString().slice(0, 10),
+        opponent: ["LAC", "TEN", "DAL", "BUF"][i % 4],
+        metrics: {
+          ...emptyMeasurements(),
+          rushingYards: i === 0 || i >= 30 ? 250 : 100,
+          passingTouchdowns: 1,
+        },
+      }),
+    ),
+  );
+  // The even-name cohort supports first-since; recent odd-name games
+  // prevent that claim across all opponents. Only NE has a natural TD record.
+  target.teams[0].metrics.passingTouchdowns = 5;
+  const facts = generateFacts(target, rows, [2024, 2025]);
+  const wordplay = facts.filter((f) => f.id.includes("-names"));
+  assert.equal(wordplay.length, 1);
+  assert.equal(wordplay[0].kind, "since");
+  assert.ok(facts.length > 1);
+  assert.equal(facts[0].kind, "record");
+  assert.equal(facts.at(-1), wordplay[0]);
+  assert.ok(facts.every((f) => !("wordplay" in f) && !("score" in f)));
+  assert.deepEqual(generateFacts(target, rows, [2024, 2025]), facts);
+});
+
+test("a letter-count comparison remains available when it is the only supported insight", () => {
+  for (const opponents of [
+    ["PHI", "NYJ", "TEN", "DAL"],
+    ["DAL", "CIN", "BUF", "PHI"],
+  ]) {
+    const target = context("live");
+    target.teams[0].opponent = opponents[0];
+    const rows = Array.from({ length: 20 }, (_, i) =>
+      game({
+        gameId: `parity-${i}`,
+        season: 2024,
+        date: `2024-11-${String(i + 1).padStart(2, "0")}`,
+        opponent: opponents[i < 15 ? i % 3 : 3],
+        metrics: { ...emptyMeasurements(), rushingYards: i < 15 ? 100 : 250 },
+      }),
+    );
+    const facts = generateFacts(target, rows, [2024, 2025]);
+    assert.equal(facts.length, 1);
+    assert.match(facts[0].id, /(?:odd|even)-names/);
+    assert.equal(facts[0].value, 200);
+  }
+});
+
 test("franchises survive relocations while names and categories follow their era", () => {
   assert.equal(franchise("OAK"), "LV");
   assert.equal(franchise("SD"), "LAC");

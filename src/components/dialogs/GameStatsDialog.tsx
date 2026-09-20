@@ -378,9 +378,7 @@ export function GameStatsDialog({
                   awayColor={awayTeam.primaryColor}
                   homeColor={homeTeam.primaryColor}
                 />
-                {eventId && (
-                  <RidiculousStats key={eventId} eventId={eventId} updatedAt={stats.fetchedAt} />
-                )}
+                {eventId && <RidiculousStats key={eventId} eventId={eventId} />}
               </>
             )}
             {activeTab === "leaders" && (

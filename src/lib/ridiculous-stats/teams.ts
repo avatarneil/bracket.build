@@ -97,18 +97,21 @@ export const OPPONENT_GROUPS = [
   },
   {
     id: "long-names",
+    wordplay: true,
     label: "against opponents with nicknames of at least eight letters",
     matches: (id: string, season: number) =>
       nickname(id, season).replace(/[^a-z]/gi, "").length >= 8,
   },
   {
     id: "even-names",
+    wordplay: true,
     label: "against opponents with an even number of letters in their nickname",
     matches: (id: string, season: number) =>
       nickname(id, season).replace(/[^a-z]/gi, "").length % 2 === 0,
   },
   {
     id: "odd-names",
+    wordplay: true,
     label: "against opponents with an odd number of letters in their nickname",
     matches: (id: string, season: number) =>
       nickname(id, season).replace(/[^a-z]/gi, "").length % 2 === 1,

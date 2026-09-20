@@ -143,6 +143,123 @@ test("switching games cannot show a late response from the previous game", async
   await expect(page.getByText(/Seattle have 200 rushing/)).toHaveCount(0);
 });
 
+test("live box-score polling leaves the insight, receipts, and card height unchanged", async ({
+  page,
+  seedUser: _seedUser,
+  mockEspnApi: _mockEspnApi,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.clock.install();
+  await page.route("**/api/schedule**", (route) => route.fulfill({ json: mockPreseasonSchedule }));
+  let boxscoreCalls = 0;
+  await page.route("**/api/game-stats/**", (route) => {
+    boxscoreCalls++;
+    return route.fulfill({
+      json: {
+        ...mockGameBoxscore,
+        eventId: game.id,
+        isComplete: false,
+        isInProgress: true,
+        fetchedAt: 1756000000000 + boxscoreCalls * 10_000,
+        teamStats: {
+          ...mockGameBoxscore.teamStats,
+          home: { ...mockGameBoxscore.teamStats.home, totalYards: 385 + boxscoreCalls },
+        },
+      },
+    });
+  });
+  let insightCalls = 0;
+  await page.route("**/api/ridiculous-stats/**", (route) => {
+    insightCalls++;
+    return route.fulfill({ json: response() });
+  });
+  await page.goto("/");
+  await page.getByTestId(`live-dashboard-game-${game.id}`).click();
+  const card = page.getByRole("region", { name: "Ridiculous stats" });
+  await card.getByRole("button", { name: "Generate ridiculous stat" }).click();
+  await card.getByRole("button", { name: "Show the receipts" }).click();
+  await card.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(card.getByText("Opponent 11", { exact: true })).toBeVisible();
+  const text = await card.innerText();
+  const height = (await card.boundingBox())!.height;
+  const initialBoxscoreCalls = boxscoreCalls;
+  await page.clock.runFor(10_000);
+  await expect.poll(() => boxscoreCalls).toBeGreaterThan(initialBoxscoreCalls);
+  await expect(
+    page.getByRole("tabpanel").getByText(String(385 + boxscoreCalls), { exact: true }),
+  ).toBeVisible();
+  await page.clock.runFor(100);
+  expect(insightCalls).toBe(1);
+  expect(await card.innerText()).toBe(text);
+  expect((await card.boundingBox())!.height).toBe(height);
+  await expect(card.getByRole("button", { name: "Another ridiculous stat" })).toBeEnabled();
+});
+
+test("another insight keeps the previous snapshot visible while loading and after a failed request", async ({
+  page,
+  seedUser: _seedUser,
+  mockEspnApi: _mockEspnApi,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.route("**/api/schedule**", (route) => route.fulfill({ json: mockPreseasonSchedule }));
+  let calls = 0;
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/ridiculous-stats/**", async (route) => {
+    calls++;
+    if (calls === 2) {
+      await gate;
+      return route.fulfill({ status: 503, json: { error: "Unavailable" } });
+    }
+    return route.fulfill({ json: response(game.id, calls === 1 ? 0 : 1) });
+  });
+  await page.goto("/");
+  await page.getByTestId(`live-dashboard-game-${game.id}`).click();
+  const card = page.getByRole("region", { name: "Ridiculous stats" });
+  await card.getByRole("button", { name: "Generate ridiculous stat" }).click();
+  const another = card.getByRole("button", { name: "Another ridiculous stat" });
+  await expect(another).toBeEnabled();
+  const height = (await card.boundingBox())!.height;
+  await another.click();
+  await expect.poll(() => calls).toBe(2);
+  await expect(another).toBeDisabled();
+  await expect(card.getByText(/Seattle have 200 rushing/)).toBeVisible();
+  await expect(card.getByText("Checking the history books…")).toHaveCount(0);
+  expect((await card.boundingBox())!.height).toBe(height);
+  release();
+  await expect(card.getByText(/temporarily unavailable/)).toBeVisible();
+  await expect(card.getByText(/Seattle have 200 rushing/)).toBeVisible();
+  await card.getByRole("button", { name: "Try again" }).click();
+  await expect(card.getByText(/Seattle recorded five field goals/)).toBeVisible();
+});
+
+test("a single-result game can fetch an updated snapshot on demand", async ({
+  page,
+  seedUser: _seedUser,
+  mockEspnApi: _mockEspnApi,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.route("**/api/schedule**", (route) => route.fulfill({ json: mockPreseasonSchedule }));
+  let calls = 0;
+  await page.route("**/api/ridiculous-stats/**", (route) => {
+    calls++;
+    const result = response();
+    result.count = 1;
+    result.fact!.text = calls === 1 ? "First snapshot." : "Updated snapshot.";
+    return route.fulfill({ json: result });
+  });
+  await page.goto("/");
+  await page.getByTestId(`live-dashboard-game-${game.id}`).click();
+  const card = page.getByRole("region", { name: "Ridiculous stats" });
+  await card.getByRole("button", { name: "Generate ridiculous stat" }).click();
+  await expect(card.getByText("First snapshot.", { exact: true })).toBeVisible();
+  await card.getByRole("button", { name: "Another ridiculous stat" }).click();
+  await expect(card.getByText("Updated snapshot.", { exact: true })).toBeVisible();
+  expect(calls).toBe(2);
+});
+
 for (const width of [390, 1194, 2560]) {
   test(`ridiculous stats and receipts fit a ${width}px viewport`, async ({
     page,

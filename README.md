@@ -99,9 +99,11 @@ Local storage integration tests run when `TEST_DATABASE_URL` points to a migrate
 Open a game's **Stats** tab and choose **Generate ridiculous stat**. The feature
 searches 20 team metrics across opponent nickname categories, month, weekday, and
 home/away/neutral location, plus the exact opponent and overall team history.
-Every claim starts with a measured total from the selected game. First-since
-comparisons take priority, including rare low totals in completed games, followed
-by records and ties. There is no standalone historical-trivia fallback or LLM.
+Every claim starts with a measured total from the selected game. Football-context
+comparisons take priority, with first-since claims ahead of records and ties,
+including rare low totals in completed games. Letter-count categories share at
+most one result per game, shown after the other comparisons. There is no standalone
+historical-trivia fallback or LLM.
 Before kickoff or without a supported comparison, the feature shows an empty
 state. **Show the receipts** lists every earlier
 comparison game, with pagination, metric values, dates, and ESPN links.
@@ -137,6 +139,9 @@ means the team nickname, not the costumed mascot; Buffalo's Bills are not includ
 ESPN supplies live context. Its missing values stay null in the comparison engine,
 and live claims say "so far" and compare against completed games. Missing current
 values cannot trigger claims, and low-total claims wait until the game is final.
+Generated insights stay at their labeled snapshot time while the box score polls;
+choose **Another ridiculous stat** to fetch a new snapshot. The existing insight
+stays visible while that request loads.
 Touchdowns, field goals, and punts come from ESPN's explicit team totals in the
 player-stat groups; missing totals are never inferred as zero. First-since claims
 require a complete comparison set of at least ten games and at least five

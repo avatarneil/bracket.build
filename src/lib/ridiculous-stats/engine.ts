@@ -10,7 +10,12 @@ import {
 
 export const MIN_COMPARISONS = 10;
 const MIN_INTERVENING_GAMES = 5;
-type Filter = { id: string; label: string; matches: (game: TeamGame) => boolean };
+type Filter = {
+  id: string;
+  label: string;
+  wordplay?: boolean;
+  matches: (game: TeamGame) => boolean;
+};
 
 function filterSets(target: TeamGame): Filter[][] {
   const month = target.date.slice(5, 7);
@@ -67,7 +72,7 @@ export function generateFacts(
 ): RidiculousFact[] {
   // Every claim must be triggered by a measured performance in this game.
   if (context.status === "pre") return [];
-  const ranked: Array<RidiculousFact & { score: number }> = [];
+  const ranked: Array<RidiculousFact & { score: number; wordplay: boolean }> = [];
   const seasons = new Set(importedSeasons);
   for (const target of context.teams) {
     // Require a continuous archive through the selected game's season. A partial
@@ -100,6 +105,7 @@ export function generateFacts(
         const label = METRICS[metric];
         const number = (n: number) => new Intl.NumberFormat("en-US").format(n);
         const base = {
+          wordplay: filters.some((f) => f.wordplay),
           metric,
           metricLabel: label,
           team: name,
@@ -159,30 +165,42 @@ export function generateFacts(
       }
     }
   }
-  // Prefer first-since claims, then variety. Equivalent cohorts should not
-  // yield the same fact with a different redundant adjective on every click.
+  // Prefer football context over letter counts, then first-since claims.
+  // Sort before deduplicating so equivalent cohorts keep the natural label.
   ranked.sort(
     (a, b) =>
+      Number(a.wordplay) - Number(b.wordplay) ||
       Number(b.kind === "since") - Number(a.kind === "since") ||
       b.score - a.score ||
       a.id.localeCompare(b.id),
   );
   const seen = new Set<string>();
+  let includedWordplay = false;
   const facts = ranked.filter((fact) => {
     const key = `${fact.team}:${fact.metric}:${fact.kind}:${fact.receipts.map((r) => r.gameId).join(",")}`;
     if (seen.has(key)) return false;
     seen.add(key);
+    // Odd/even and long nicknames share one slot across both teams and all
+    // metrics. Keep that slot even when it is the game's only supported fact.
+    if (fact.wordplay) {
+      if (includedWordplay) return false;
+      includedWordplay = true;
+    }
     return true;
   });
   const result: RidiculousFact[] = [];
   while (facts.length) {
     const last = result.at(-1);
-    // Variety must not pull a record ahead of the remaining first-since claims.
+    // Team/metric variety must respect the category and claim priorities.
     const different = facts.findIndex(
-      (f) => f.kind === facts[0].kind && f.metric !== last?.metric && f.team !== last?.team,
+      (f) =>
+        f.wordplay === facts[0].wordplay &&
+        f.kind === facts[0].kind &&
+        f.metric !== last?.metric &&
+        f.team !== last?.team,
     );
     const [fact] = facts.splice(Math.max(0, different), 1);
-    const { score: _score, ...publicFact } = fact;
+    const { score: _score, wordplay: _wordplay, ...publicFact } = fact;
     result.push(publicFact);
   }
   return result;
