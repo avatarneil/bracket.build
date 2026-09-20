@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { buildSeason, parseSchedule, seasonHash } from "./import";
-import { espnHistoryContext } from "./espn";
+import { espnHistoryContext, type EspnHistorySummary } from "./espn";
 
 const scheduleText = readFileSync(new URL("./fixtures/schedule.csv", import.meta.url), "utf8");
 const stats = readFileSync(new URL("./fixtures/stats.csv", import.meta.url), "utf8");
@@ -93,4 +93,60 @@ test("ESPN maps defensive stats from the opponent and keeps missing values null"
   assert.equal(context.teams[0].metrics.fieldGoals, null);
   data.header.season.type = 1;
   assert.equal(espnHistoryContext(data, "123", 1), null);
+});
+
+test("ESPN live team totals supply touchdowns, kicking and punting by key", () => {
+  const data: EspnHistorySummary = JSON.parse(
+    readFileSync(new URL("./fixtures/espn-live.json", import.meta.url), "utf8"),
+  );
+  const context = espnHistoryContext(data, "401872943", 1)!;
+  const ari = context.teams.find((t) => t.team === "ARI")!.metrics;
+  const sea = context.teams.find((t) => t.team === "SEA")!.metrics;
+  assert.equal(context.status, "live");
+  assert.equal(ari.punts, 5);
+  assert.equal(sea.passingTouchdowns, 2);
+  assert.equal(sea.rushingTouchdowns, 0);
+  assert.equal(sea.fieldGoals, 0);
+  assert.equal(ari.rushingYards, null); // No team box score in this fixture.
+  for (const team of data.boxscore!.players!) {
+    for (const group of team.statistics) {
+      // Column order follows keys, not hard-coded offsets.
+      if (group.name !== "passing") {
+        group.keys.reverse();
+        group.totals?.reverse();
+      }
+    }
+  }
+  assert.deepEqual(espnHistoryContext(data, "401872943", 1), context);
+});
+
+test("absent or invalid ESPN player-group totals stay unknown, including before kickoff", () => {
+  const data: EspnHistorySummary = JSON.parse(
+    readFileSync(new URL("./fixtures/espn-live.json", import.meta.url), "utf8"),
+  );
+  for (const team of data.boxscore!.players!) {
+    for (const group of team.statistics) group.totals = [];
+  }
+  const metrics = espnHistoryContext(data, "401872943", 1)!.teams[0].metrics;
+  for (const key of [
+    "passingTouchdowns",
+    "rushingTouchdowns",
+    "fieldGoals",
+    "punts",
+    "puntYards",
+  ] as const)
+    assert.equal(metrics[key], null);
+  const kicking = data.boxscore!.players![0].statistics.find((g) => g.name === "kicking")!;
+  kicking.totals = ["3/2"];
+  assert.equal(
+    espnHistoryContext(data, "401872943", 1)!.teams.find((t) => t.team === "SEA")!.metrics
+      .fieldGoals,
+    null,
+  );
+  data.header!.competitions![0].status.type.state = "pre";
+  assert.ok(
+    espnHistoryContext(data, "401872943", 1)!.teams.every((t) =>
+      Object.values(t.metrics).every((v) => v === null),
+    ),
+  );
 });

@@ -1,0 +1,149 @@
+{
+  "header": {
+    "season": {
+      "year": 2026,
+      "type": 2
+    },
+    "competitions": [
+      {
+        "date": "2026-09-20T20:25Z",
+        "competitors": [
+          {
+            "homeAway": "home",
+            "team": {
+              "abbreviation": "ARI"
+            },
+            "score": "7"
+          },
+          {
+            "homeAway": "away",
+            "team": {
+              "abbreviation": "SEA"
+            },
+            "score": "14"
+          }
+        ],
+        "status": {
+          "type": {
+            "state": "in",
+            "completed": false
+          }
+        }
+      }
+    ]
+  },
+  "boxscore": {
+    "players": [
+      {
+        "team": {
+          "abbreviation": "SEA"
+        },
+        "statistics": [
+          {
+            "name": "passing",
+            "keys": [
+              "completions/passingAttempts",
+              "passingYards",
+              "yardsPerPassAttempt",
+              "passingTouchdowns",
+              "interceptions",
+              "sacks-sackYardsLost",
+              "adjQBR",
+              "QBRating"
+            ],
+            "totals": ["13/19", "182", "10.4", "2", "0", "1-16", "137.6"]
+          },
+          {
+            "name": "rushing",
+            "keys": [
+              "rushingAttempts",
+              "rushingYards",
+              "yardsPerRushAttempt",
+              "rushingTouchdowns",
+              "longRushing"
+            ],
+            "totals": ["19", "71", "3.7", "0", "25"]
+          },
+          {
+            "name": "kicking",
+            "keys": [
+              "fieldGoalsMade/fieldGoalAttempts",
+              "fieldGoalPct",
+              "longFieldGoalMade",
+              "extraPointsMade/extraPointAttempts",
+              "totalKickingPoints"
+            ],
+            "totals": ["0/0", "0.0", "0", "2/2", "2"]
+          },
+          {
+            "name": "punting",
+            "keys": [
+              "punts",
+              "puntYards",
+              "grossAvgPuntYards",
+              "touchbacks",
+              "puntsInside20",
+              "longPunt"
+            ],
+            "totals": ["2", "93", "46.5", "0", "1", "51"]
+          }
+        ]
+      },
+      {
+        "team": {
+          "abbreviation": "ARI"
+        },
+        "statistics": [
+          {
+            "name": "passing",
+            "keys": [
+              "completions/passingAttempts",
+              "passingYards",
+              "yardsPerPassAttempt",
+              "passingTouchdowns",
+              "interceptions",
+              "sacks-sackYardsLost",
+              "adjQBR",
+              "QBRating"
+            ],
+            "totals": ["13/22", "68", "3.4", "1", "1", "1-7", "61.7"]
+          },
+          {
+            "name": "rushing",
+            "keys": [
+              "rushingAttempts",
+              "rushingYards",
+              "yardsPerRushAttempt",
+              "rushingTouchdowns",
+              "longRushing"
+            ],
+            "totals": ["13", "42", "3.2", "0", "9"]
+          },
+          {
+            "name": "kicking",
+            "keys": [
+              "fieldGoalsMade/fieldGoalAttempts",
+              "fieldGoalPct",
+              "longFieldGoalMade",
+              "extraPointsMade/extraPointAttempts",
+              "totalKickingPoints"
+            ],
+            "totals": ["0/0", "0.0", "0", "1/1", "1"]
+          },
+          {
+            "name": "punting",
+            "keys": [
+              "punts",
+              "puntYards",
+              "grossAvgPuntYards",
+              "touchbacks",
+              "puntsInside20",
+              "longPunt"
+            ],
+            "totals": ["5", "206", "41.2", "0", "3", "49"]
+          }
+        ]
+      }
+    ]
+  }
+}

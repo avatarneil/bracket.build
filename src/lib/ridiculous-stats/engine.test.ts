@@ -42,7 +42,7 @@ test("generates supported records, ordered receipts, and honest ties", () => {
   assert.equal(fact.receipts[0].date, "2024-11-15");
   assert.match(fact.text, /from the 2024 season/);
   assert.match(fact.text, /200 rushing yards against Philadelphia Eagles in this game/);
-  rows[0].metrics.rushingYards = 200;
+  rows.at(-1)!.metrics.rushingYards = 200;
   facts = generateFacts(context(), rows, [2024, 2025]);
   assert.match(facts.find((f) => f.kind === "record")!.text, /tied for the most/);
 });
@@ -104,6 +104,21 @@ test("first-since uses the latest equal-or-higher game and enough intervening ga
   assert.match(since.text, /at least 200 rushing yards/);
   assert.match(since.text, /since Nov 1, 2020 against Philadelphia Eagles/);
   assert.equal(since.value, 200);
+});
+
+test("first-since can find a same-season occurrence after five qualifying games", () => {
+  const rows = history().map((g) => ({
+    ...g,
+    season: 2025,
+    date: g.date.replace("2024", "2025"),
+  }));
+  rows[9].metrics.rushingYards = 250;
+  const facts = generateFacts(context("live"), rows, [2025]);
+  assert.ok(facts.length);
+  assert.match(facts[0].text, /so far.*since Nov 10, 2025/);
+  // Four intervening games are still too few, regardless of the calendar gap.
+  rows[10].metrics.rushingYards = 200;
+  assert.deepEqual(generateFacts(context("live"), rows, [2025]), []);
 });
 
 test("ordinary or missing current totals never fall back to unrelated historical records", () => {

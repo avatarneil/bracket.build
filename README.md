@@ -109,7 +109,8 @@ comparison game, with pagination, metric values, dates, and ESPN links.
 Historical data comes from [nflverse team stats](https://nflreadr.nflverse.com/reference/load_team_stats.html)
 and [nflverse schedules](https://nflreadr.nflverse.com/reference/load_schedules.html).
 The two small CSV test fixtures are excerpts of those sources for the 2025
-Arizona–New Orleans game. The archive covers regular-season and postseason games
+Arizona–New Orleans game. The ESPN JSON fixture contains team totals from the
+live Seattle–Arizona game on September 20, 2026. The archive covers regular-season and postseason games
 from 1999; preseason is not included. Source data remain subject to their owners'
 [terms](https://nflverse.nflverse.com/#terms-of-use).
 
@@ -136,8 +137,11 @@ means the team nickname, not the costumed mascot; Buffalo's Bills are not includ
 ESPN supplies live context. Its missing values stay null in the comparison engine,
 and live claims say "so far" and compare against completed games. Missing current
 values cannot trigger claims, and low-total claims wait until the game is final.
-First-since claims require at least ten intervening qualifying games and a gap
-of at least three seasons. After import, completed games use
+Touchdowns, field goals, and punts come from ESPN's explicit team totals in the
+player-stat groups; missing totals are never inferred as zero. First-since claims
+require a complete comparison set of at least ten games and at least five
+intervening qualifying games. They can describe recent occurrences within the
+same season. After import, completed games use
 the same corrected nflverse metrics as their historical comparison games. Games
 on the current Eastern date stay provisional until a later import. Archive
 updates also pick up nflverse's subsequent stat corrections.

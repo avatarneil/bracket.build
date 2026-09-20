@@ -176,6 +176,7 @@ interface ESPNBoxscorePlayers {
 interface ESPNPlayerStatCategory {
   name: string;
   keys: string[];
+  totals?: string[];
   labels: string[];
   descriptions: string[];
   athletes: ESPNAthlete[];

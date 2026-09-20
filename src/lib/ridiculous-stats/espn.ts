@@ -6,6 +6,11 @@ interface EspnStatsTeam {
   statistics: Array<{ name: string; displayValue: string }>;
 }
 
+interface EspnPlayerTotals {
+  team: { abbreviation: string };
+  statistics: Array<{ name: string; keys: string[]; totals?: string[] }>;
+}
+
 export interface EspnHistorySummary {
   header?: {
     season?: { year: number; type: number };
@@ -20,7 +25,7 @@ export interface EspnHistorySummary {
       status: { type: { state: "pre" | "in" | "post"; completed: boolean } };
     }>;
   };
-  boxscore?: { teams?: EspnStatsTeam[] };
+  boxscore?: { teams?: EspnStatsTeam[]; players?: EspnPlayerTotals[] };
 }
 
 function number(value: string | undefined): number | null {
@@ -36,6 +41,7 @@ function stat(team: EspnStatsTeam | undefined, key: string) {
 function measurements(
   own: EspnStatsTeam | undefined,
   opponent: EspnStatsTeam | undefined,
+  players: EspnPlayerTotals | undefined,
 ): Measurements {
   const values = emptyMeasurements();
   const ownStat = (key: string) => number(stat(own, key));
@@ -60,6 +66,21 @@ function measurements(
     values.completions = Number(passing[1]);
     values.passingAttempts = Number(passing[2]);
   }
+  // Read explicit team totals, never sum player rows or treat absent groups as zero.
+  const total = (group: string, key: string) => {
+    const category = players?.statistics.find((s) => s.name === group);
+    const index = category?.keys.indexOf(key) ?? -1;
+    return index < 0 ? undefined : category?.totals?.[index];
+  };
+  values.passingTouchdowns = number(total("passing", "passingTouchdowns"));
+  values.rushingTouchdowns = number(total("rushing", "rushingTouchdowns"));
+  values.punts = number(total("punting", "punts"));
+  values.puntYards = number(total("punting", "puntYards"));
+  const fieldGoals = total("kicking", "fieldGoalsMade/fieldGoalAttempts")?.match(
+    /^(\d+)[/-](\d+)$/,
+  );
+  if (fieldGoals && Number(fieldGoals[1]) <= Number(fieldGoals[2]))
+    values.fieldGoals = Number(fieldGoals[1]);
   return values;
 }
 
@@ -96,7 +117,14 @@ export function espnHistoryContext(
         ? "live"
         : "pre";
     const team = (id: string, opponent: string, side: "home" | "away") => {
-      const metrics = status === "pre" ? emptyMeasurements() : measurements(box(id), box(opponent));
+      const metrics =
+        status === "pre"
+          ? emptyMeasurements()
+          : measurements(
+              box(id),
+              box(opponent),
+              data.boxscore?.players?.find((t) => franchise(t.team.abbreviation) === id),
+            );
       if (status !== "pre") {
         metrics.points = number(side === "home" ? home.score : away.score);
         metrics.pointsAllowed = number(side === "home" ? away.score : home.score);

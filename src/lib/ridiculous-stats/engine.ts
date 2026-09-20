@@ -9,6 +9,7 @@ import {
 } from "./types";
 
 export const MIN_COMPARISONS = 10;
+const MIN_INTERVENING_GAMES = 5;
 type Filter = { id: string; label: string; matches: (game: TeamGame) => boolean };
 
 function filterSets(target: TeamGame): Filter[][] {
@@ -125,7 +126,7 @@ export function generateFacts(
           const last = cohort.findIndex((g) =>
             direction === "high" ? g.metrics[metric]! >= value : g.metrics[metric]! <= value,
           );
-          if (last < MIN_COMPARISONS || target.season - cohort[last].season < 3) continue;
+          if (last < MIN_INTERVENING_GAMES) continue;
           const previous = cohort[last];
           ranked.push({
             ...base,
