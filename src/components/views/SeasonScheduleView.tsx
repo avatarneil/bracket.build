@@ -74,7 +74,7 @@ export function SeasonScheduleView({
   return (
     <section
       data-testid="season-schedule"
-      className="w-full max-w-2xl xl:flex xl:min-h-0 xl:flex-col"
+      className="w-full max-w-2xl dashboard:flex dashboard:min-h-0 dashboard:flex-col"
       aria-labelledby="schedule-title"
     >
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -144,7 +144,7 @@ export function SeasonScheduleView({
         </div>
       ) : (
         <ul
-          className="divide-y divide-gray-800 overflow-hidden rounded-xl bg-gray-900 xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:overscroll-contain"
+          className="divide-y divide-gray-800 overflow-hidden rounded-xl bg-gray-900 dashboard:min-h-0 dashboard:flex-1 dashboard:overflow-y-auto dashboard:overscroll-contain"
           aria-live="polite"
         >
           {schedule.games.map((game) => (

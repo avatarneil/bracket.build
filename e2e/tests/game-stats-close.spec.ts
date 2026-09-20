@@ -1,7 +1,7 @@
 import { expect, test } from "../fixtures/test-fixtures";
 import { mockPreseasonSchedule } from "../fixtures/mock-data";
 
-for (const width of [390, 1440, 2560]) {
+for (const width of [390, 834, 1152, 1194, 1210, 1440, 2560]) {
   test(`close control stays clear of team logos at ${width}px`, async ({
     page,
     seedUser: _seedUser,
@@ -12,14 +12,14 @@ for (const width of [390, 1440, 2560]) {
       route.fulfill({ json: mockPreseasonSchedule }),
     );
     await page.goto("/");
-    if (width >= 1280) {
+    if (width >= 1152) {
       await page.getByTestId("live-dashboard-game-401873297").click();
     } else {
       await page
         .getByRole("button", { name: "View live updates for Seattle Seahawks at Tennessee Titans" })
         .click();
     }
-    const details = page.getByTestId(width >= 1280 ? "game-stats-panel" : "game-stats-dialog");
+    const details = page.getByTestId(width >= 1152 ? "game-stats-panel" : "game-stats-dialog");
     const close = details.getByRole("button", { name: "Close", exact: true });
     await expect(close).toBeVisible();
     // Wait for the dialog entrance scale animation before measuring targets.

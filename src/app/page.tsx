@@ -55,7 +55,8 @@ function BracketApp() {
   }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 1280px)");
+    // Match --breakpoint-dashboard in globals.css, including landscape 11-inch iPads.
+    const mediaQuery = window.matchMedia("(min-width: 72rem)");
     const updateLayout = () => setIsWideScheduleLayout(mediaQuery.matches);
     updateLayout();
     mediaQuery.addEventListener("change", updateLayout);
@@ -109,7 +110,7 @@ function BracketApp() {
         className={cn(
           "min-h-screen overflow-x-clip bg-black px-3 pt-4 sm:px-4 sm:py-8 md:px-6 md:pt-6 lg:pb-8",
           showBracket && viewMode === "bracket" ? "pb-28 md:pb-32" : "pb-10 md:pb-12",
-          !isPostseason && "xl:py-6",
+          !isPostseason && "dashboard:py-6",
         )}
       >
         {/* Use inline-flex wrapper to let content determine its own width and center it */}
@@ -117,7 +118,7 @@ function BracketApp() {
           className={cn(
             "flex w-full justify-center overflow-x-hidden",
             !isPostseason &&
-              "xl:grid xl:grid-cols-[minmax(420px,500px)_minmax(0,1fr)] xl:items-start xl:gap-6 xl:overflow-visible",
+              "dashboard:grid dashboard:grid-cols-[minmax(420px,500px)_minmax(0,1fr)] dashboard:items-start dashboard:gap-6 dashboard:overflow-visible",
           )}
         >
           <div
@@ -126,7 +127,7 @@ function BracketApp() {
               "max-w-full flex-col items-center overflow-x-hidden",
               showBracket ? "inline-flex" : "flex w-full",
               !isPostseason &&
-                "xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] xl:overflow-hidden xl:rounded-2xl xl:border xl:border-gray-800 xl:bg-gray-950 xl:px-5 xl:pb-5 xl:pt-4",
+                "dashboard:sticky dashboard:top-6 dashboard:h-[calc(100vh-3rem)] dashboard:overflow-hidden dashboard:rounded-2xl dashboard:border dashboard:border-gray-800 dashboard:bg-gray-950 dashboard:px-5 dashboard:pb-5 dashboard:pt-4",
             )}
           >
             {/* Header - scales with viewport, larger on tablets */}
@@ -184,7 +185,7 @@ function BracketApp() {
 
             {/* Main Content */}
             {!isPostseason ? (
-              <div className="mt-5 flex w-full justify-center sm:mt-6 xl:min-h-0 xl:flex-1 xl:items-stretch">
+              <div className="mt-5 flex w-full justify-center sm:mt-6 dashboard:min-h-0 dashboard:flex-1 dashboard:items-stretch">
                 <SeasonScheduleView
                   schedule={visibleSchedule}
                   isLoading={isLoadingSchedule}
@@ -233,7 +234,7 @@ function BracketApp() {
             <aside
               data-testid="live-details-column"
               aria-label="Live games dashboard"
-              className="hidden xl:block"
+              className="hidden dashboard:block"
             >
               <LiveGamesDashboard schedule={visibleSchedule} />
             </aside>
