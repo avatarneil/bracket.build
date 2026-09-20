@@ -98,8 +98,12 @@ Local storage integration tests run when `TEST_DATABASE_URL` points to a migrate
 
 Open a game's **Stats** tab and choose **Generate ridiculous stat**. The feature
 searches 20 team metrics across opponent nickname categories, month, weekday, and
-home/away/neutral location. It produces records, ties, first-since comparisons,
-and pregame history without an LLM. **Show the receipts** lists every earlier
+home/away/neutral location, plus the exact opponent and overall team history.
+Every claim starts with a measured total from the selected game. First-since
+comparisons take priority, including rare low totals in completed games, followed
+by records and ties. There is no standalone historical-trivia fallback or LLM.
+Before kickoff or without a supported comparison, the feature shows an empty
+state. **Show the receipts** lists every earlier
 comparison game, with pagination, metric values, dates, and ESPN links.
 
 Historical data comes from [nflverse team stats](https://nflreadr.nflverse.com/reference/load_team_stats.html)
@@ -130,8 +134,10 @@ nickname classifications and display names use the season's identity. "Animal"
 means the team nickname, not the costumed mascot; Buffalo's Bills are not included.
 
 ESPN supplies live context. Its missing values stay null in the comparison engine,
-and live claims say "so far" and compare against completed games. Fields absent
-from ESPN can still produce historical facts. After import, completed games use
+and live claims say "so far" and compare against completed games. Missing current
+values cannot trigger claims, and low-total claims wait until the game is final.
+First-since claims require at least ten intervening qualifying games and a gap
+of at least three seasons. After import, completed games use
 the same corrected nflverse metrics as their historical comparison games. Games
 on the current Eastern date stay provisional until a later import. Archive
 updates also pick up nflverse's subsequent stat corrections.

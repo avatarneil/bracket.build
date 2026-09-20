@@ -8,17 +8,17 @@ function response(eventId = game.id, index = 0): RidiculousResponse {
     eventId,
     count: 2,
     index,
-    live: true,
+    live: index === 0,
     asOf: 1756000000000,
     fact: {
       id: `fact-${index}`,
-      kind: "record",
+      kind: index ? "since" : "record",
       metric: index ? "fieldGoals" : "rushingYards",
       metricLabel: index ? "field goals made" : "rushing yards",
       value: index ? 5 : 200,
       team: "Seattle Seahawks",
       text: index
-        ? "Seattle recorded five field goals against bird-named opponents."
+        ? "Seattle recorded five field goals in this game — their first with at least five against bird-named opponents since November 1, 2020."
         : "Seattle have 200 rushing yards so far against animal-named opponents.",
       filters: ["regular-season games", "against animal-named opponents"],
       sampleSize: 12,
@@ -67,6 +67,7 @@ test("generates on demand, shows receipts, paginates, and restores URL state", a
   await expect(card.getByText("Opponent 11", { exact: true })).toBeVisible();
   await card.getByRole("button", { name: "Another ridiculous stat" }).click();
   await expect(card.getByText(/Seattle recorded five field goals/)).toBeVisible();
+  await expect(card.getByText(/First since/)).toBeVisible();
   await expect(card.getByRole("table")).toHaveCount(0);
 });
 

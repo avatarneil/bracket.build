@@ -31,6 +31,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ even
       return empty(
         "Historical comparisons cover regular-season and playoff games from 1999 onward. Try another game.",
       );
+    if (context.status === "pre")
+      return empty("Game-specific comparisons start after kickoff. Check back once play begins.");
     const { history, imports, target } = await loadHistoricalComparison(
       eventId,
       context.teams.map((t) => t.team),
@@ -59,7 +61,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ even
     );
     if (!facts.length)
       return empty(
-        "No well-supported ridiculous stat for this game yet. Try another game or check back after the archive updates.",
+        "This game’s stats don’t support a rare historical comparison yet. Try another game or check back as play continues and the archive updates.",
       );
     const index = Number(rawIndex) % facts.length;
     return NextResponse.json(

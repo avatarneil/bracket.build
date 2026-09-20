@@ -57,7 +57,7 @@ export interface Receipt {
 export interface RidiculousFact {
   id: string;
   text: string;
-  kind: "record" | "since" | "history";
+  kind: "record" | "since";
   metric: Metric;
   metricLabel: string;
   value: number;

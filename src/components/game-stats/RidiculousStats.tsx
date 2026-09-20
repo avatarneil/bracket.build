@@ -110,7 +110,7 @@ export function RidiculousStats({ eventId, updatedAt }: { eventId: string; updat
       </div>
       {index == null && (
         <p className="mb-4 text-sm leading-relaxed text-gray-300">
-          Real football history. Unnecessarily specific comparisons.
+          What makes this game unusual? Compare its stats with real football history.
         </p>
       )}
       <div aria-live="polite" aria-atomic="true" aria-busy={loading}>
@@ -122,11 +122,7 @@ export function RidiculousStats({ eventId, updatedAt }: { eventId: string; updat
             <p className="mb-3 break-words text-base leading-relaxed text-white">{fact.text}</p>
             <p className="mb-4 text-xs leading-relaxed text-gray-300">
               {new Intl.NumberFormat("en-US").format(fact.sampleSize)} earlier games checked ·{" "}
-              {fact.kind === "history"
-                ? "Matchup history"
-                : data?.live
-                  ? "Live snapshot"
-                  : "Game stat"}
+              {data?.live ? "Live snapshot" : fact.kind === "since" ? "First since" : "Game record"}
               {data?.live && (
                 <>
                   {" "}

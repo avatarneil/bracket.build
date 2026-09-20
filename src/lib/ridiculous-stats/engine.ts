@@ -36,16 +36,25 @@ function filterSets(target: TeamGame): Filter[][] {
       matches: (g) => new Date(`${g.date}T12:00:00Z`).getUTCDay() === weekday,
     },
   ];
-  return OPPONENT_GROUPS.filter((group) => group.matches(target.opponent, target.season)).flatMap(
-    (group) => {
-      const base: Filter = { ...group, matches: (g) => group.matches(g.opponent, g.season) };
-      return [
-        [base],
-        ...modifiers.map((modifier) => [base, modifier]),
-        [base, modifiers[0], modifiers[1]],
-      ];
+  const opponents: Filter[] = [
+    {
+      id: `opponent-${target.opponent}`,
+      label: `against ${teamName(target.opponent, target.season)}`,
+      matches: (g) => g.opponent === target.opponent,
     },
-  );
+    ...OPPONENT_GROUPS.filter((group) => group.matches(target.opponent, target.season)).map(
+      (group) => ({ ...group, matches: (g: TeamGame) => group.matches(g.opponent, g.season) }),
+    ),
+  ];
+  return [
+    [],
+    ...modifiers.map((modifier) => [modifier]),
+    ...opponents.flatMap((opponent) => [
+      [opponent],
+      ...modifiers.map((modifier) => [opponent, modifier]),
+      [opponent, modifiers[0], modifiers[1]],
+    ]),
+  ];
 }
 
 /** Only evidence present in the supplied archive can support a claim. Missing
@@ -55,6 +64,8 @@ export function generateFacts(
   history: TeamGame[],
   importedSeasons: number[],
 ): RidiculousFact[] {
+  // Every claim must be triggered by a measured performance in this game.
+  if (context.status === "pre") return [];
   const ranked: Array<RidiculousFact & { score: number }> = [];
   const seasons = new Set(importedSeasons);
   for (const target of context.teams) {
@@ -77,13 +88,14 @@ export function generateFacts(
         .filter((g) => filters.every((f) => f.matches(g)))
         .sort((a, b) => b.date.localeCompare(a.date));
       if (cohort.length < MIN_COMPARISONS) continue;
-      const scope = filters.map((f) => f.label).join(" ");
+      const scope = filters.length ? ` ${filters.map((f) => f.label).join(" ")}` : "";
       for (const metric of Object.keys(METRICS) as Metric[]) {
+        const value = target.metrics[metric];
+        if (value == null) continue;
         if (cohort.some((g) => g.metrics[metric] == null)) continue;
         const values = cohort.map((g) => g.metrics[metric]!);
         const max = Math.max(...values);
         const min = Math.min(...values);
-        const value = target.metrics[metric];
         const label = METRICS[metric];
         const number = (n: number) => new Intl.NumberFormat("en-US").format(n);
         const base = {
@@ -105,58 +117,55 @@ export function generateFacts(
         };
         const id = `${target.team}:${metric}:${filters.map((f) => f.id).join(":")}`;
         const score = filters.length * 5 + Math.log2(cohort.length);
-        if (context.status !== "pre" && value != null) {
-          // Yardage can go down during a live game. This is a snapshot claim,
-          // explicitly compared with completed games, never a final record.
-          const achievement = `${name} ${context.status === "live" ? "have" : "recorded"} ${number(value)} ${label}${context.status === "live" ? " so far" : ""}`;
-          const extreme =
-            value >= max && value > 0
-              ? "most"
-              : context.status === "final" && value <= min
-                ? "fewest"
-                : null;
-          const ties = values.filter((n) => n === value).length;
-          if (extreme && ties / cohort.length <= 0.2) {
-            ranked.push({
-              ...base,
-              id: `${id}:record`,
-              kind: "record",
-              value,
-              text: `${achievement} — ${ties ? "tied for the" : "the"} ${extreme} in a ${phase} game ${scope} in our archive from the ${firstSeason} season through this game.`,
-              score: score + 30 + (ties ? 0 : 5),
-            });
-          } else if (value > 0) {
-            const last = cohort.findIndex((g) => g.metrics[metric]! >= value);
-            if (last >= MIN_COMPARISONS && target.season - cohort[last].season >= 3) {
-              ranked.push({
-                ...base,
-                id: `${id}:since`,
-                kind: "since",
-                value,
-                text: `${achievement} — their first ${phase} game with at least that many ${scope} since ${displayDate(cohort[last].date)}.`,
-                score: score + 20 + Math.log2(last),
-              });
-            }
-          }
-        }
-        // Pregame and uneventful games still get a relevant, verifiable fact.
-        if (max > 0) {
-          const record = cohort.find((g) => g.metrics[metric] === max)!;
+        // Even live yardage can go down. Only compare the current snapshot's
+        // highs with completed games; low-total claims must wait for the final.
+        const achievement = `${name} ${context.status === "live" ? "have" : "recorded"} ${number(value)} ${label}${context.status === "live" ? " so far" : ""} against ${teamName(target.opponent, target.season)} in this game`;
+        let hasSince = false;
+        for (const direction of context.status === "final" ? ["high", "low"] : ["high"]) {
+          const last = cohort.findIndex((g) =>
+            direction === "high" ? g.metrics[metric]! >= value : g.metrics[metric]! <= value,
+          );
+          if (last < MIN_COMPARISONS || target.season - cohort[last].season < 3) continue;
+          const previous = cohort[last];
           ranked.push({
             ...base,
-            id: `${id}:history`,
-            kind: "history",
-            value: max,
-            text: `Before this game, ${name}’s highest ${label} total in a ${phase} game ${scope} was ${number(max)} (most recently against ${teamName(record.opponent, record.season)} on ${displayDate(record.date)}), in our archive from the ${firstSeason} season.`,
-            score,
+            id: `${id}:since:${direction}`,
+            kind: "since",
+            value,
+            text: `${achievement} — their first ${phase} game with ${direction === "high" ? "at least" : "at most"} ${number(value)} ${label}${scope} since ${displayDate(previous.date)} against ${teamName(previous.opponent, previous.season)}.`,
+            score: score + 50 + Math.log2(last),
+          });
+          hasSince = true;
+        }
+        const extreme =
+          value >= max && value > 0
+            ? "most"
+            : context.status === "final" && value <= min
+              ? "fewest"
+              : null;
+        const ties = values.filter((n) => n === value).length;
+        // Prefer the more concrete last occurrence over a tied-record restatement.
+        if (!hasSince && extreme && ties / cohort.length <= 0.2) {
+          ranked.push({
+            ...base,
+            id: `${id}:record`,
+            kind: "record",
+            value,
+            text: `${achievement} — ${ties ? "tied for the" : "the"} ${extreme} in a ${phase} game${scope} in our archive from the ${firstSeason} season through this game.`,
+            score: score + 30 + (ties ? 0 : 5),
           });
         }
       }
     }
   }
-  // Prefer actual achievements, then variety. Equivalent cohorts should not
+  // Prefer first-since claims, then variety. Equivalent cohorts should not
   // yield the same fact with a different redundant adjective on every click.
-  ranked.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+  ranked.sort(
+    (a, b) =>
+      Number(b.kind === "since") - Number(a.kind === "since") ||
+      b.score - a.score ||
+      a.id.localeCompare(b.id),
+  );
   const seen = new Set<string>();
   const facts = ranked.filter((fact) => {
     const key = `${fact.team}:${fact.metric}:${fact.kind}:${fact.receipts.map((r) => r.gameId).join(",")}`;
@@ -167,7 +176,10 @@ export function generateFacts(
   const result: RidiculousFact[] = [];
   while (facts.length) {
     const last = result.at(-1);
-    const different = facts.findIndex((f) => f.metric !== last?.metric && f.team !== last?.team);
+    // Variety must not pull a record ahead of the remaining first-since claims.
+    const different = facts.findIndex(
+      (f) => f.kind === facts[0].kind && f.metric !== last?.metric && f.team !== last?.team,
+    );
     const [fact] = facts.splice(Math.max(0, different), 1);
     const { score: _score, ...publicFact } = fact;
     result.push(publicFact);
