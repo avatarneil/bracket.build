@@ -114,13 +114,13 @@ export function SeasonScheduleView({
       className="w-full max-w-2xl dashboard:flex dashboard:min-h-0 dashboard:flex-col"
       aria-labelledby="schedule-title"
     >
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => previousWeek && onSelectWeek(previousWeek.number)}
           disabled={!previousWeek || isLoading}
           aria-label={previousWeek ? `Show ${previousWeek.label}` : "No previous week"}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-gray-900 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-30"
+          className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-gray-900 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-30"
         >
           <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -138,27 +138,16 @@ export function SeasonScheduleView({
             value={schedule.week}
             onChange={(event) => onSelectWeek(Number.parseInt(event.target.value, 10))}
             disabled={isLoading}
-            className="min-h-11 max-w-52 rounded-lg border border-gray-700 bg-gray-900 px-3 text-center text-base font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-60"
+            className="min-h-11 w-full max-w-52 touch-manipulation rounded-lg border border-gray-700 bg-gray-900 px-3 text-center text-base font-bold tabular-nums text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-60"
           >
             {schedule.weeks.map((week) => (
               <option key={week.number} value={week.number}>
-                {week.label}
+                {schedule.phase === "preseason"
+                  ? week.label.replace(/^Preseason /, "")
+                  : week.label}
               </option>
             ))}
           </select>
-          {selectedWeek && (
-            <p className="mt-1 text-sm font-medium text-gray-300">
-              <time dateTime={selectedWeek.startDate}>
-                {formatWeekDate(selectedWeek.startDate)}
-              </time>
-              <span aria-hidden="true"> – </span>
-              <span className="sr-only"> through </span>
-              <time dateTime={selectedWeek.endDate}>{formatWeekDate(selectedWeek.endDate)}</time>
-            </p>
-          )}
-          <p className="text-sm text-gray-400">
-            {schedule.games.length} {schedule.games.length === 1 ? "game" : "games"}
-          </p>
         </div>
 
         <button
@@ -166,10 +155,24 @@ export function SeasonScheduleView({
           onClick={() => nextWeek && onSelectWeek(nextWeek.number)}
           disabled={!nextWeek || isLoading}
           aria-label={nextWeek ? `Show ${nextWeek.label}` : "No next week"}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-gray-900 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-30"
+          className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-gray-900 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-30"
         >
           <ChevronRight className="h-5 w-5" aria-hidden="true" />
         </button>
+      </div>
+      <div className="mb-3 mt-1 flex flex-wrap items-center justify-center gap-x-2 text-xs tabular-nums text-gray-400">
+        {selectedWeek && (
+          <p>
+            <time dateTime={selectedWeek.startDate}>{formatWeekDate(selectedWeek.startDate)}</time>
+            <span aria-hidden="true"> – </span>
+            <span className="sr-only"> through </span>
+            <time dateTime={selectedWeek.endDate}>{formatWeekDate(selectedWeek.endDate)}</time>
+          </p>
+        )}
+        <p>
+          {selectedWeek && <span aria-hidden="true">· </span>}
+          {schedule.games.length} {schedule.games.length === 1 ? "game" : "games"}
+        </p>
       </div>
 
       {schedule.games.length === 0 ? (
