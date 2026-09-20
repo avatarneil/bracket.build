@@ -93,10 +93,20 @@ bun run test:unit
 Test schema changes on an isolated Neon development branch before applying them to production.
 CI runs migrations and ownership/conflict/sharing tests against an ephemeral Postgres service.
 Local storage integration tests run when `TEST_DATABASE_URL` points to a migrated test database.
+Authenticated browser tests require Clerk development keys. They create temporary
+users with `+clerk_test` email addresses (no email delivery) and delete them after
+each worker finishes. Settings responses are mocked in browser tests; persistence
+and account isolation are checked against the test database.
 
 ## Ridiculous game stats
 
-Open a game's **Stats** tab and choose **Generate ridiculous stat**. The feature
+Sign in, open **Settings**, and enable **Ridiculous stats (BETA)**. The setting
+defaults to off and is saved to your account across devices. Guests and accounts
+that have not opted in do not see the feature; its API also requires opt-in.
+Settings and insight responses are private and never cached by the CDN.
+
+Then open a game's **Stats** tab and choose **Generate ridiculous stat**. Both the
+setting and insight card carry a **BETA** badge. The feature
 searches 20 team metrics across opponent nickname categories, month, weekday, and
 home/away/neutral location, plus the exact opponent and overall team history.
 Every claim starts with a measured total from the selected game. Football-context

@@ -13,6 +13,7 @@ import { RidiculousStats } from "@/components/game-stats/RidiculousStats";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGameStats } from "@/hooks/useGameStats";
+import { useAccountSettings } from "@/contexts/AccountSettingsContext";
 import { extractEventId } from "@/lib/espn-boxscore";
 import { cn } from "@/lib/utils";
 import type { TabId } from "@/hooks/useDeepLink";
@@ -59,6 +60,7 @@ export function GameStatsDialog({
   const eventId = liveResult?.matchupId ? extractEventId(liveResult.matchupId) : null;
 
   const { stats, isLoading, error, refetch, lastUpdated } = useGameStats(eventId, open);
+  const { settings } = useAccountSettings();
 
   // Lock body scroll when dialog is open to prevent background scrolling
   useEffect(() => {
@@ -378,7 +380,9 @@ export function GameStatsDialog({
                   awayColor={awayTeam.primaryColor}
                   homeColor={homeTeam.primaryColor}
                 />
-                {eventId && <RidiculousStats key={eventId} eventId={eventId} />}
+                {eventId && settings?.ridiculousStatsEnabled && (
+                  <RidiculousStats key={eventId} eventId={eventId} />
+                )}
               </>
             )}
             {activeTab === "leaders" && (

@@ -12,7 +12,7 @@ export function AccountControls({ compact = false }: { compact?: boolean }) {
     <nav
       aria-label="Account"
       className={cn(
-        "flex min-h-11 items-center justify-center",
+        "flex min-h-11 flex-wrap items-center justify-center",
         compact ? "ml-auto gap-1" : "mt-4 gap-2",
       )}
     >
@@ -29,6 +29,9 @@ export function AccountControls({ compact = false }: { compact?: boolean }) {
       <Show when="signed-in">
         <Button asChild variant="ghost" className={buttonClassName}>
           <Link href="/brackets">My brackets</Link>
+        </Button>
+        <Button asChild variant="ghost" className={buttonClassName}>
+          <Link href="/settings">Settings</Link>
         </Button>
         <UserButton
           showName={!compact}

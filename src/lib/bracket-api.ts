@@ -10,7 +10,7 @@ export function json(data: unknown, status = 200) {
 export async function withAccount(request: Request, action: (ownerId: string) => Promise<unknown>) {
   try {
     const { userId } = await auth();
-    if (!userId) return json({ error: "Sign in to access your saved brackets." }, 401);
+    if (!userId) return json({ error: "Sign in to access your account." }, 401);
     const expectedOwner = request.headers.get("x-bracket-owner");
     if (expectedOwner && expectedOwner !== userId)
       return json({ error: "Your account changed. Reload before continuing." }, 401);
@@ -25,15 +25,14 @@ export async function withAccount(request: Request, action: (ownerId: string) =>
   } catch (error) {
     if (error instanceof BracketStoreError) return json({ error: error.message }, error.status);
     if (error instanceof ZodError || error instanceof SyntaxError)
-      return json({ error: "Invalid bracket request." }, 400);
+      return json({ error: "Invalid account request." }, 400);
     console.error(
-      "Bracket storage request failed",
+      "Account storage request failed",
       error instanceof Error ? error.name : "UnknownError",
     );
     return json(
       {
-        error:
-          "Account storage is temporarily unavailable. Your browser picks are safe; please retry.",
+        error: "Account storage is temporarily unavailable. Please retry.",
       },
       503,
     );
@@ -51,7 +50,7 @@ export async function readJson(request: Request): Promise<unknown> {
     size += value.byteLength;
     if (size > 65536) {
       await reader.cancel();
-      throw new BracketStoreError(413, "Bracket is too large.");
+      throw new BracketStoreError(413, "Request body is too large.");
     }
     chunks.push(value);
   }

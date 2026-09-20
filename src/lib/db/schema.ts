@@ -1,4 +1,5 @@
 import {
+  boolean,
   integer,
   jsonb,
   pgTable,
@@ -11,6 +12,12 @@ import {
 } from "drizzle-orm/pg-core";
 import type { BracketDocument } from "@/lib/bracket-document";
 import type { Measurements, Phase, Location } from "@/lib/ridiculous-stats/types";
+
+export const accountSettings = pgTable("account_settings", {
+  ownerId: text("owner_id").primaryKey(),
+  ridiculousStatsEnabled: boolean("ridiculous_stats_enabled").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const accountBrackets = pgTable(
   "account_brackets",

@@ -1,4 +1,7 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { json } from "@/lib/bracket-api";
+import { getAccountSettings } from "@/lib/db/account-settings";
 import { fetchGameBoxscore } from "@/lib/espn-boxscore";
 import { loadHistoricalComparison } from "@/lib/db/historical-stats";
 import { generateFacts } from "@/lib/ridiculous-stats/engine";
@@ -10,8 +13,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ even
   const { eventId } = await params;
   const rawIndex = new URL(request.url).searchParams.get("index") ?? "0";
   if (!/^\d{1,12}$/.test(eventId) || !/^\d{1,5}$/.test(rawIndex))
-    return NextResponse.json({ error: "Invalid game or stat index." }, { status: 400 });
+    return json({ error: "Invalid game or stat index." }, 400);
   try {
+    const { userId } = await auth();
+    if (!userId) return json({ error: "Sign in to use ridiculous stats." }, 401);
+    if (!(await getAccountSettings(userId)).ridiculousStatsEnabled)
+      return json({ error: "Enable ridiculous stats in Settings to use this feature." }, 403);
     const stats = await fetchGameBoxscore(eventId);
     const context = stats.historicalContext;
     const empty = (message: string) =>
@@ -25,7 +32,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ even
           asOf: stats.fetchedAt,
           message,
         } satisfies RidiculousResponse,
-        { headers: { "Cache-Control": "no-store" } },
+        { headers: { "Cache-Control": "private, no-store" } },
       );
     if (!context)
       return empty(
@@ -74,13 +81,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ even
         asOf: context.fetchedAt,
       } satisfies RidiculousResponse,
       {
-        headers: { "Cache-Control": "public, max-age=0, s-maxage=15, must-revalidate" },
+        headers: { "Cache-Control": "private, no-store" },
       },
     );
   } catch {
     return NextResponse.json(
       { error: "Historical stats are temporarily unavailable. Try again." },
-      { status: 503, headers: { "Cache-Control": "no-store" } },
+      { status: 503, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 }

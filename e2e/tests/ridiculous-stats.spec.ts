@@ -1,8 +1,15 @@
-import { expect, test } from "../fixtures/test-fixtures";
+import { expect, test } from "../fixtures/account-fixtures";
 import { mockGameBoxscore, mockPreseasonSchedule } from "../fixtures/mock-data";
 import type { RidiculousResponse } from "../../src/lib/ridiculous-stats/types";
 
 const game = mockPreseasonSchedule.games[0];
+
+test.beforeEach(async ({ page, signInAccount, seedUser: _seed, mockEspnApi: _mock }) => {
+  await page.route("**/api/settings", (route) =>
+    route.fulfill({ json: { ridiculousStatsEnabled: true } }),
+  );
+  await signInAccount();
+});
 function response(eventId = game.id, index = 0): RidiculousResponse {
   return {
     eventId,

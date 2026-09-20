@@ -112,7 +112,12 @@ export function RidiculousStats({ eventId }: { eventId: string }) {
     >
       <div className="mb-3 flex items-center gap-2">
         <Sparkles className="h-4 w-4 shrink-0 text-violet-300" aria-hidden="true" />
-        <h3 className="text-sm font-semibold text-violet-100">Absurdly specific. Actually true.</h3>
+        <h3 className="min-w-0 text-sm font-semibold text-violet-100">
+          Absurdly specific. Actually true.
+        </h3>
+        <span className="shrink-0 rounded border border-violet-400/40 bg-violet-400/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-violet-200">
+          BETA
+        </span>
       </div>
       {index == null && (
         <p className="mb-4 text-sm leading-relaxed text-gray-300">
