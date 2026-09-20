@@ -14,6 +14,7 @@ import type { LiveGameInfo, Matchup } from "@/types";
 import { useBracket } from "./BracketContext";
 
 interface GameDialogContextType {
+  registerScheduleGames: (games: LiveGameInfo[] | null) => void;
   /** Currently selected game (null if no dialog open) */
   selectedGame: LiveGameInfo | null;
   /** Active tab in the dialog */
@@ -58,6 +59,7 @@ export function GameDialogProvider({ children }: { children: ReactNode }) {
   const [selectedGame, setSelectedGame] = useState<LiveGameInfo | null>(null);
   const [activeTab, setActiveTabState] = useState<TabId>("stats");
   const [isInitialized, setIsInitialized] = useState(false);
+  const [scheduleGames, registerScheduleGames] = useState<LiveGameInfo[] | null>(null);
 
   // Track previous URL game ID to detect browser back/forward navigation
   const prevUrlGameIdRef = useRef<string | null>(null);
@@ -67,6 +69,8 @@ export function GameDialogProvider({ children }: { children: ReactNode }) {
    */
   const findGameByMatchupId = useCallback(
     (matchupId: string): LiveGameInfo | null => {
+      const scheduled = scheduleGames?.find((game) => game.matchup.id === matchupId);
+      if (scheduled) return scheduled;
       // First try to find in live games
       const liveGames = getAllLiveGames();
       const liveGame = liveGames.find((g) => g.matchup.id === matchupId);
@@ -146,7 +150,7 @@ export function GameDialogProvider({ children }: { children: ReactNode }) {
         round,
       };
     },
-    [getAllLiveGames, getLiveResultForMatchup, bracket],
+    [getAllLiveGames, getLiveResultForMatchup, bracket, scheduleGames],
   );
 
   // Handle deep linking on initial load only
@@ -162,7 +166,9 @@ export function GameDialogProvider({ children }: { children: ReactNode }) {
     }
 
     // Wait for live results to load before trying to open from URL
-    if (!hasLiveResults || isLoadingLiveResults) return;
+    if (urlState.gameId.startsWith("schedule-")) {
+      if (scheduleGames === null) return;
+    } else if (!hasLiveResults || isLoadingLiveResults) return;
 
     const currentUrlGameId = urlState.gameId;
     prevUrlGameIdRef.current = currentUrlGameId;
@@ -185,6 +191,7 @@ export function GameDialogProvider({ children }: { children: ReactNode }) {
     isInitialized,
     hasLiveResults,
     isLoadingLiveResults,
+    scheduleGames,
     urlState.gameId,
     urlState.tab,
     findGameByMatchupId,
@@ -215,7 +222,7 @@ export function GameDialogProvider({ children }: { children: ReactNode }) {
     }
 
     // If URL went from no game to having a game (browser forward), open it
-    if (prevWasEmpty && !currentIsEmpty) {
+    if (!currentIsEmpty) {
       const matchupId = gameIdToMatchupId(currentUrlGameId);
       const game = findGameByMatchupId(matchupId);
       if (game) {
@@ -277,6 +284,7 @@ export function GameDialogProvider({ children }: { children: ReactNode }) {
   return (
     <GameDialogContext.Provider
       value={{
+        registerScheduleGames,
         selectedGame,
         activeTab,
         openGameDialog,

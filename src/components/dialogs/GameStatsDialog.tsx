@@ -9,9 +9,11 @@ import { MomentumTab } from "@/components/game-stats/MomentumTab";
 import { PlayerLeadersCard } from "@/components/game-stats/PlayerLeadersCard";
 import { ScoringPlays } from "@/components/game-stats/ScoringPlays";
 import { TeamStatsComparison } from "@/components/game-stats/TeamStatsComparison";
+import { RidiculousStats } from "@/components/game-stats/RidiculousStats";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGameStats } from "@/hooks/useGameStats";
+import { useAccountSettings } from "@/contexts/AccountSettingsContext";
 import { extractEventId } from "@/lib/espn-boxscore";
 import { cn } from "@/lib/utils";
 import type { TabId } from "@/hooks/useDeepLink";
@@ -58,6 +60,7 @@ export function GameStatsDialog({
   const eventId = liveResult?.matchupId ? extractEventId(liveResult.matchupId) : null;
 
   const { stats, isLoading, error, refetch, lastUpdated } = useGameStats(eventId, open);
+  const { settings } = useAccountSettings();
 
   // Lock body scroll when dialog is open to prevent background scrolling
   useEffect(() => {
@@ -370,12 +373,17 @@ export function GameStatsDialog({
         ) : stats && homeTeam && awayTeam ? (
           <>
             {activeTab === "stats" && (
-              <TeamStatsComparison
-                awayStats={statsAreReversed ? stats.teamStats.home : stats.teamStats.away}
-                homeStats={statsAreReversed ? stats.teamStats.away : stats.teamStats.home}
-                awayColor={awayTeam.primaryColor}
-                homeColor={homeTeam.primaryColor}
-              />
+              <>
+                <TeamStatsComparison
+                  awayStats={statsAreReversed ? stats.teamStats.home : stats.teamStats.away}
+                  homeStats={statsAreReversed ? stats.teamStats.away : stats.teamStats.home}
+                  awayColor={awayTeam.primaryColor}
+                  homeColor={homeTeam.primaryColor}
+                />
+                {eventId && settings?.ridiculousStatsEnabled && (
+                  <RidiculousStats key={eventId} eventId={eventId} />
+                )}
+              </>
             )}
             {activeTab === "leaders" && (
               <PlayerLeadersCard

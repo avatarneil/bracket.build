@@ -5,6 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { AccountSettingsProvider } from "@/contexts/AccountSettingsContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -80,7 +81,7 @@ export default function RootLayout({
             },
           }}
         >
-          {children}
+          <AccountSettingsProvider>{children}</AccountSettingsProvider>
           {/* Position toaster at top on mobile to avoid fixed bottom bar, bottom-right on desktop */}
           <Toaster richColors position="top-center" />
           <Analytics />

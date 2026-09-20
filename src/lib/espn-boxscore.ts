@@ -1,4 +1,5 @@
 import { mapTeamAbbreviation } from "@/lib/espn-team-id";
+import { espnHistoryContext } from "@/lib/ridiculous-stats/espn";
 import type {
   Drive,
   GameBoxscore,
@@ -22,6 +23,7 @@ interface ESPNSummaryResponse {
     players?: ESPNBoxscorePlayers[];
   };
   header?: {
+    season?: { year: number; type: number };
     competitions?: ESPNCompetitionHeader[];
   };
   drives?: {
@@ -174,6 +176,7 @@ interface ESPNBoxscorePlayers {
 interface ESPNPlayerStatCategory {
   name: string;
   keys: string[];
+  totals?: string[];
   labels: string[];
   descriptions: string[];
   athletes: ESPNAthlete[];
@@ -195,6 +198,8 @@ interface ESPNAthlete {
 }
 
 interface ESPNCompetitionHeader {
+  date?: string;
+  neutralSite?: boolean;
   competitors: ESPNCompetitorHeader[];
   status: {
     type: {
@@ -642,6 +647,7 @@ export async function fetchGameBoxscore(eventId: string): Promise<GameBoxscore> 
 
   return {
     eventId,
+    historicalContext: espnHistoryContext(data, eventId, Date.now()),
     homeTeamId,
     awayTeamId,
     homeScore: Number.parseInt(homeCompetitor.score, 10) || 0,

@@ -20,12 +20,14 @@ import { useView, ViewProvider } from "@/contexts/ViewContext";
 import { PLAYOFF_SEASON_YEAR } from "@/data/teams";
 import { useSeasonSchedule } from "@/hooks/useSeasonSchedule";
 import { getStoredUser } from "@/lib/storage";
+import { scheduleGameToLiveInfo } from "@/lib/schedule-game";
 import { cn } from "@/lib/utils";
 
 function BracketApp() {
   const { refreshLiveResults, bracket } = useBracket();
   const { viewMode } = useView();
-  const { selectedGame, activeTab, closeGameDialog, setActiveTab } = useGameDialog();
+  const { selectedGame, activeTab, closeGameDialog, setActiveTab, registerScheduleGames } =
+    useGameDialog();
   const {
     schedule,
     selectedPhase,
@@ -49,6 +51,12 @@ function BracketApp() {
   const postseasonAvailable = visibleSchedule?.phaseAvailability.postseason ?? false;
   const showBracket =
     isPostseason && postseasonAvailable && visibleSchedule?.seasonYear === PLAYOFF_SEASON_YEAR;
+
+  useEffect(() => {
+    registerScheduleGames(
+      visibleSchedule ? visibleSchedule.games.map(scheduleGameToLiveInfo) : null,
+    );
+  }, [visibleSchedule, registerScheduleGames]);
 
   useEffect(() => {
     setIsHydrated(true);
