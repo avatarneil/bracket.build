@@ -9,6 +9,16 @@ import {
 
 test.describe("Season schedules", () => {
   test.beforeEach(async ({ page, seedUser: _seedUser, mockEspnApi: _mockEspnApi }) => {
+    await page.route("**/api/game-stats/**", (route) =>
+      route.fulfill({
+        json: {
+          ...mockGameBoxscore,
+          eventId: route.request().url().split("/").pop(),
+          isInProgress: true,
+          isComplete: false,
+        },
+      }),
+    );
     await page.unroute("**/api/schedule**");
     await page.route("**/api/schedule**", async (route) => {
       const url = new URL(route.request().url());
@@ -214,7 +224,13 @@ test.describe("Season schedules", () => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ ...mockGameBoxscore, eventId: "401873297", fieldPosition: null }),
+        body: JSON.stringify({
+          ...mockGameBoxscore,
+          eventId: "401873297",
+          fieldPosition: null,
+          isInProgress: true,
+          isComplete: false,
+        }),
       });
     });
     await page.setViewportSize({ width: 1440, height: 900 });
