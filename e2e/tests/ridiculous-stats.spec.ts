@@ -136,7 +136,7 @@ test("switching games cannot show a late response from the previous game", async
   await page.getByTestId(`live-dashboard-game-${game.id}`).click();
   await page.getByRole("button", { name: "Generate ridiculous stat" }).click();
   await expect.poll(() => requested).toBe(true);
-  await page.getByTestId(`live-dashboard-game-${other.id}`).click();
+  await page.getByTestId(`schedule-game-${other.id}`).getByRole("button").click();
   release();
   await expect(page.getByRole("button", { name: "Generate ridiculous stat" })).toBeVisible();
   await expect(page.getByText(/Seattle have 200 rushing/)).toHaveCount(0);
@@ -154,7 +154,7 @@ for (const width of [390, 1194, 2560]) {
     );
     await page.route("**/api/ridiculous-stats/**", (route) => route.fulfill({ json: response() }));
     await page.goto("/");
-    if (width >= 1280) await page.getByTestId(`live-dashboard-game-${game.id}`).click();
+    if (width >= 1152) await page.getByTestId(`live-dashboard-game-${game.id}`).click();
     else
       await page
         .getByRole("button", { name: "View live updates for Seattle Seahawks at Tennessee Titans" })
