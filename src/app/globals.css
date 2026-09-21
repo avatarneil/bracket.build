@@ -130,6 +130,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* The edge-to-edge PWA viewport includes the status bar and landscape notch.
+       Add insets outside each page's own spacing so every route stays clear. */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
     /* Clip horizontal overflow without creating a scroll container that breaks sticky layout. */
     overflow-x: clip;
     overscroll-behavior-x: none;
