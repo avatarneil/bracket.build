@@ -21,6 +21,7 @@ export function useSeasonSchedule() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
+  const requestRef = useRef<AbortController | null>(null);
 
   const requestUrl = useMemo(() => {
     const params = new URLSearchParams();
@@ -33,42 +34,61 @@ export function useSeasonSchedule() {
     return query ? `/api/schedule?${query}` : "/api/schedule";
   }, [requestedPhase, requestedSeason, requestedWeek]);
 
-  const loadSchedule = useCallback(async () => {
-    const requestId = ++requestIdRef.current;
-    setIsLoading(true);
-    setError(null);
+  const loadSchedule = useCallback(
+    async (background = false) => {
+      if (requestRef.current && !requestRef.current.signal.aborted) return;
 
-    try {
-      const response = await fetch(requestUrl);
-      if (!response.ok) throw new Error(`Schedule request failed: ${response.status}`);
-      const nextSchedule: SeasonSchedule = await response.json();
-      if (requestId === requestIdRef.current) setSchedule(nextSchedule);
-    } catch (requestError) {
-      if (requestId !== requestIdRef.current) return;
-      console.error("Failed to load schedule:", requestError);
-      setError("We couldn't load the schedule. Check your connection and try again.");
-    } finally {
-      if (requestId === requestIdRef.current) setIsLoading(false);
-    }
-  }, [requestUrl]);
+      const requestId = ++requestIdRef.current;
+      const controller = new AbortController();
+      requestRef.current = controller;
+      if (!background) setIsLoading(true);
+      if (!background) setError(null);
+
+      try {
+        const response = await fetch(requestUrl, { signal: controller.signal });
+        if (!response.ok) throw new Error(`Schedule request failed: ${response.status}`);
+        const nextSchedule: SeasonSchedule = await response.json();
+        if (requestId === requestIdRef.current) {
+          setSchedule(nextSchedule);
+          setError(null);
+        }
+      } catch (requestError) {
+        if (controller.signal.aborted || requestId !== requestIdRef.current) return;
+        console.error("Failed to load schedule:", requestError);
+        if (!background) {
+          setError("We couldn't load the schedule. Check your connection and try again.");
+        }
+      } finally {
+        if (requestRef.current === controller) requestRef.current = null;
+        if (!background && requestId === requestIdRef.current) setIsLoading(false);
+      }
+    },
+    [requestUrl],
+  );
 
   useEffect(() => {
-    void loadSchedule();
+    void loadSchedule(false);
     return () => {
       requestIdRef.current += 1;
+      requestRef.current?.abort();
+      requestRef.current = null;
     };
   }, [loadSchedule]);
 
   const hasLiveGames = schedule?.games.some((game) => game.isInProgress) ?? false;
   useEffect(() => {
     const refreshIfVisible = () => {
-      if (document.visibilityState === "visible") void loadSchedule();
+      if (document.visibilityState === "visible") void loadSchedule(true);
     };
-    const interval = window.setInterval(refreshIfVisible, hasLiveGames ? 10_000 : 60_000);
+    const interval = window.setInterval(refreshIfVisible, hasLiveGames ? 5_000 : 60_000);
     document.addEventListener("visibilitychange", refreshIfVisible);
+    window.addEventListener("focus", refreshIfVisible);
+    window.addEventListener("online", refreshIfVisible);
     return () => {
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", refreshIfVisible);
+      window.removeEventListener("focus", refreshIfVisible);
+      window.removeEventListener("online", refreshIfVisible);
     };
   }, [loadSchedule, hasLiveGames]);
 
@@ -92,7 +112,7 @@ export function useSeasonSchedule() {
     selectedPhase: requestedPhase ?? schedule?.phase ?? null,
     isLoading,
     error,
-    retry: loadSchedule,
+    retry: () => loadSchedule(false),
     selectPhase: (phase: SeasonPhase) => {
       if (schedule) updateSelection(phase, schedule.seasonYear);
     },
