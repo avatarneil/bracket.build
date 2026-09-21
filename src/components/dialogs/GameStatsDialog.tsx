@@ -11,7 +11,7 @@ import { ScoringPlays } from "@/components/game-stats/ScoringPlays";
 import { TeamStatsComparison } from "@/components/game-stats/TeamStatsComparison";
 import { RidiculousStats } from "@/components/game-stats/RidiculousStats";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useGameStats } from "@/hooks/useGameStats";
 import { useAccountSettings } from "@/contexts/AccountSettingsContext";
 import { extractEventId } from "@/lib/espn-boxscore";
@@ -59,7 +59,11 @@ export function GameStatsDialog({
   // Extract ESPN event ID from the matchup ID
   const eventId = liveResult?.matchupId ? extractEventId(liveResult.matchupId) : null;
 
-  const { stats, isLoading, error, refetch, lastUpdated } = useGameStats(eventId, open);
+  const { stats, isLoading, error, refetch, lastUpdated } = useGameStats(
+    eventId,
+    open,
+    !liveResult?.isComplete,
+  );
   const { settings } = useAccountSettings();
 
   // Lock body scroll when dialog is open to prevent background scrolling
@@ -127,9 +131,11 @@ export function GameStatsDialog({
   const espnAwayTeam = statsAreReversed ? homeTeam : awayTeam;
   const isLive = stats?.isInProgress ?? liveResult?.isInProgress ?? false;
   const isComplete = stats?.isComplete ?? liveResult?.isComplete ?? false;
+  const gameDetailsLabel = `${awayTeam?.name ?? "Away team"} at ${homeTeam?.name ?? "home team"} ${isComplete ? "final" : "live"} game details`;
   const showFieldPosition = Boolean(
     homeTeam &&
     awayTeam &&
+    !isComplete &&
     (variant === "panel" || liveResult?.isInProgress || stats?.isInProgress),
   );
   const fieldStatus = isLoading && !stats ? "loading" : error ? "unavailable" : "ready";
@@ -450,7 +456,7 @@ export function GameStatsDialog({
     return (
       <section
         data-testid="game-stats-panel"
-        aria-label={`${awayTeam?.name ?? "Away team"} at ${homeTeam?.name ?? "home team"} live game details`}
+        aria-label={gameDetailsLabel}
         className="relative overflow-hidden rounded-2xl border border-gray-700 bg-gray-900 text-white shadow-2xl shadow-black/40"
       >
         {content}
@@ -462,9 +468,11 @@ export function GameStatsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="game-stats-dialog"
+        aria-describedby={undefined}
         className="flex h-[90dvh] max-h-[90dvh] overflow-hidden border-gray-700 bg-gray-900 p-0 text-white sm:max-w-md md:max-w-lg lg:max-w-xl"
         showCloseButton={false}
       >
+        <DialogTitle className="sr-only">{gameDetailsLabel}</DialogTitle>
         {content}
       </DialogContent>
     </Dialog>

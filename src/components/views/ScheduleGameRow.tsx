@@ -73,7 +73,7 @@ export function ScheduleGameRow({ game }: ScheduleGameRowProps) {
   const showScore = game.isInProgress || game.isComplete;
   const broadcast = game.broadcasts.join(", ");
 
-  const openLiveGame = () => {
+  const openGame = () => {
     openGameDialog(scheduleGameToLiveInfo(game));
   };
 
@@ -111,7 +111,10 @@ export function ScheduleGameRow({ game }: ScheduleGameRowProps) {
               <span>{game.statusText}</span>
             </div>
           ) : game.isComplete ? (
-            <span className="text-sm font-bold text-gray-300">Final</span>
+            <div>
+              <span className="text-sm font-bold text-gray-300">Final</span>
+              <div className="mt-1 text-xs font-medium text-gray-400">Full stats →</div>
+            </div>
           ) : (
             <time dateTime={game.date} className="text-sm font-semibold text-white">
               {formatKickoff(game.date)}
@@ -138,11 +141,11 @@ export function ScheduleGameRow({ game }: ScheduleGameRowProps) {
       )}
     >
       {isSelected && <p className="mb-2 text-xs font-semibold text-yellow-300">Viewing details</p>}
-      {game.isInProgress ? (
+      {game.isInProgress || game.isComplete ? (
         <button
           type="button"
-          onClick={openLiveGame}
-          aria-label={`View live updates for ${game.awayTeam.displayName} at ${game.homeTeam.displayName}`}
+          onClick={openGame}
+          aria-label={`View ${game.isComplete ? "final stats" : "live updates"} for ${game.awayTeam.displayName} at ${game.homeTeam.displayName}`}
           className="-m-2 block w-[calc(100%+1rem)] rounded-lg p-2 text-left touch-manipulation transition-colors hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
           {content}

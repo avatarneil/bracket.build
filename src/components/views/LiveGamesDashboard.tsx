@@ -157,8 +157,8 @@ export function LiveGamesDashboard({ schedule }: { schedule: SeasonSchedule | nu
             </div>
             <h3 className="text-lg font-semibold text-white">No games are live</h3>
             <p className="mt-2 max-w-sm text-sm leading-6 text-gray-400">
-              The dashboard will fill in as this week’s games kick off. Upcoming and final games
-              stay in the schedule rail.
+              Open a final game from the schedule to explore its stats, or check back as this week’s
+              games kick off.
             </p>
           </div>
         )}
