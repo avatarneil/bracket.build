@@ -72,7 +72,8 @@ export function ScoringPlays({
           {/* Plays in this quarter */}
           <div className="space-y-2">
             {playsByQuarter[quarter].map((play) => {
-              const isHomeTeam = play.teamAbbr === homeTeamId;
+              const isHomeTeam =
+                play.teamAbbr === homeTeamId || `cfb-${play.teamId}` === homeTeamId;
               const teamColor = getContrastSafeColor(isHomeTeam ? homeColor : awayColor);
 
               return (

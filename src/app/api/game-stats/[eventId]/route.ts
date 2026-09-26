@@ -1,3 +1,4 @@
+import { isFootballLeague } from "@/lib/football-league";
 import { NextResponse } from "next/server";
 import { fetchGameBoxscore } from "@/lib/espn-boxscore";
 
@@ -5,6 +6,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 5;
 
 export async function GET(_request: Request, { params }: { params: Promise<{ eventId: string }> }) {
+  const league = new URL(_request.url).searchParams.get("league") ?? "nfl";
+  if (!isFootballLeague(league))
+    return NextResponse.json({ error: "Invalid football league" }, { status: 400 });
   try {
     const { eventId } = await params;
 
@@ -12,7 +16,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ eve
       return NextResponse.json({ error: "Invalid event ID" }, { status: 400 });
     }
 
-    const boxscore = await fetchGameBoxscore(eventId);
+    const boxscore = await fetchGameBoxscore(eventId, league);
 
     return NextResponse.json(boxscore, {
       headers: {

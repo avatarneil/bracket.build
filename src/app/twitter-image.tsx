@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 // Image metadata - Twitter uses a 2:1 ratio
-export const alt = "bracket.build - NFL Playoff Predictions 2025-26";
+export const alt = "bracket.build - NFL & College Football Schedules and Picks";
 export const size = {
   width: 1200,
   height: 600,
@@ -87,7 +87,7 @@ export default function TwitterImage() {
           fontFamily: "system-ui",
         }}
       >
-        NFL Playoff Predictions • 2025-26
+        NFL & College Football • Schedules & Picks
       </div>
 
       {/* Call to action */}

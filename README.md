@@ -1,8 +1,8 @@
 # bracket.build
 
-A season-aware NFL schedule and playoff bracket builder. Follow preseason and regular-season games, then create predictions, share them with friends, and track picks through the playoffs.
+A season-aware NFL and FBS college football schedule and playoff bracket builder. Follow preseason and regular-season games, then create predictions, share them with friends, and track picks through the playoffs.
 
-**Disclaimer:** This project is not affiliated with, endorsed by, or connected to the National Football League (NFL) or any of its member teams. All team names, logos, and related marks are trademarks of their respective owners.
+**Disclaimer:** This project is not affiliated with, endorsed by, or connected to the National Football League (NFL), NCAA, College Football Playoff, or any of their member teams. All team names, logos, and related marks are trademarks of their respective owners.
 
 ## Features
 
@@ -16,6 +16,20 @@ A season-aware NFL schedule and playoff bracket builder. Follow preseason and re
 - 🖼️ Export bracket as shareable image
 - 🎨 Dark mode with team colors
 - 👤 Clerk sign-in, sign-up, and profile controls
+
+## College football
+
+Choose **College football** to browse FBS schedules and live or final game details.
+The league, season, phase, week, and selected game are deep-linkable. **Bowls / CFP**
+includes both bowl games and the dedicated CFP schedule. The published 12-team CFP
+field unlocks picks with four first-round byes and fixed paths (no reseeding).
+Changing an earlier pick clears dependent picks that are no longer possible.
+
+CFP picks save in this browser separately for each season. Account saves, share links,
+image export, and NFL historical insights remain NFL-only. CFP picks require a complete,
+consistent field in ESPN's playoff feed; ordinary rankings never unlock a bracket.
+The 2025 field is available by selecting the prior season. Current-season picks wait
+for the published field, and partial feeds show an explicit unavailable state.
 
 ## Getting Started
 

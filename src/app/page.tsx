@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegePlayoffBracket } from "@/components/bracket/CollegePlayoffBracket";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { AccountControls } from "@/components/AccountControls";
 import { BracketControls } from "@/components/BracketControls";
@@ -29,6 +30,8 @@ function BracketApp() {
   const { selectedGame, activeTab, closeGameDialog, setActiveTab, registerScheduleGames } =
     useGameDialog();
   const {
+    league,
+    selectLeague,
     schedule,
     selectedPhase,
     isLoading: isLoadingSchedule,
@@ -43,6 +46,7 @@ function BracketApp() {
   const [isWideScheduleLayout, setIsWideScheduleLayout] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const welcomeCheckedRef = useRef(false);
+  const isCollege = league === "college-football";
   const isPostseason = selectedPhase === "postseason";
   const visibleSchedule = schedule?.phase === selectedPhase ? schedule : null;
   const seasonLabel = visibleSchedule
@@ -50,7 +54,10 @@ function BracketApp() {
     : "Selected season";
   const postseasonAvailable = visibleSchedule?.phaseAvailability.postseason ?? false;
   const showBracket =
-    isPostseason && postseasonAvailable && visibleSchedule?.seasonYear === PLAYOFF_SEASON_YEAR;
+    !isCollege &&
+    isPostseason &&
+    postseasonAvailable &&
+    visibleSchedule?.seasonYear === PLAYOFF_SEASON_YEAR;
 
   useEffect(() => {
     registerScheduleGames(
@@ -86,8 +93,8 @@ function BracketApp() {
         : visibleSchedule.phase === "regular"
           ? "NFL Regular Season"
           : "NFL Playoffs";
-    document.title = `${phaseLabel} ${visibleSchedule.seasonYear} | bracket.build`;
-  }, [visibleSchedule]);
+    document.title = `${isCollege ? (visibleSchedule.phase === "postseason" ? "College Football Bowls & CFP" : "College Football") : phaseLabel} ${visibleSchedule.seasonYear} | bracket.build`;
+  }, [visibleSchedule, isCollege]);
 
   // Auto-fetch live results on initial load
   useEffect(() => {
@@ -145,6 +152,24 @@ function BracketApp() {
               <AccountControls compact />
             </header>
 
+            <nav aria-label="Football league" className="mb-3 flex w-full max-w-2xl gap-2">
+              {(["nfl", "college-football"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={league === value}
+                  onClick={() => selectLeague(value)}
+                  className={cn(
+                    "min-h-11 flex-1 touch-manipulation rounded-lg px-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-white",
+                    league === value
+                      ? "bg-white text-black"
+                      : "bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white",
+                  )}
+                >
+                  {value === "nfl" ? "NFL" : "College football"}
+                </button>
+              ))}
+            </nav>
             {visibleSchedule && (
               <div className="w-full max-w-2xl">
                 <div className="flex flex-wrap items-center gap-2">
@@ -155,6 +180,7 @@ function BracketApp() {
                   />
                   {selectedPhase && (
                     <SeasonNavigation
+                      league={league}
                       selectedPhase={selectedPhase}
                       currentPhase={visibleSchedule.currentPhase}
                       phaseAvailability={visibleSchedule.phaseAvailability}
@@ -164,7 +190,8 @@ function BracketApp() {
                 </div>
                 {!postseasonAvailable && (
                   <p id="postseason-status" className="mt-2 text-center text-xs text-gray-400">
-                    {seasonLabel} postseason unlocks when the playoff schedule is posted.
+                    {seasonLabel} postseason unlocks when the {isCollege ? "bowl" : "playoff"}{" "}
+                    schedule is posted.
                   </p>
                 )}
               </div>
@@ -192,11 +219,18 @@ function BracketApp() {
               </div>
             )}
 
+            {isCollege && visibleSchedule?.phase === "postseason" && (
+              <CollegePlayoffBracket
+                key={visibleSchedule.seasonYear}
+                seasonYear={visibleSchedule.seasonYear}
+                teams={visibleSchedule.collegePlayoffTeams ?? null}
+              />
+            )}
             {/* Main Content */}
-            {!isPostseason ? (
+            {!isPostseason || isCollege ? (
               <div className="mt-3 flex w-full justify-center dashboard:min-h-0 dashboard:flex-1 dashboard:items-stretch">
                 <SeasonScheduleView
-                  isSidebar={isWideScheduleLayout}
+                  isSidebar={isWideScheduleLayout && !isPostseason}
                   schedule={visibleSchedule}
                   isLoading={isLoadingSchedule}
                   error={scheduleError}
@@ -240,7 +274,7 @@ function BracketApp() {
             )}
           </div>
 
-          {!isPostseason && (
+          {!isPostseason && isWideScheduleLayout && (
             <aside
               data-testid="live-details-column"
               aria-label="Live games dashboard"

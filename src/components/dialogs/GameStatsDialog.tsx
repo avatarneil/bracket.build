@@ -63,6 +63,7 @@ export function GameStatsDialog({
     eventId,
     open,
     !liveResult?.isComplete,
+    matchup.league,
   );
   const { settings } = useAccountSettings();
 
@@ -386,9 +387,11 @@ export function GameStatsDialog({
                   awayColor={awayTeam.primaryColor}
                   homeColor={homeTeam.primaryColor}
                 />
-                {eventId && settings?.ridiculousStatsEnabled && (
-                  <RidiculousStats key={eventId} eventId={eventId} />
-                )}
+                {eventId &&
+                  matchup.league !== "college-football" &&
+                  settings?.ridiculousStatsEnabled && (
+                    <RidiculousStats key={eventId} eventId={eventId} />
+                  )}
               </>
             )}
             {activeTab === "leaders" && (

@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,12 +50,34 @@ export function SeasonScheduleView({
   onSelectWeek,
   isSidebar = false,
 }: SeasonScheduleViewProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { selectedGame } = useGameDialog();
   const listRef = useRef<HTMLUListElement>(null);
   const previousSelectedRowRef = useRef<Element | null>(null);
   const selectedGameId = selectedGame?.matchup.id;
-  const selectedIndex =
+  const absoluteSelectedIndex =
     schedule?.games.findIndex((game) => `schedule-${game.id}` === selectedGameId) ?? -1;
+
+  // Keep the rendered schedule bounded on busy college weekends.
+  const pageSize = 25;
+  const pageCount = Math.max(1, Math.ceil((schedule?.games.length ?? 0) / pageSize));
+  const requestedPage = Number(searchParams.get("gamesPage") ?? 1);
+  const page =
+    absoluteSelectedIndex >= 0
+      ? Math.floor(absoluteSelectedIndex / pageSize) + 1
+      : Math.max(1, Math.min(pageCount, Number.isInteger(requestedPage) ? requestedPage : 1));
+  const selectedIndex = absoluteSelectedIndex < 0 ? -1 : absoluteSelectedIndex % pageSize;
+  const visibleGames = schedule?.games.slice((page - 1) * pageSize, page * pageSize) ?? [];
+  const changePage = (next: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("gamesPage", String(next));
+    params.delete("game");
+    params.delete("tab");
+    router.push(`${pathname}?${params}`, { scroll: false });
+    listRef.current?.scrollTo({ top: 0, behavior: "instant" });
+  };
 
   useEffect(() => {
     if (!isSidebar) return;
@@ -175,6 +198,32 @@ export function SeasonScheduleView({
         </p>
       </div>
 
+      {pageCount > 1 && (
+        <nav
+          aria-label="Schedule games pages"
+          className="mb-2 flex items-center justify-between gap-2 text-sm text-gray-300"
+        >
+          <button
+            type="button"
+            disabled={page <= 1}
+            onClick={() => changePage(page - 1)}
+            className="min-h-11 touch-manipulation rounded px-3 hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-white disabled:opacity-40"
+          >
+            Previous games
+          </button>
+          <span className="tabular-nums">
+            {page} / {pageCount}
+          </span>
+          <button
+            type="button"
+            disabled={page >= pageCount}
+            onClick={() => changePage(page + 1)}
+            className="min-h-11 touch-manipulation rounded px-3 hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-white disabled:opacity-40"
+          >
+            Next games
+          </button>
+        </nav>
+      )}
       {schedule.games.length === 0 ? (
         <div className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-gray-800 px-6 text-center">
           <h3 className="font-semibold text-white">Schedule not announced yet</h3>
@@ -188,7 +237,7 @@ export function SeasonScheduleView({
           className="divide-y divide-gray-800 overflow-hidden rounded-xl bg-gray-900 dashboard:min-h-0 dashboard:flex-1 dashboard:overflow-y-auto dashboard:overscroll-contain"
           aria-live="polite"
         >
-          {schedule.games.map((game) => (
+          {visibleGames.map((game) => (
             <ScheduleGameRow key={game.id} game={game} />
           ))}
         </ul>

@@ -109,7 +109,8 @@ export function ExpandableDrives({
           <div className="space-y-2">
             {drivesByQuarter[quarter].map((drive) => {
               const isExpanded = expandedDrives.has(drive.id);
-              const isHomeTeam = drive.teamAbbr === homeTeamId;
+              const isHomeTeam =
+                drive.teamAbbr === homeTeamId || `cfb-${drive.teamId}` === homeTeamId;
               const teamColor = getContrastSafeColor(isHomeTeam ? homeColor : awayColor);
               const resultIcon = getResultIcon(drive.result);
               const resultColorClass = getResultColor(drive.result);

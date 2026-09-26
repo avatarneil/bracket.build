@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchSeasonSchedule } from "@/lib/nfl-schedule";
+import { fetchSeasonSchedule } from "@/lib/football-schedule";
+import { isFootballLeague } from "@/lib/football-league";
 import type { SeasonPhase } from "@/types";
 
 const VALID_PHASES = new Set<SeasonPhase>(["preseason", "regular", "postseason"]);
 
 export async function GET(request: NextRequest) {
+  const league = request.nextUrl.searchParams.get("league") ?? "nfl";
+  if (!isFootballLeague(league)) {
+    return NextResponse.json({ error: "Invalid football league" }, { status: 400 });
+  }
   const phaseParam = request.nextUrl.searchParams.get("phase");
   if (phaseParam && !VALID_PHASES.has(phaseParam as SeasonPhase)) {
     return NextResponse.json({ error: "Invalid season phase" }, { status: 400 });
@@ -23,12 +28,13 @@ export async function GET(request: NextRequest) {
       phase,
       Number.isFinite(week) ? week : undefined,
       Number.isFinite(season) ? season : undefined,
+      league,
     );
     return NextResponse.json(schedule, {
       headers: { "Cache-Control": "public, max-age=0, s-maxage=5, must-revalidate" },
     });
   } catch (error) {
-    console.error("Failed to fetch NFL schedule:", error);
-    return NextResponse.json({ error: "Failed to fetch the NFL schedule" }, { status: 502 });
+    console.error("Failed to fetch football schedule:", error);
+    return NextResponse.json({ error: "Failed to fetch the football schedule" }, { status: 502 });
   }
 }
