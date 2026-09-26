@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { FootballLeague } from "@/lib/football-league";
 import type { SeasonPhase, SeasonSchedule } from "@/types";
 
 const VALID_PHASES = new Set<SeasonPhase>(["preseason", "regular", "postseason"]);
@@ -10,20 +11,26 @@ export function useSeasonSchedule() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const league: FootballLeague =
+    searchParams.get("league") === "college-football" ? "college-football" : "nfl";
   const phaseParam = searchParams.get("phase");
-  const requestedPhase =
+  const parsedPhase =
     phaseParam && VALID_PHASES.has(phaseParam as SeasonPhase) ? (phaseParam as SeasonPhase) : null;
+  const requestedPhase =
+    league === "college-football" && parsedPhase === "preseason" ? "regular" : parsedPhase;
   const seasonParam = searchParams.get("season");
   const requestedSeason = seasonParam ? Number.parseInt(seasonParam, 10) : null;
   const weekParam = searchParams.get("week");
   const requestedWeek = weekParam ? Number.parseInt(weekParam, 10) : null;
   const [schedule, setSchedule] = useState<SeasonSchedule | null>(null);
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
 
   const requestUrl = useMemo(() => {
     const params = new URLSearchParams();
+    if (league !== "nfl") params.set("league", league);
     if (requestedPhase) params.set("phase", requestedPhase);
     if (Number.isFinite(requestedSeason)) params.set("season", requestedSeason!.toString());
     if (requestedPhase && Number.isFinite(requestedWeek)) {
@@ -31,7 +38,7 @@ export function useSeasonSchedule() {
     }
     const query = params.toString();
     return query ? `/api/schedule?${query}` : "/api/schedule";
-  }, [requestedPhase, requestedSeason, requestedWeek]);
+  }, [league, requestedPhase, requestedSeason, requestedWeek]);
 
   const loadSchedule = useCallback(async () => {
     const requestId = ++requestIdRef.current;
@@ -42,7 +49,10 @@ export function useSeasonSchedule() {
       const response = await fetch(requestUrl);
       if (!response.ok) throw new Error(`Schedule request failed: ${response.status}`);
       const nextSchedule: SeasonSchedule = await response.json();
-      if (requestId === requestIdRef.current) setSchedule(nextSchedule);
+      if (requestId === requestIdRef.current) {
+        setSchedule(nextSchedule);
+        setLoadedUrl(requestUrl);
+      }
     } catch (requestError) {
       if (requestId !== requestIdRef.current) return;
       console.error("Failed to load schedule:", requestError);
@@ -79,6 +89,7 @@ export function useSeasonSchedule() {
       params.set("season", seasonYear.toString());
       if (week === undefined) params.delete("week");
       else params.set("week", week.toString());
+      params.delete("gamesPage");
       params.delete("view");
       params.delete("game");
       params.delete("tab");
@@ -88,10 +99,17 @@ export function useSeasonSchedule() {
   );
 
   return {
-    schedule,
-    selectedPhase: requestedPhase ?? schedule?.phase ?? null,
-    isLoading,
+    league,
+    schedule: loadedUrl === requestUrl ? schedule : null,
+    selectedPhase:
+      requestedPhase ?? ((schedule?.league ?? "nfl") === league ? schedule?.phase : null) ?? null,
+    isLoading: isLoading || (loadedUrl !== requestUrl && !error),
     error,
+    selectLeague: (nextLeague: FootballLeague) => {
+      const params = new URLSearchParams();
+      if (nextLeague !== "nfl") params.set("league", nextLeague);
+      router.push(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
+    },
     retry: loadSchedule,
     selectPhase: (phase: SeasonPhase) => {
       if (schedule) updateSelection(phase, schedule.seasonYear);

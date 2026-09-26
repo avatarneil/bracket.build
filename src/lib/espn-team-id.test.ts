@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { mapTeamAbbreviation } from "./espn-team-id";
-import { fetchSeasonSchedule } from "./nfl-schedule";
+import { fetchSeasonSchedule } from "./football-schedule";
 import { scheduleGameToLiveInfo } from "./schedule-game";
 
 test("normalizes ESPN team aliases without changing other team IDs", () => {

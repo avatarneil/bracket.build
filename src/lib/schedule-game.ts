@@ -40,6 +40,7 @@ export function scheduleGameToLiveInfo(game: ScheduleGame): LiveGameInfo {
   return {
     matchup: {
       id: matchupId,
+      league: game.league,
       round: "wildCard",
       conference: homeTeam.conference,
       homeTeam,

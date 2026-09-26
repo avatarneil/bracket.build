@@ -1,3 +1,4 @@
+import { footballTeamId, type FootballLeague } from "@/lib/football-league";
 import { mapTeamAbbreviation } from "@/lib/espn-team-id";
 import { espnHistoryContext } from "@/lib/ridiculous-stats/espn";
 import type {
@@ -12,9 +13,6 @@ import type {
   TeamGameStats,
   WinProbabilityPoint,
 } from "@/types";
-
-// ESPN Summary API endpoint
-const ESPN_SUMMARY_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary";
 
 // ESPN API response types for summary endpoint
 interface ESPNSummaryResponse {
@@ -215,6 +213,7 @@ interface ESPNCompetitorHeader {
   id: string;
   homeAway: "home" | "away";
   team: {
+    id: string;
     abbreviation: string;
   };
   score: string;
@@ -250,7 +249,7 @@ interface ESPNLeaderEntry {
   };
 }
 
-function parseTeamStats(team: ESPNBoxscoreTeam): TeamGameStats {
+function parseTeamStats(team: ESPNBoxscoreTeam, league: FootballLeague): TeamGameStats {
   const stats = team.statistics;
   const getStat = (name: string): string => {
     const stat = stats.find((s) => s.name === name);
@@ -273,7 +272,7 @@ function parseTeamStats(team: ESPNBoxscoreTeam): TeamGameStats {
   const thirdDowns = getStat("thirdDownEff") || "0-0";
 
   return {
-    teamId: mapTeamAbbreviation(team.team.abbreviation),
+    teamId: footballTeamId(team.team, league),
     totalYards: Number.parseInt(getStat("totalYards"), 10) || 0,
     passingYards: parseYards(getStat("netPassingYards") || getStat("passingYards")),
     rushingYards: parseYards(getStat("rushingYards")),
@@ -292,6 +291,7 @@ function parseTeamStats(team: ESPNBoxscoreTeam): TeamGameStats {
 function parsePlayerLeaders(
   leaders: ESPNTeamLeaders[] | undefined,
   teamAbbr: string,
+  league: FootballLeague,
 ): PlayerLeaders {
   const result: PlayerLeaders = {
     passer: null,
@@ -301,11 +301,12 @@ function parsePlayerLeaders(
 
   if (!leaders || !Array.isArray(leaders)) return result;
 
-  const mappedTeamId = mapTeamAbbreviation(teamAbbr);
+  const normalize = league === "nfl" ? mapTeamAbbreviation : (value: string) => value;
+  const mappedTeamId = normalize(teamAbbr);
 
   // Find the team's leaders object
   const teamLeaders = leaders.find(
-    (tl) => tl.team?.abbreviation && mapTeamAbbreviation(tl.team.abbreviation) === mappedTeamId,
+    (tl) => tl.team?.abbreviation && normalize(tl.team.abbreviation) === mappedTeamId,
   );
 
   if (!teamLeaders || !teamLeaders.leaders) return result;
@@ -336,7 +337,10 @@ function parsePlayerLeaders(
   return result;
 }
 
-function parseScoringPlays(plays: ESPNScoringPlay[] | undefined): ScoringPlay[] {
+function parseScoringPlays(
+  plays: ESPNScoringPlay[] | undefined,
+  league: FootballLeague,
+): ScoringPlay[] {
   if (!plays || !Array.isArray(plays)) return [];
 
   return plays.map((play) => ({
@@ -347,19 +351,27 @@ function parseScoringPlays(plays: ESPNScoringPlay[] | undefined): ScoringPlay[] 
     quarter: play.period?.number || 0,
     clock: play.clock?.displayValue || "",
     teamId: play.team?.id || "",
-    teamAbbr: play.team?.abbreviation ? mapTeamAbbreviation(play.team.abbreviation) : "",
+    teamAbbr: play.team?.abbreviation
+      ? league === "nfl"
+        ? mapTeamAbbreviation(play.team.abbreviation)
+        : play.team.abbreviation
+      : "",
     teamLogo: play.team?.logo || "",
     type: play.type?.abbreviation || play.type?.text || "",
   }));
 }
 
-function parseDrives(drives: ESPNDrive[] | undefined): Drive[] {
+function parseDrives(drives: ESPNDrive[] | undefined, league: FootballLeague): Drive[] {
   if (!drives || !Array.isArray(drives)) return [];
 
   return drives.map((drive) => ({
     id: drive.id || "",
     teamId: drive.team?.id || "",
-    teamAbbr: drive.team?.abbreviation ? mapTeamAbbreviation(drive.team.abbreviation) : "",
+    teamAbbr: drive.team?.abbreviation
+      ? league === "nfl"
+        ? mapTeamAbbreviation(drive.team.abbreviation)
+        : drive.team.abbreviation
+      : "",
     teamLogo: drive.team?.logo || "",
     result: drive.displayResult || drive.result || "",
     description: drive.description || "",
@@ -374,7 +386,10 @@ function parseDrives(drives: ESPNDrive[] | undefined): Drive[] {
   }));
 }
 
-function parseFieldPosition(currentDrive: ESPNDrive | undefined): GameBoxscore["fieldPosition"] {
+function parseFieldPosition(
+  currentDrive: ESPNDrive | undefined,
+  league: FootballLeague,
+): GameBoxscore["fieldPosition"] {
   if (!currentDrive?.plays?.length || !currentDrive.team?.abbreviation) return null;
 
   for (let index = currentDrive.plays.length - 1; index >= 0; index -= 1) {
@@ -403,7 +418,7 @@ function parseFieldPosition(currentDrive: ESPNDrive | undefined): GameBoxscore["
     }
 
     return {
-      possessionTeamId: mapTeamAbbreviation(currentDrive.team.abbreviation),
+      possessionTeamId: footballTeamId(currentDrive.team, league),
       down,
       distance,
       yardsToEndzone,
@@ -598,8 +613,14 @@ function parseMomentumData(
   };
 }
 
-export async function fetchGameBoxscore(eventId: string): Promise<GameBoxscore> {
-  const response = await fetch(`${ESPN_SUMMARY_URL}?event=${eventId}`, { cache: "no-store" });
+export async function fetchGameBoxscore(
+  eventId: string,
+  league: FootballLeague = "nfl",
+): Promise<GameBoxscore> {
+  const response = await fetch(
+    `https://site.api.espn.com/apis/site/v2/sports/football/${league}/summary?event=${eventId}`,
+    { cache: "no-store" },
+  );
 
   if (!response.ok) {
     throw new Error(`ESPN API error: ${response.status}`);
@@ -625,8 +646,8 @@ export async function fetchGameBoxscore(eventId: string): Promise<GameBoxscore> 
   const homeBoxscore = boxscoreTeams.find((t) => t.homeAway === "home");
   const awayBoxscore = boxscoreTeams.find((t) => t.homeAway === "away");
 
-  const homeTeamId = mapTeamAbbreviation(homeCompetitor.team.abbreviation);
-  const awayTeamId = mapTeamAbbreviation(awayCompetitor.team.abbreviation);
+  const homeTeamId = footballTeamId(homeCompetitor.team, league);
+  const awayTeamId = footballTeamId(awayCompetitor.team, league);
 
   // Default empty stats if boxscore not available (pre-game)
   const emptyStats: TeamGameStats = {
@@ -647,7 +668,7 @@ export async function fetchGameBoxscore(eventId: string): Promise<GameBoxscore> 
 
   return {
     eventId,
-    historicalContext: espnHistoryContext(data, eventId, Date.now()),
+    historicalContext: league === "nfl" ? espnHistoryContext(data, eventId, Date.now()) : null,
     homeTeamId,
     awayTeamId,
     homeScore: Number.parseInt(homeCompetitor.score, 10) || 0,
@@ -657,20 +678,24 @@ export async function fetchGameBoxscore(eventId: string): Promise<GameBoxscore> 
     quarter: competition.status.period || null,
     timeRemaining: competition.status.displayClock || null,
     teamStats: {
-      home: homeBoxscore ? parseTeamStats(homeBoxscore) : { ...emptyStats, teamId: homeTeamId },
-      away: awayBoxscore ? parseTeamStats(awayBoxscore) : { ...emptyStats, teamId: awayTeamId },
+      home: homeBoxscore
+        ? parseTeamStats(homeBoxscore, league)
+        : { ...emptyStats, teamId: homeTeamId },
+      away: awayBoxscore
+        ? parseTeamStats(awayBoxscore, league)
+        : { ...emptyStats, teamId: awayTeamId },
     },
     playerLeaders: {
-      home: parsePlayerLeaders(data.leaders, homeCompetitor.team.abbreviation),
-      away: parsePlayerLeaders(data.leaders, awayCompetitor.team.abbreviation),
+      home: parsePlayerLeaders(data.leaders, homeCompetitor.team.abbreviation, league),
+      away: parsePlayerLeaders(data.leaders, awayCompetitor.team.abbreviation, league),
     },
-    scoringPlays: parseScoringPlays(data.scoringPlays),
-    drives: parseDrives(data.drives?.previous),
+    scoringPlays: parseScoringPlays(data.scoringPlays, league),
+    drives: parseDrives(data.drives?.previous, league),
     lastPlay:
       data.drives?.current?.plays?.[data.drives.current.plays.length - 1]?.text ||
       data.drives?.current?.description ||
       null,
-    fieldPosition: parseFieldPosition(data.drives?.current),
+    fieldPosition: parseFieldPosition(data.drives?.current, league),
     fetchedAt: Date.now(),
     momentum: parseMomentumData(data.winprobability, data.drives?.previous),
   };

@@ -1,3 +1,5 @@
+import type { FootballLeague } from "@/lib/football-league";
+
 export type Conference = "AFC" | "NFC";
 
 export type RoundName = "wildCard" | "divisional" | "conference" | "superBowl";
@@ -25,6 +27,7 @@ export interface ScheduleTeam {
 }
 
 export interface ScheduleGame {
+  league?: FootballLeague;
   id: string;
   date: string;
   venue: string | null;
@@ -44,6 +47,8 @@ export interface ScheduleGame {
 }
 
 export interface SeasonSchedule {
+  collegePlayoffTeams?: import("@/lib/college-playoff").CollegePlayoffTeam[] | null;
+  league?: FootballLeague;
   phase: SeasonPhase;
   currentPhase: SeasonPhase;
   currentSeasonYear: number;
@@ -80,6 +85,7 @@ export interface SeededTeam extends Team {
 }
 
 export interface Matchup {
+  league?: FootballLeague;
   id: string;
   round: RoundName;
   conference: Conference | "superBowl";

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { FootballLeague } from "@/lib/football-league";
 import type { GameBoxscore } from "@/types";
 
 interface UseGameStatsResult {
@@ -11,12 +12,16 @@ interface UseGameStatsResult {
   lastUpdated: Date | null;
 }
 
-type StatsState = Omit<UseGameStatsResult, "refetch"> & { eventId: string | null };
+type StatsState = Omit<UseGameStatsResult, "refetch"> & {
+  eventId: string | null;
+  league?: FootballLeague;
+};
 
 export function useGameStats(
   eventId: string | null,
   isOpen: boolean,
   autoRefresh = true,
+  league: FootballLeague = "nfl",
 ): UseGameStatsResult {
   const [state, setState] = useState<StatsState>({
     eventId: null,
@@ -27,7 +32,7 @@ export function useGameStats(
   });
   const request = useRef<AbortController | null>(null);
   // Never render the previous game's data, even before effect cleanup runs.
-  const current = isOpen && state.eventId === eventId ? state : null;
+  const current = isOpen && state.eventId === eventId && state.league === league ? state : null;
   const stats = current?.stats ?? null;
 
   const fetchStats = useCallback(async () => {
@@ -38,19 +43,31 @@ export function useGameStats(
     request.current = controller;
     setState((previous) => ({
       eventId,
-      stats: previous.eventId === eventId ? previous.stats : null,
-      lastUpdated: previous.eventId === eventId ? previous.lastUpdated : null,
+      league,
+      stats: previous.eventId === eventId && previous.league === league ? previous.stats : null,
+      lastUpdated:
+        previous.eventId === eventId && previous.league === league ? previous.lastUpdated : null,
       isLoading: true,
       error: null,
     }));
 
     try {
-      const res = await fetch(`/api/game-stats/${eventId}`, { signal: controller.signal });
+      const res = await fetch(
+        `/api/game-stats/${eventId}${league === "nfl" ? "" : `?league=${league}`}`,
+        { signal: controller.signal },
+      );
       if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
       const data: GameBoxscore = await res.json();
       if (data.eventId !== eventId) throw new Error("Game stats do not match the requested game");
       if (controller.signal.aborted) return;
-      setState({ eventId, stats: data, lastUpdated: new Date(), isLoading: false, error: null });
+      setState({
+        eventId,
+        league,
+        stats: data,
+        lastUpdated: new Date(),
+        isLoading: false,
+        error: null,
+      });
     } catch (e) {
       if (controller.signal.aborted) return;
       setState((previous) => ({
@@ -59,7 +76,7 @@ export function useGameStats(
         error: e instanceof Error ? e : new Error("Unknown error"),
       }));
     }
-  }, [eventId, isOpen]);
+  }, [eventId, isOpen, league]);
 
   useEffect(() => {
     fetchStats();
