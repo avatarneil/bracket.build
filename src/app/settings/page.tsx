@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { AccountControls } from "@/components/AccountControls";
 import { AccountSettings } from "@/components/account/AccountSettings";
 
@@ -33,7 +34,9 @@ export default async function SettingsPage() {
         </header>
         <main id="settings-content" className="mx-auto max-w-7xl">
           <h1 className="mb-6 scroll-mt-4 text-3xl font-bold">Settings</h1>
-          <AccountSettings />
+          <Suspense fallback={<p>Loading settings…</p>}>
+            <AccountSettings />
+          </Suspense>
           <Link
             href="/"
             className="mt-6 inline-flex min-h-11 touch-manipulation items-center rounded text-sm text-gray-300 underline underline-offset-4 hover:text-white focus-visible:outline-2"

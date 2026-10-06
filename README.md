@@ -112,6 +112,77 @@ users with `+clerk_test` email addresses (no email delivery) and delete them aft
 each worker finishes. Settings responses are mocked in browser tests; persistence
 and account isolation are checked against the test database.
 
+## Game notifications and PWA
+
+Sign in and open **Settings → Notifications**. Turn on **Allow notifications**, then
+**Enable this device** to grant browser permission. Each browser or installed app
+needs its own enrollment. The master switch pauses alerts across devices without
+removing follows. **Remove all notification devices** revokes enrollment everywhere;
+those devices must be explicitly enabled again. Signing out unsubscribes the current
+browser when the app observes the account change.
+
+- **Game start**: confirmed kickoff for individually followed games or teams in a
+  selected NFL/FBS season, including postseason. Each follow has independent kickoff
+  and major-update controls, in addition to the account-wide switches.
+- **Major game updates**: score changes, lead changes, ties, and finals. Several plays
+  between polls can produce one combined score update.
+- **Recommended games**: within 15 minutes of scheduled kickoff for postseason games,
+  two ranked top-25 teams, or two teams with at least a 60% winning record after three games.
+- **Games heating up**: one alert per game for an eight-point-or-closer fourth quarter,
+  or overtime. Recommendations and heating-up alerts have separate NFL/FBS selections
+  and include games outside your follows.
+
+Use **Game alerts…** beside an upcoming/live schedule game to preselect it in settings,
+or choose a league, season, phase, week, and game/team there. Add another season as a
+separate team follow. Follows persist across devices; notification permission does not.
+
+The manifest supports installing bracket.build. On iOS/iPadOS 16.4+, use **Share →
+Add to Home Screen**, launch from the icon, and then enable notifications. Desktop
+and Android browsers with standard Web Push also work. Blocked permission must be
+changed in browser/device settings. **Show test notification** tests local display;
+it does not send through the remote push service. The worker handles background
+push and opens the matching game without navigating an existing bracket editor.
+Pages and account data are not cached offline.
+
+### Enable server delivery
+
+Generate a VAPID key pair once with `bunx web-push generate-vapid-keys`. Store these
+in Vercel's environment manager (never commit the private key):
+
+| Variable | Value |
+| --- | --- |
+| `VAPID_PUBLIC_KEY` | Generated public key, served to signed-in clients |
+| `VAPID_PRIVATE_KEY` | Generated private key, server only |
+| `VAPID_SUBJECT` | Contact URI, such as `mailto:you@example.com` or `https://bracket.build` |
+| `CRON_SECRET` | The existing shared cron secret, or a random secret of at least 32 characters |
+| `NOTIFICATION_ORIGIN` | Optional canonical origin; defaults to `https://bracket.build` |
+
+Use separate keys for development and production. Apply the additive migration via
+the existing deployment migration runner. The one-minute `/api/cron/notifications`
+schedule requires Vercel Pro or Enterprise. Preview deployments never run the
+dispatcher, even if called manually; preferences and local notification display can
+still be tested there. Missing VAPID settings leave enrollment disabled and the cron
+inactive. No push-provider credentials or production configuration are provisioned
+by this PR.
+
+The dispatcher polls the current scoreboard plus the preceding Eastern date to
+cover late games across week boundaries. It avoids feed requests without enabled
+devices, saves score baselines atomically with deduplicated events, and persists a
+delivery queue. New opt-ins never replay prior events. Cold starts and gaps over ten
+minutes establish a fresh baseline without announcing old kickoffs/scores/finals.
+Alerts expire after five minutes. Delivery claims prevent ordinary overlapping-run
+duplicates; transient failures retry up to three times and HTTP 404/410 removes
+expired subscriptions. A crash after the push provider accepts a message can still
+cause redelivery; stable notification tags coalesce it where supported. Each run
+sends up to 100 deliveries, with ten concurrent requests, and removes event history
+after eight days. Large audiences require increasing dispatcher throughput before
+the five-minute queue expiry. Browser/OS policy and ESPN latency affect arrival time.
+
+Verify settings, API ownership, rules, concurrent claims, opt-outs, retries, and the
+worker with `bun run test:unit` (set `TEST_DATABASE_URL` for storage tests) and
+`bun run test:e2e e2e/tests/notifications.spec.ts`. Before enabling production delivery,
+verify a real background push on each target installed browser/device.
+
 ## Ridiculous game stats
 
 Sign in, open **Settings**, and enable **Ridiculous stats (BETA)**. The setting

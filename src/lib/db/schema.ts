@@ -12,6 +12,74 @@ import {
 } from "drizzle-orm/pg-core";
 import type { BracketDocument } from "@/lib/bracket-document";
 import type { Measurements, Phase, Location } from "@/lib/ridiculous-stats/types";
+import type {
+  GameAlert,
+  NotificationFollow,
+  NotificationGame,
+  NotificationPreferences,
+} from "@/lib/notifications/types";
+
+export const notificationSettings = pgTable("notification_settings", {
+  ownerId: text("owner_id").primaryKey(),
+  preferences: jsonb("preferences").$type<NotificationPreferences>().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const notificationFollows = pgTable(
+  "notification_follows",
+  {
+    ownerId: text("owner_id").notNull(),
+    key: text("key").notNull(),
+    follow: jsonb("follow").$type<NotificationFollow>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.ownerId, table.key] })],
+);
+
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: text("id").primaryKey(),
+    ownerId: text("owner_id").notNull(),
+    subscription: jsonb("subscription")
+      .$type<{ endpoint: string; keys: { p256dh: string; auth: string } }>()
+      .notNull(),
+    origin: text("origin").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("push_subscriptions_owner_idx").on(table.ownerId)],
+);
+
+export const notificationSnapshots = pgTable("notification_snapshots", {
+  id: text("id").primaryKey(),
+  game: jsonb("game").$type<NotificationGame>().notNull(),
+  observedAt: timestamp("observed_at", { withTimezone: true }).notNull(),
+});
+export const notificationEvents = pgTable(
+  "notification_events",
+  {
+    id: text("id").primaryKey(),
+    alert: jsonb("alert").$type<GameAlert>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [index("notification_events_expires_idx").on(table.expiresAt)],
+);
+
+export const notificationDeliveries = pgTable(
+  "notification_deliveries",
+  {
+    eventId: text("event_id")
+      .notNull()
+      .references(() => notificationEvents.id, { onDelete: "cascade" }),
+    subscriptionId: text("subscription_id")
+      .notNull()
+      .references(() => pushSubscriptions.id, { onDelete: "cascade" }),
+    claimedAt: timestamp("claimed_at", { withTimezone: true }).notNull(),
+    sent: boolean("sent").notNull().default(false),
+    attempts: integer("attempts").notNull().default(1),
+  },
+  (table) => [primaryKey({ columns: [table.eventId, table.subscriptionId] })],
+);
 
 export const accountSettings = pgTable("account_settings", {
   ownerId: text("owner_id").primaryKey(),

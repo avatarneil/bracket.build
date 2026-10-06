@@ -4,6 +4,7 @@ import { LoaderCircle } from "lucide-react";
 import { useAccountSettings } from "@/contexts/AccountSettingsContext";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { NotificationSettings } from "./NotificationSettings";
 
 export function AccountSettings() {
   const { settings, saving, error, notice, reload, setRidiculousStatsEnabled } =
@@ -77,6 +78,7 @@ export function AccountSettings() {
           )}
         </div>
       </section>
+      <NotificationSettings />
     </div>
   );
 }

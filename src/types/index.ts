@@ -16,6 +16,7 @@ export interface ScheduleWeek {
 }
 
 export interface ScheduleTeam {
+  rank?: number;
   id: string;
   abbreviation: string;
   location: string;
