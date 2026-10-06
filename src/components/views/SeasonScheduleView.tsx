@@ -238,7 +238,7 @@ export function SeasonScheduleView({
           aria-live="polite"
         >
           {visibleGames.map((game) => (
-            <ScheduleGameRow key={game.id} game={game} />
+            <ScheduleGameRow key={game.id} game={game} schedule={schedule} />
           ))}
         </ul>
       )}

@@ -1,14 +1,17 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import { Radio } from "lucide-react";
 import { useGameDialog } from "@/contexts/GameDialogContext";
 import { scheduleGameToLiveInfo } from "@/lib/schedule-game";
 import { cn } from "@/lib/utils";
-import type { ScheduleGame } from "@/types";
+import type { ScheduleGame, SeasonSchedule } from "@/types";
 
 interface ScheduleGameRowProps {
   game: ScheduleGame;
+  schedule: Pick<SeasonSchedule, "seasonYear" | "phase" | "week">;
 }
 
 function formatKickoff(date: string): string {
@@ -67,7 +70,8 @@ function TeamLine({
   );
 }
 
-export function ScheduleGameRow({ game }: ScheduleGameRowProps) {
+export function ScheduleGameRow({ game, schedule }: ScheduleGameRowProps) {
+  const { userId } = useAuth();
   const { openGameDialog, selectedGame } = useGameDialog();
   const isSelected = selectedGame?.matchup.id === `schedule-${game.id}`;
   const showScore = game.isInProgress || game.isComplete;
@@ -152,6 +156,15 @@ export function ScheduleGameRow({ game }: ScheduleGameRowProps) {
         </button>
       ) : (
         <article>{content}</article>
+      )}
+      {userId && !game.isComplete && (
+        <Link
+          href={`/settings?${new URLSearchParams({ league: game.league ?? "nfl", season: String(schedule.seasonYear), phase: schedule.phase, week: String(schedule.week), followGame: game.id })}#notifications-heading`}
+          className="mt-2 inline-flex min-h-11 touch-manipulation items-center rounded text-sm text-gray-300 underline underline-offset-4 hover:text-white focus-visible:outline-2"
+          aria-label={`Set game alerts for ${game.awayTeam.displayName} at ${game.homeTeam.displayName}`}
+        >
+          Game alerts…
+        </Link>
       )}
     </li>
   );

@@ -81,6 +81,8 @@ interface ESPNCompetition {
 interface ESPNEvent {
   id: string;
   date: string;
+  season?: { year: number; type: number };
+  week?: { number: number };
   competitions: ESPNCompetition[];
 }
 
@@ -103,6 +105,9 @@ function parseTeam(competitor: ESPNCompetitor, league: FootballLeague): Schedule
 
   return {
     id: footballTeamId(team, league),
+    ...(competitor.curatedRank?.current && competitor.curatedRank.current <= 25
+      ? { rank: competitor.curatedRank.current }
+      : {}),
     abbreviation: team.abbreviation.toUpperCase(),
     location: team.location,
     name: team.name,
@@ -174,7 +179,7 @@ async function fetchScoreboard(
     params.set("limit", "200"); // ESPN silently falls back to 25 for an oversized limit.
   }
   const url = `https://site.api.espn.com/apis/site/v2/sports/football/${league}/scoreboard?${params}`;
-  const response = await fetch(url, { cache: "no-store" });
+  const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(10_000) });
 
   if (!response.ok) {
     throw new Error(`ESPN API error: ${response.status}`);
@@ -189,6 +194,41 @@ function scoreboardParams(seasonYear: number, phase: SeasonPhase, week: number) 
     seasontype: PHASE_TO_TYPE[phase].toString(),
     week: week.toString(),
   });
+}
+
+// Use the current week and the preceding Eastern date at week boundaries, so
+// late games remain observable after ESPN advances its default scoreboard.
+export async function fetchNotificationGames(league: FootballLeague, now = new Date()) {
+  const previousDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(new Date(now.getTime() - 24 * 60 * 60_000))
+    .replaceAll("-", "");
+  const responses = await Promise.all([
+    fetchScoreboard(league),
+    fetchScoreboard(league, new URLSearchParams({ dates: previousDate })),
+  ]);
+  const games = new Map<string, import("@/lib/notifications/types").NotificationGame>();
+  for (const response of responses.reverse()) {
+    for (const event of response.events ?? []) {
+      const season = event.season ?? response.season;
+      const week = event.week?.number ?? response.week?.number;
+      if (!season?.year || !TYPE_TO_PHASE[season.type] || !week) continue;
+      const game = parseGame(event, league);
+      if (game)
+        games.set(game.id, {
+          ...game,
+          league,
+          season: season.year,
+          phase: TYPE_TO_PHASE[season.type],
+          week,
+        });
+    }
+  }
+  return [...games.values()];
 }
 
 function hasPostedMatchups(response: ESPNScoreboardResponse): boolean {

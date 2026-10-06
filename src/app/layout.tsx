@@ -6,6 +6,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { AccountSettingsProvider } from "@/contexts/AccountSettingsContext";
+import { PushRegistration } from "@/components/PushRegistration";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,6 +24,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   colorScheme: "dark",
+  themeColor: "#000000",
 };
 
 export const metadata: Metadata = {
@@ -82,6 +84,7 @@ export default function RootLayout({
             },
           }}
         >
+          <PushRegistration />
           <AccountSettingsProvider>{children}</AccountSettingsProvider>
           {/* Position toaster at top on mobile to avoid fixed bottom bar, bottom-right on desktop */}
           <Toaster richColors position="top-center" />
